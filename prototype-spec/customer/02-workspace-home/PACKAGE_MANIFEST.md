@@ -1,0 +1,25 @@
+# Package Manifest
+
+## Root Files
+
+- `CODEX_VERIFY_PROMPT.txt`
+- `COMPONENT_MAP.md`
+- `DATA_BINDING_SPEC.md`
+- `INTERACTION_SPEC.md`
+- `PACKAGE_MANIFEST.md`
+- `PAGE_STRUCTURE.md`
+- `README.md`
+- `RESPONSIVE_SPEC.md`
+- `STATE_SPEC.md`
+- `STYLE_SPEC.md`
+
+## visual-spec
+
+- `CONTENT_SECTION_SPEC.md`
+- `HERO_SECTION_SPEC.md`
+- `VISUAL_DIRECTION.md`
+
+## assets-spec
+
+- `PROJECT_COVER_SPEC.md`
+- `WORKSPACE_VISUAL_SPEC.md`

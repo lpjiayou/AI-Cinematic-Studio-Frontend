@@ -1,0 +1,39 @@
+Verify Workspace Home Prototype Specification.
+
+Workspace:
+AI-Cinematic-Studio-Frontend
+
+Read:
+
+prototype-spec/customer/02-workspace-home/
+
+Also read:
+
+docs/design-system/
+
+Verify only:
+
+1. All required specification files exist.
+2. Specification priority is unambiguous.
+3. Component mapping is compatible with current ACS foundation.
+4. Token names match the current implementation.
+5. Responsive rules are internally consistent.
+6. No business/domain responsibility is assigned to the frontend.
+7. No raw technical information is required in customer-facing UI.
+8. Required visual asset paths are explicit.
+
+Do NOT:
+
+- implement Workspace Home
+- modify code
+- create assets
+- change design system
+- commit
+
+Report:
+
+- files found
+- inconsistencies
+- missing tokens/components
+- implementation blockers
+- readiness status
