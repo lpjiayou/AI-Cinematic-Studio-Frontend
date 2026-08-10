@@ -1,0 +1,211 @@
+.timeline {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timelineItem {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: var(--acs-space-3);
+  padding-bottom: var(--acs-space-5);
+}
+
+.timelineItem:not(:last-child)::before {
+  position: absolute;
+  top: 0.875rem;
+  bottom: -0.125rem;
+  left: 0.34375rem;
+  width: 1px;
+  background: var(--acs-border-strong);
+  content: "";
+}
+
+.timelineMarker {
+  position: relative;
+  z-index: 1;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.25rem;
+  border: 2px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-full);
+  background: var(--acs-surface);
+}
+
+.timelineItem[data-state="current"] .timelineMarker {
+  border-color: var(--acs-primary);
+  background: var(--acs-primary);
+  box-shadow: 0 0 0 4px var(--acs-primary-soft);
+}
+
+.timelineItem[data-state="complete"] .timelineMarker {
+  border-color: var(--acs-success);
+  background: var(--acs-success);
+}
+
+.timelineContent {
+  min-width: 0;
+}
+
+.timelineRow {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--acs-space-3);
+}
+
+.timelineRow strong {
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-body-size);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.timelineRow span,
+.timelineContent p {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.timelineContent p {
+  margin: var(--acs-space-1) 0 0;
+}
+
+.emptyState {
+  padding: var(--acs-space-6);
+  border: 1px dashed var(--acs-border-strong);
+  border-radius: var(--acs-radius-card);
+  color: var(--acs-text-muted);
+  text-align: center;
+}
+
+.workflowMap {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workflowStage {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  align-items: center;
+}
+
+.workflowNode {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--acs-space-3);
+  padding: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-card);
+  background: var(--acs-surface);
+}
+
+.workflowNode > div {
+  min-width: 0;
+}
+
+.workflowNode strong,
+.workflowNode p {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+}
+
+.workflowNode strong {
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-body-size);
+  font-weight: var(--acs-weight-semibold);
+  white-space: nowrap;
+}
+
+.workflowNode p {
+  margin-top: var(--acs-space-1);
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  white-space: nowrap;
+}
+
+.workflowIndex {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-muted);
+  font-family: var(--acs-font-mono);
+  font-size: var(--acs-type-caption-size);
+}
+
+.workflowConnector {
+  width: var(--acs-space-6);
+  height: 1px;
+  flex: 0 0 auto;
+  background: var(--acs-border-strong);
+}
+
+.workflowStage[data-state="active"] .workflowNode {
+  border-color: var(--acs-primary);
+  background: var(--acs-surface-selected);
+  box-shadow: 0 0 0 3px var(--acs-primary-soft);
+}
+
+.workflowStage[data-state="active"] .workflowIndex {
+  background: var(--acs-primary);
+  color: var(--acs-on-primary);
+}
+
+.workflowStage[data-state="complete"] .workflowNode {
+  border-color: color-mix(in srgb, var(--acs-success), transparent 54%);
+}
+
+.workflowStage[data-state="complete"] .workflowIndex {
+  background: var(--acs-success-soft);
+  color: var(--acs-success);
+}
+
+.workflowStage[data-state="blocked"] .workflowNode {
+  border-color: color-mix(in srgb, var(--acs-danger), transparent 54%);
+}
+
+.workflowStage[data-state="blocked"] .workflowIndex {
+  background: var(--acs-danger-soft);
+  color: var(--acs-danger);
+}
+
+.workflowMap[data-orientation="vertical"] {
+  flex-direction: column;
+}
+
+.workflowMap[data-orientation="vertical"] .workflowStage {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.workflowMap[data-orientation="vertical"] .workflowConnector {
+  width: 1px;
+  height: var(--acs-space-4);
+  margin-left: 1.75rem;
+}
+
+@media (max-width: 56rem) {
+  .workflowMap[data-orientation="horizontal"] {
+    overflow-x: auto;
+    padding-bottom: var(--acs-space-2);
+  }
+
+  .workflowMap[data-orientation="horizontal"] .workflowStage {
+    min-width: 15rem;
+  }
+}

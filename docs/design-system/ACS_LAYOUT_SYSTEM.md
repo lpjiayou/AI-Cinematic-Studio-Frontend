@@ -1,0 +1,157 @@
+# ACS Layout System
+
+**Status:** Official
+
+**Version:** V2.3
+
+**Public entry point:** `src/layouts/index.ts`
+
+## 1. Layout hierarchy
+
+ACS provides three composable presentation shells:
+
+```text
+CustomerLayout
+└── customer-facing content surface
+
+WorkspaceLayout
+├── global sidebar
+├── top bar
+├── optional project navigator
+├── main workspace content
+├── optional inspector
+└── optional bottom drawer
+
+EditorLayout
+├── toolbar
+├── optional object navigator
+├── editor canvas
+├── optional inspector
+├── optional bottom drawer
+└── workflow action bar
+```
+
+The shells manage geometry only. They do not own routes, navigation state, project state, data fetching, or business actions.
+
+## 2. Canonical dimensions
+
+| Region | Token | Value |
+| --- | --- | --- |
+| Global sidebar | `--acs-sidebar-width` | `240px` |
+| Collapsed sidebar | `--acs-sidebar-collapsed-width` | `72px` |
+| Header / top bar | `--acs-header-height` | `72px` |
+| Project navigator | `--acs-project-nav-width` | `220px` |
+| Object navigator | `--acs-object-nav-width` | `210px` |
+| Inspector | `--acs-inspector-width` | `340px` |
+| Bottom drawer maximum | `--acs-bottom-drawer-height` | `280px` |
+| Customer content maximum | `--acs-content-max-width` | `1440px` |
+
+Feature code must not copy these values. Use the layout shell or the token.
+
+## 3. CustomerLayout
+
+Purpose: simple customer-facing shell without product navigation behavior.
+
+| Prop | Contract |
+| --- | --- |
+| `children` | Main content |
+| `header` | Optional header slot |
+| `footer` | Optional footer slot |
+| `announcement` | Optional full-width announcement |
+| `contained` | Constrains content to the ACS maximum width; defaults to `true` |
+
+The main region grows to fill the viewport. Announcement, header, and footer are presentational slots supplied by the consumer.
+
+## 4. WorkspaceLayout
+
+Purpose: primary application workbench shell.
+
+| Prop | Contract |
+| --- | --- |
+| `children` | Main workspace region |
+| `sidebar` | Optional global sidebar |
+| `projectNavigator` | Optional project-scoped navigator |
+| `topbar` | Optional top bar |
+| `inspector` | Optional inspector content |
+| `bottomDrawer` | Optional bottom drawer content |
+| `sidebarCollapsed` | Selects 72px sidebar geometry |
+| `inspectorOpen` | Shows supplied inspector; defaults to `true` |
+| `bottomDrawerOpen` | Shows supplied drawer; defaults to `false` |
+| `contentLabel` | Accessible main-region label; defaults to `工作区内容` |
+
+The consumer owns open and collapsed state. The layout does not add toggle buttons or navigation logic.
+
+## 5. EditorLayout
+
+Purpose: dense professional editing framework inside a workspace.
+
+| Prop | Contract |
+| --- | --- |
+| `children` | Editor canvas content |
+| `navigator` | Optional object navigator |
+| `toolbar` | Optional editor toolbar |
+| `inspector` | Optional inspector content |
+| `actionBar` | Optional workflow action bar |
+| `bottomDrawer` | Optional version, job, or activity drawer |
+| `navigatorOpen` | Shows supplied navigator; defaults to `true` |
+| `inspectorOpen` | Shows supplied inspector; defaults to `true` |
+| `bottomDrawerOpen` | Shows supplied drawer; defaults to `false` |
+| `canvasLabel` | Accessible main-region label; defaults to `编辑器画布` |
+
+The editor canvas uses the media-stage token. Navigation and inspector regions use deep surfaces. Toolbars and action bars use standard surfaces.
+
+## 6. Responsive behavior
+
+### Above 72rem
+
+- All supplied regions may be visible.
+- Workspace may show project navigator, content, and inspector together.
+- Editor may show object navigator, canvas, and inspector together.
+
+### At or below 72rem
+
+- Global sidebar uses collapsed geometry.
+- Workspace and editor inspectors are hidden from the fixed grid.
+- Project and object navigators remain available while width permits.
+- Consumers may present hidden inspector content through `InspectorDrawer`.
+
+### At or below 48rem
+
+- Global sidebar, project navigator, object navigator, and fixed inspector are removed from the grid.
+- Main content becomes single-column.
+- Consumers remain responsible for accessible controls that expose navigation or inspector content as overlays.
+
+Responsive CSS changes presentation only. It does not change application state or imply that a region's data is unavailable.
+
+## 7. Composition patterns
+
+Workspace with editor:
+
+```tsx
+<WorkspaceLayout
+  sidebar={globalSidebar}
+  topbar={topbar}
+  projectNavigator={projectNavigator}
+  inspector={workspaceInspector}
+>
+  <EditorLayout
+    navigator={objectNavigator}
+    toolbar={toolbar}
+    inspector={editorInspector}
+    actionBar={workflowActions}
+  >
+    {editorCanvas}
+  </EditorLayout>
+</WorkspaceLayout>
+```
+
+Only include one fixed inspector at a time. When `EditorLayout` owns the active-object inspector, omit the workspace inspector.
+
+## 8. Layout prohibitions
+
+- Do not add product navigation items inside layout components.
+- Do not create route-aware behavior inside layout components.
+- Do not place API calls, persistence, or domain stores in layouts.
+- Do not invent project, episode, version, or asset facts to fill empty slots.
+- Do not override canonical widths in feature CSS.
+- Do not create a parallel global shell for a single feature.

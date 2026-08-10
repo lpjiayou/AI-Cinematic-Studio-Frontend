@@ -1,0 +1,191 @@
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Frozen ACS enterprise cinematic palette. */
+  --acs-bg: #0f1318;
+  --acs-sidebar: #161c23;
+  --acs-surface: #1e252d;
+  --acs-surface-deep: #11171d;
+  --acs-surface-hover: #252e37;
+  --acs-surface-selected: #193b39;
+  --acs-border: #2c353f;
+  --acs-border-strong: #3a4652;
+  --acs-primary: #22d1b6;
+  --acs-primary-hover: #4ee2cb;
+  --acs-accent: #e8a868;
+  --acs-ai-accent: #8f79df;
+  --acs-media-stage: #090c0f;
+  --acs-on-primary: #071412;
+  --acs-text-primary: #f4f7fa;
+  --acs-text-secondary: #cbd5e1;
+  --acs-text-muted: #8894a3;
+  --acs-danger: #e55959;
+  --acs-success: #36d399;
+  --acs-info: #5dade2;
+  --acs-overlay: rgb(5 8 12 / 72%);
+  --acs-primary-soft: rgb(34 209 182 / 12%);
+  --acs-accent-soft: rgb(232 168 104 / 12%);
+  --acs-ai-soft: rgb(143 121 223 / 14%);
+  --acs-danger-soft: rgb(229 89 89 / 12%);
+  --acs-success-soft: rgb(54 211 153 / 12%);
+  --acs-info-soft: rgb(93 173 226 / 12%);
+  --acs-focus-ring: rgb(34 209 182 / 34%);
+  --acs-shadow-soft: 0 12px 36px rgb(0 0 0 / 20%);
+  --acs-shadow-overlay: 0 24px 72px rgb(0 0 0 / 48%);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --acs-bg: #f3f1ec;
+  --acs-sidebar: #fffdfa;
+  --acs-surface: #fffdfa;
+  --acs-surface-deep: #f5f3ee;
+  --acs-surface-hover: #f3f4f3;
+  --acs-surface-selected: #e8f3f1;
+  --acs-border: #e3e2dc;
+  --acs-border-strong: #c8cbc6;
+  --acs-primary: #176d70;
+  --acs-primary-hover: #11595c;
+  --acs-accent: #936423;
+  --acs-ai-accent: #596ba8;
+  --acs-media-stage: #e9e7e1;
+  --acs-on-primary: #f7fffd;
+  --acs-text-primary: #17201f;
+  --acs-text-secondary: #53605e;
+  --acs-text-muted: #7c8886;
+  --acs-danger: #c23b32;
+  --acs-success: #16845b;
+  --acs-info: #2f6f9f;
+  --acs-overlay: rgb(29 33 41 / 42%);
+  --acs-primary-soft: rgb(23 109 112 / 12%);
+  --acs-accent-soft: #fbf2df;
+  --acs-ai-soft: #edf0fa;
+  --acs-danger-soft: #fff1f0;
+  --acs-success-soft: #e8f7f0;
+  --acs-info-soft: rgb(47 111 159 / 10%);
+  --acs-focus-ring: rgb(23 109 112 / 24%);
+  --acs-shadow-soft: 0 12px 36px rgb(20 30 29 / 8%);
+  --acs-shadow-overlay: 0 24px 72px rgb(8 15 22 / 20%);
+}
+
+:root {
+  --acs-font-sans: Inter, "Noto Sans SC", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --acs-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --acs-type-display-size: 1.625rem;
+  --acs-type-display-line-height: 1.2;
+  --acs-type-title-size: 1.25rem;
+  --acs-type-title-line-height: 1.3;
+  --acs-type-section-size: 1rem;
+  --acs-type-section-line-height: 1.4;
+  --acs-type-body-size: 0.875rem;
+  --acs-type-body-line-height: 1.5;
+  --acs-type-caption-size: 0.75rem;
+  --acs-type-caption-line-height: 1.4;
+  --acs-weight-regular: 400;
+  --acs-weight-medium: 500;
+  --acs-weight-semibold: 600;
+  --acs-weight-bold: 700;
+
+  --acs-space-0: 0;
+  --acs-space-1: 0.25rem;
+  --acs-space-2: 0.5rem;
+  --acs-space-3: 0.75rem;
+  --acs-space-4: 1rem;
+  --acs-space-5: 1.25rem;
+  --acs-space-6: 1.5rem;
+  --acs-space-8: 2rem;
+  --acs-space-10: 2.5rem;
+  --acs-space-12: 3rem;
+  --acs-space-16: 4rem;
+
+  --acs-radius-none: 0;
+  --acs-radius-control: 0.375rem;
+  --acs-radius-card: 0.5rem;
+  --acs-radius-panel: 0.625rem;
+  --acs-radius-full: 9999px;
+
+  --acs-motion-fast: 120ms;
+  --acs-motion-base: 180ms;
+  --acs-motion-slow: 240ms;
+  --acs-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --acs-ease-enter: cubic-bezier(0, 0, 0, 1);
+  --acs-ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  --acs-sidebar-width: 15rem;
+  --acs-sidebar-collapsed-width: 4.5rem;
+  --acs-header-height: 4.5rem;
+  --acs-project-nav-width: 13.75rem;
+  --acs-object-nav-width: 13.125rem;
+  --acs-inspector-width: 21.25rem;
+  --acs-bottom-drawer-height: 17.5rem;
+  --acs-content-max-width: 90rem;
+}
+
+@theme inline {
+  --color-acs-bg: var(--acs-bg);
+  --color-acs-sidebar: var(--acs-sidebar);
+  --color-acs-surface: var(--acs-surface);
+  --color-acs-surface-deep: var(--acs-surface-deep);
+  --color-acs-surface-hover: var(--acs-surface-hover);
+  --color-acs-surface-selected: var(--acs-surface-selected);
+  --color-acs-border: var(--acs-border);
+  --color-acs-border-strong: var(--acs-border-strong);
+  --color-acs-primary: var(--acs-primary);
+  --color-acs-primary-hover: var(--acs-primary-hover);
+  --color-acs-accent: var(--acs-accent);
+  --color-acs-ai: var(--acs-ai-accent);
+  --color-acs-media-stage: var(--acs-media-stage);
+  --color-acs-on-primary: var(--acs-on-primary);
+  --color-acs-text-primary: var(--acs-text-primary);
+  --color-acs-text-secondary: var(--acs-text-secondary);
+  --color-acs-text-muted: var(--acs-text-muted);
+  --color-acs-danger: var(--acs-danger);
+  --color-acs-success: var(--acs-success);
+  --color-acs-info: var(--acs-info);
+  --color-acs-overlay: var(--acs-overlay);
+  --color-acs-primary-soft: var(--acs-primary-soft);
+  --color-acs-accent-soft: var(--acs-accent-soft);
+  --color-acs-ai-soft: var(--acs-ai-soft);
+  --color-acs-danger-soft: var(--acs-danger-soft);
+  --color-acs-success-soft: var(--acs-success-soft);
+  --color-acs-info-soft: var(--acs-info-soft);
+  --font-sans: var(--acs-font-sans);
+  --font-mono: var(--acs-font-mono);
+  --text-acs-display: var(--acs-type-display-size);
+  --text-acs-display--line-height: var(--acs-type-display-line-height);
+  --text-acs-title: var(--acs-type-title-size);
+  --text-acs-title--line-height: var(--acs-type-title-line-height);
+  --text-acs-section: var(--acs-type-section-size);
+  --text-acs-section--line-height: var(--acs-type-section-line-height);
+  --text-acs-body: var(--acs-type-body-size);
+  --text-acs-body--line-height: var(--acs-type-body-line-height);
+  --text-acs-caption: var(--acs-type-caption-size);
+  --text-acs-caption--line-height: var(--acs-type-caption-line-height);
+  --font-weight-acs-regular: var(--acs-weight-regular);
+  --font-weight-acs-medium: var(--acs-weight-medium);
+  --font-weight-acs-semibold: var(--acs-weight-semibold);
+  --font-weight-acs-bold: var(--acs-weight-bold);
+  --spacing-acs-0: var(--acs-space-0);
+  --spacing-acs-1: var(--acs-space-1);
+  --spacing-acs-2: var(--acs-space-2);
+  --spacing-acs-3: var(--acs-space-3);
+  --spacing-acs-4: var(--acs-space-4);
+  --spacing-acs-5: var(--acs-space-5);
+  --spacing-acs-6: var(--acs-space-6);
+  --spacing-acs-8: var(--acs-space-8);
+  --spacing-acs-10: var(--acs-space-10);
+  --spacing-acs-12: var(--acs-space-12);
+  --spacing-acs-16: var(--acs-space-16);
+  --radius-acs-none: var(--acs-radius-none);
+  --radius-acs-control: var(--acs-radius-control);
+  --radius-acs-card: var(--acs-radius-card);
+  --radius-acs-panel: var(--acs-radius-panel);
+  --radius-acs-full: var(--acs-radius-full);
+  --shadow-acs-soft: var(--acs-shadow-soft);
+  --shadow-acs-overlay: var(--acs-shadow-overlay);
+  --ease-acs-standard: var(--acs-ease-standard);
+  --ease-acs-enter: var(--acs-ease-enter);
+  --ease-acs-exit: var(--acs-ease-exit);
+}
