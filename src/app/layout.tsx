@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ThemeProvider } from "@/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AI Cinematic Studio V2.3",
-  description: "AI Cinematic Studio V2.3 Experience Layer frontend foundation.",
+  description: "镜构智能 AI Cinematic Studio 客户体验入口。",
 };
 
 const themeBootstrap = `
@@ -20,11 +21,11 @@ const themeBootstrap = `
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="zh-CN" data-theme="dark" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
-      </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
+        <Script id="acs-theme-bootstrap" strategy="beforeInteractive">
+          {themeBootstrap}
+        </Script>
       </body>
     </html>
   );

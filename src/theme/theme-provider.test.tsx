@@ -29,4 +29,19 @@ describe("ThemeProvider", () => {
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
     expect(window.localStorage.getItem("acs-theme")).toBe("light");
   });
+
+  it("restores a saved preference after the hydration-safe first render", async () => {
+    window.localStorage.setItem("acs-theme", "light");
+    document.documentElement.dataset.theme = "light";
+
+    render(
+      <ThemeProvider>
+        <ThemeHarness />
+      </ThemeProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByRole("button")).toHaveTextContent("light"));
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
+    expect(window.localStorage.getItem("acs-theme")).toBe("light");
+  });
 });
