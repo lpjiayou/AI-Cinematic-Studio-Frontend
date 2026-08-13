@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { ThemeProvider } from "@/theme";
 import {
   StoryWorldPage,
   WorldTimeline,
   type TimelineEventPreview,
 } from "./story-world";
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
 
 function renderStoryWorldPage() {
   return render(
@@ -184,14 +180,13 @@ describe("StoryWorldPage", () => {
     expect(screen.getByText(/不会持久化 IP Bible/)).toBeInTheDocument();
   });
 
-  it("inherits and switches the ACS ThemeProvider", async () => {
-    const user = userEvent.setup();
+  it("keeps body theme reads without rendering page-owned shell controls", async () => {
+    window.localStorage.setItem("acs-theme", "light");
     renderStoryWorldPage();
 
-    await user.click(screen.getByRole("button", { name: "切换至浅色模式" }));
-
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
-    expect(window.localStorage.getItem("acs-theme")).toBe("light");
+    expect(screen.queryByRole("button", { name: /切换至.*模式/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "返回 AI 导演" })).not.toBeInTheDocument();
     expect(
       screen.getAllByAltText(
         "电影世界全景中展示未来城市、时代环境和空间规模的概念视觉",

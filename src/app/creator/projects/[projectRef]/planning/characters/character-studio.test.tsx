@@ -4,12 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/theme";
 import { CharacterStudioPage } from "./character-studio";
 
-const routerPush = vi.fn();
 let mobileViewport = false;
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: routerPush }),
-}));
 
 function installMatchMedia() {
   Object.defineProperty(window, "matchMedia", {
@@ -40,7 +35,6 @@ describe("CharacterStudioPage", () => {
   beforeEach(() => {
     mobileViewport = false;
     installMatchMedia();
-    routerPush.mockClear();
     window.localStorage.clear();
     document.documentElement.dataset.theme = "dark";
   });
@@ -312,18 +306,18 @@ describe("CharacterStudioPage", () => {
     });
     expect(within(dialog).getByText("本地预览已确认")).toBeInTheDocument();
     expect(within(dialog).getByText(/只保留为本地创作预览/)).toBeInTheDocument();
-    expect(routerPush).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "返回故事世界" })).not.toBeInTheDocument();
   });
 
-  it("inherits the ACS theme and preserves the same character asset on mobile", async () => {
+  it("uses the global theme context and preserves the same character asset on mobile", async () => {
     const user = userEvent.setup();
     mobileViewport = true;
     installMatchMedia();
+    window.localStorage.setItem("acs-theme", "light");
     renderCharacterStudio();
 
-    await user.click(screen.getByRole("button", { name: "切换至浅色模式" }));
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
-    expect(window.localStorage.getItem("acs-theme")).toBe("light");
+    expect(screen.queryByRole("button", { name: /切换至.*模式/ })).not.toBeInTheDocument();
     expect(
       screen.getAllByAltText("电影角色站在所属世界环境中的整体身份与视觉设定").length,
     ).toBeGreaterThan(0);

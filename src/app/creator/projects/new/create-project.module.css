@@ -3,65 +3,6 @@
   background: var(--acs-bg);
 }
 
-.headerInner {
-  width: 100%;
-  max-width: var(--acs-content-max-width);
-  min-height: var(--acs-header-height);
-  margin: 0 auto;
-  padding: var(--acs-space-3) var(--acs-space-8);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--acs-space-6);
-}
-
-.brandLockup,
-.brandCopy,
-.headerContext {
-  display: flex;
-  align-items: center;
-}
-
-.brandLockup {
-  gap: var(--acs-space-3);
-}
-
-.brandMark {
-  width: 2.5rem;
-  height: 2.5rem;
-  object-fit: contain;
-}
-
-.brandCopy {
-  align-items: flex-start;
-  flex-direction: column;
-  line-height: var(--acs-type-caption-line-height);
-}
-
-.brandCopy strong {
-  color: var(--acs-text-primary);
-  font-size: var(--acs-type-section-size);
-  font-weight: var(--acs-weight-semibold);
-}
-
-.brandCopy span {
-  color: var(--acs-text-muted);
-  font-size: var(--acs-type-caption-size);
-}
-
-.headerContext {
-  gap: var(--acs-space-4);
-}
-
-.headerContext > button[data-size="small"] {
-  height: 2.75rem;
-  min-height: 2.75rem;
-}
-
-.themeIcon {
-  margin-right: var(--acs-space-2);
-}
-
 .page {
   width: 100%;
   max-width: var(--acs-content-max-width);
@@ -446,7 +387,6 @@
 }
 
 @media (max-width: 63.9375rem) {
-  .headerInner,
   .page {
     padding-right: var(--acs-space-6);
     padding-left: var(--acs-space-6);
@@ -470,39 +410,6 @@
 }
 
 @media (max-width: 47.9375rem) {
-  .headerInner {
-    min-height: var(--acs-header-height);
-    padding: var(--acs-space-3) var(--acs-space-4);
-  }
-
-  .brandCopy span,
-  .headerContext > span {
-    display: none;
-  }
-
-  .headerContext {
-    gap: var(--acs-space-2);
-  }
-
-  .headerContext button {
-    min-width: 2.75rem;
-    padding-right: var(--acs-space-3);
-    padding-left: var(--acs-space-3);
-  }
-
-  .themeLabel {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
-  .themeIcon {
-    margin-right: 0;
-  }
-
   .page {
     padding: var(--acs-space-8) var(--acs-space-4) var(--acs-space-12);
   }

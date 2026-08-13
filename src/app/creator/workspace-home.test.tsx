@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ThemeProvider } from "@/theme";
@@ -40,13 +40,14 @@ describe("WorkspaceHomePage", () => {
     expect(screen.queryByText(/GPU|Queue ID|Provider|Hash|Ref/)).not.toBeInTheDocument();
   });
 
-  it("switches themes and keeps guided actions local", async () => {
+  it("keeps guided actions local without rendering page-owned shell controls", async () => {
     const user = userEvent.setup();
     renderWorkspace();
 
-    await user.click(screen.getByRole("button", { name: "切换至浅色模式" }));
-    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
-    expect(window.localStorage.getItem("acs-theme")).toBe("light");
+    expect(screen.queryByRole("button", { name: /切换至.*模式/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: "工作台主要导航" }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: /新建项目/ })[0]);
     expect(await screen.findByRole("dialog", { name: "新建项目" })).toBeInTheDocument();

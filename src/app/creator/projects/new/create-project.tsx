@@ -97,49 +97,6 @@ function getOption(
   return options.find((option) => option.value === value) ?? options[0];
 }
 
-function BrandLockup() {
-  return (
-    <div className={styles.brandLockup} aria-label="镜构智能 AI Cinematic Studio">
-      <Image
-        alt=""
-        className={styles.brandMark}
-        height={40}
-        src="/assets/acs/brand/jinggou-mark.webp"
-        width={40}
-      />
-      <span className={styles.brandCopy}>
-        <strong>镜构智能</strong>
-        <span>AI Cinematic Studio</span>
-      </span>
-    </div>
-  );
-}
-
-function CreateProjectHeader() {
-  const { theme, toggleTheme } = useACSTheme();
-  const nextThemeLabel = theme === "dark" ? "浅色" : "深色";
-
-  return (
-    <div className={styles.headerInner}>
-      <BrandLockup />
-      <div className={styles.headerContext}>
-        <ACSBadge tone="primary">创意启动台</ACSBadge>
-        <ACSButton
-          aria-label={`切换至${nextThemeLabel}模式`}
-          onClick={toggleTheme}
-          size="small"
-          variant="ghost"
-        >
-          <span aria-hidden="true" className={styles.themeIcon}>
-            {theme === "dark" ? "☀" : "◐"}
-          </span>
-          <span className={styles.themeLabel}>{nextThemeLabel}模式</span>
-        </ACSButton>
-      </div>
-    </div>
-  );
-}
-
 type SelectionGroupProps = {
   description: string;
   id: string;
@@ -576,11 +533,7 @@ export function CreateProjectPage() {
   }, [directorReady, idea]);
 
   return (
-    <CustomerLayout
-      className={styles.createLayout}
-      contained={false}
-      header={<CreateProjectHeader />}
-    >
+    <CustomerLayout className={styles.createLayout} contained={false}>
       <div className={styles.page}>
         <section className={styles.pageIntro} aria-labelledby="create-project-title">
           <div>

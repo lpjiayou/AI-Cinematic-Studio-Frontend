@@ -8,10 +8,6 @@ import {
   type SelectorOption,
 } from "./ai-director";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
-
 function renderDirectorPage() {
   return render(
     <ThemeProvider>
@@ -186,14 +182,13 @@ describe("AIDirectorPage", () => {
     expect(screen.getByText(/不会创建正式项目/)).toBeInTheDocument();
   });
 
-  it("inherits and switches the ACS theme provider with paired hero assets", async () => {
-    const user = userEvent.setup();
+  it("keeps body theme reads without rendering page-owned shell controls", async () => {
+    window.localStorage.setItem("acs-theme", "light");
     renderDirectorPage();
 
-    await user.click(screen.getByRole("button", { name: "切换至浅色模式" }));
-
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
-    expect(window.localStorage.getItem("acs-theme")).toBe("light");
+    expect(screen.queryByRole("button", { name: /切换至.*模式/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "返回创建页" })).not.toBeInTheDocument();
     expect(
       screen.getByAltText(
         "明亮现代的 AI 电影导演工作室中展示摄影机、分镜规划屏幕和创作桌面",

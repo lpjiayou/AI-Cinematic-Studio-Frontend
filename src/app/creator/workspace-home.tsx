@@ -1,23 +1,19 @@
 "use client";
 
 import {
-  useMemo,
   useState,
   type CSSProperties,
   type FormEvent,
 } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   ACSBadge,
   ACSButton,
   ACSCard,
-  ACSDrawer,
   ACSModal,
   AIAssistantPanel,
 } from "@/components";
 import { CustomerLayout } from "@/layouts";
-import { useACSTheme } from "@/theme";
 import styles from "./workspace-home.module.css";
 
 const iconSources = {
@@ -31,32 +27,11 @@ const iconSources = {
   edit: "/assets/workspace-home/icons/tool-smart-edit.svg",
   sound: "/assets/workspace-home/icons/tool-sound-design.svg",
   insights: "/assets/workspace-home/icons/tool-insights.svg",
-  search: "/assets/workspace-home/icons/utility-search.svg",
-  light: "/assets/workspace-home/icons/utility-theme-light.svg",
-  dark: "/assets/workspace-home/icons/utility-theme-dark.svg",
-  notification: "/assets/workspace-home/icons/utility-notification.svg",
-  help: "/assets/workspace-home/icons/utility-help.svg",
-  menu: "/assets/workspace-home/icons/utility-menu.svg",
 } as const;
 
 type WorkspaceIconName = keyof typeof iconSources;
-type DrawerKind = "search" | "notifications" | "help" | "menu" | "account";
 type GuidedContent = { title: string; description: string };
 type IconStyle = CSSProperties & { "--workspace-icon": string };
-
-const navigationItems: ReadonlyArray<{
-  label: string;
-  current?: boolean;
-  secondary?: boolean;
-}> = [
-  { label: "工作台首页", current: true },
-  { label: "AI导演" },
-  { label: "项目工坊" },
-  { label: "系列规划", secondary: true },
-  { label: "剧本与分镜", secondary: true },
-  { label: "资产库" },
-  { label: "成片交付", secondary: true },
-];
 
 const quickActions = [
   { icon: "add", title: "新建项目", description: "从空白开始创作" },
@@ -164,138 +139,6 @@ function WorkspaceIcon({ name, className }: { name: WorkspaceIconName; className
   } as IconStyle;
 
   return <span aria-hidden="true" className={`${styles.icon} ${className ?? ""}`} style={style} />;
-}
-
-function BrandLockup() {
-  return (
-    <Link className={styles.brandLockup} href="/workspace" aria-label="镜构智能工作台首页">
-      <Image
-        alt=""
-        className={styles.brandMark}
-        height={40}
-        src="/assets/acs/brand/jinggou-mark.webp"
-        width={40}
-      />
-      <span className={styles.brandCopy}>
-        <strong>镜构智能</strong>
-        <span>AI Cinematic Studio</span>
-      </span>
-    </Link>
-  );
-}
-
-function WorkspaceHeader({
-  onDrawer,
-  onGuide,
-}: {
-  onDrawer: (drawer: DrawerKind) => void;
-  onGuide: (content: GuidedContent) => void;
-}) {
-  const { theme, toggleTheme } = useACSTheme();
-  const nextThemeLabel = theme === "dark" ? "浅色" : "深色";
-
-  return (
-    <div className={styles.headerInner}>
-      <BrandLockup />
-
-      <nav className={styles.primaryNavigation} aria-label="工作台主要导航">
-        {navigationItems.map((item) =>
-          item.current ? (
-            <Link aria-current="page" className={styles.activeNavigation} href="/workspace" key={item.label}>
-              {item.label}
-            </Link>
-          ) : (
-            <button
-              data-secondary={item.secondary || undefined}
-              key={item.label}
-              onClick={() =>
-                onGuide({
-                  title: item.label,
-                  description: `${item.label}将在对应创作空间开放。你可以继续使用当前工作台。`,
-                })
-              }
-              type="button"
-            >
-              {item.label}
-            </button>
-          ),
-        )}
-      </nav>
-
-      <div className={styles.headerActions}>
-        <ACSButton
-          aria-label="打开全局搜索"
-          className={styles.iconButton}
-          leadingIcon={<WorkspaceIcon name="search" />}
-          onClick={() => onDrawer("search")}
-          size="small"
-          variant="ghost"
-        >
-          <span className={styles.desktopUtilityLabel}>搜索</span>
-        </ACSButton>
-        <ACSButton
-          aria-label={`切换至${nextThemeLabel}模式`}
-          className={styles.iconButton}
-          leadingIcon={<WorkspaceIcon name={theme === "dark" ? "light" : "dark"} />}
-          onClick={toggleTheme}
-          size="small"
-          variant="ghost"
-        >
-          <span className={styles.desktopUtilityLabel}>{nextThemeLabel}</span>
-        </ACSButton>
-        <ACSButton
-          aria-label="查看通知"
-          className={`${styles.iconButton} ${styles.notificationButton}`}
-          leadingIcon={<WorkspaceIcon name="notification" />}
-          onClick={() => onDrawer("notifications")}
-          size="small"
-          variant="ghost"
-        >
-          <span className={styles.visuallyHidden}>通知</span>
-        </ACSButton>
-        <ACSButton
-          aria-label="打开帮助"
-          className={`${styles.iconButton} ${styles.helpButton}`}
-          leadingIcon={<WorkspaceIcon name="help" />}
-          onClick={() => onDrawer("help")}
-          size="small"
-          variant="ghost"
-        >
-          <span className={styles.visuallyHidden}>帮助</span>
-        </ACSButton>
-        <ACSButton
-          className={styles.headerPrimaryAction}
-          leadingIcon={<WorkspaceIcon name="add" />}
-          onClick={() =>
-            onGuide({
-              title: "新建项目",
-              description: "从一个创意开始，创建你的下一部 AI 影片。项目创建体验即将开放。",
-            })
-          }
-          size="small"
-        >
-          新建项目
-        </ACSButton>
-        <button className={styles.accountButton} onClick={() => onDrawer("account")} type="button">
-          <span className={styles.headerAvatar}>张</span>
-          <span className={styles.accountCopy}>
-            <strong>张导</strong>
-            <small>导演工作室</small>
-          </span>
-        </button>
-        <ACSButton
-          aria-label="打开工作台菜单"
-          className={`${styles.iconButton} ${styles.mobileMenuButton}`}
-          leadingIcon={<WorkspaceIcon name="menu" />}
-          onClick={() => onDrawer("menu")}
-          size="small"
-          variant="ghost"
-        >
-          <span className={styles.visuallyHidden}>菜单</span>
-        </ACSButton>
-      </div>
-    </div>
-  );
 }
 
 function WelcomeHero({ onGuide }: { onGuide: (content: GuidedContent) => void }) {
@@ -730,93 +573,10 @@ function WorkspaceFooter() {
   );
 }
 
-function DrawerContent({
-  drawer,
-  onGuide,
-}: {
-  drawer: DrawerKind;
-  onGuide: (content: GuidedContent) => void;
-}) {
-  if (drawer === "search") {
-    return (
-      <div className={styles.drawerStack}>
-        <label htmlFor="workspace-search">搜索创作内容</label>
-        <div className={styles.searchField}>
-          <WorkspaceIcon name="search" />
-          <input id="workspace-search" placeholder="搜索项目、剧本或素材…" />
-          <kbd>Ctrl K</kbd>
-        </div>
-        <p>搜索功能正在准备中，当前不会生成或展示虚构结果。</p>
-      </div>
-    );
-  }
-
-  if (drawer === "notifications") {
-    return (
-      <div className={styles.drawerStack}>
-        <div className={styles.drawerNotice}><strong>未来之城</strong><span>分镜版本已更新 · 1 小时前</span></div>
-        <div className={styles.drawerNotice}><strong>雪落无声</strong><span>AI 分镜建议已准备 · 3 小时前</span></div>
-        <div className={styles.drawerNotice}><strong>星际回响</strong><span>项目已交付 · 2 天前</span></div>
-      </div>
-    );
-  }
-
-  if (drawer === "help") {
-    return (
-      <div className={styles.drawerStack}>
-        <h3>需要创作支持？</h3>
-        <p>你可以从 AI 助理获得剧本、分镜和镜头语言建议。</p>
-        <ACSButton onClick={() => onGuide({ title: "帮助中心", description: "帮助中心即将开放。" })}>
-          查看帮助
-        </ACSButton>
-      </div>
-    );
-  }
-
-  if (drawer === "account") {
-    return (
-      <div className={styles.accountDrawer}>
-        <span className={styles.accountDrawerAvatar}>张</span>
-        <div><h3>张导</h3><p>张艺谋导演工作室</p></div>
-        <ACSBadge tone="primary">专业版</ACSBadge>
-      </div>
-    );
-  }
-
-  return (
-    <nav className={styles.mobileNavigation} aria-label="移动端工作台导航">
-      {navigationItems.map((item) =>
-        item.current ? (
-          <Link aria-current="page" href="/workspace" key={item.label}>{item.label}</Link>
-        ) : (
-          <button
-            key={item.label}
-            onClick={() => onGuide({ title: item.label, description: `${item.label}即将开放。` })}
-            type="button"
-          >
-            {item.label}<span aria-hidden="true">→</span>
-          </button>
-        ),
-      )}
-    </nav>
-  );
-}
-
-const drawerTitles: Record<DrawerKind, string> = {
-  search: "全局搜索",
-  notifications: "创作通知",
-  help: "帮助与支持",
-  menu: "工作台导航",
-  account: "工作空间账户",
-};
-
 export function WorkspaceHomePage() {
-  const [drawer, setDrawer] = useState<DrawerKind | null>(null);
   const [guidedContent, setGuidedContent] = useState<GuidedContent | null>(null);
-  const activeDrawerTitle = useMemo(() => (drawer ? drawerTitles[drawer] : "工作台"), [drawer]);
 
   function openGuide(content: GuidedContent) {
-    setDrawer(null);
     setGuidedContent(content);
   }
 
@@ -824,7 +584,6 @@ export function WorkspaceHomePage() {
     <CustomerLayout
       className={styles.workspaceLayout}
       footer={<WorkspaceFooter />}
-      header={<WorkspaceHeader onDrawer={setDrawer} onGuide={openGuide} />}
     >
       <div className={styles.page}>
         <section className={styles.topExperienceGrid} aria-label="工作空间概览">
@@ -847,16 +606,6 @@ export function WorkspaceHomePage() {
           <ProjectActivity onGuide={openGuide} />
         </section>
       </div>
-
-      <ACSDrawer
-        description="工作台中的辅助信息与快捷入口"
-        onClose={() => setDrawer(null)}
-        open={drawer !== null}
-        size="medium"
-        title={activeDrawerTitle}
-      >
-        {drawer && <DrawerContent drawer={drawer} onGuide={openGuide} />}
-      </ACSDrawer>
 
       <ACSModal
         description={guidedContent?.description}

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -293,108 +292,6 @@ const initialPreview: StoryWorldPreview = {
   assets: worldAssets,
 };
 
-function BrandLockup() {
-  return (
-    <div className={styles.brandLockup} aria-label="镜构智能 AI Cinematic Studio">
-      <Image
-        alt=""
-        className={styles.brandMark}
-        height={40}
-        src="/assets/acs/brand/jinggou-mark.webp"
-        width={40}
-      />
-      <span className={styles.brandCopy}>
-        <strong>镜构智能</strong>
-      </span>
-    </div>
-  );
-}
-
-export type StoryWorldHeaderProps = {
-  productName: "AI Cinematic Studio";
-  workspaceLabel: string;
-  onBack: () => void;
-  onOpenHelp: () => void;
-};
-
-export function StoryWorldHeader({
-  productName,
-  workspaceLabel,
-  onBack,
-  onOpenHelp,
-}: StoryWorldHeaderProps) {
-  const { theme, toggleTheme } = useACSTheme();
-  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
-  const nextThemeLabel = theme === "dark" ? "浅色" : "深色";
-
-  return (
-    <>
-      <div className={styles.headerInner}>
-        <div className={styles.headerLeading}>
-          <ACSButton
-            aria-label="返回 AI 导演"
-            className={styles.headerBackButton}
-            onClick={onBack}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">←</span>
-            <span className={styles.backLabel}>返回</span>
-          </ACSButton>
-          <BrandLockup />
-          <span className={styles.headerProductName}>{productName}</span>
-        </div>
-        <div className={styles.headerActions}>
-          <ACSButton
-            aria-label="打开故事世界帮助"
-            onClick={onOpenHelp}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">?</span>
-            <span className={styles.utilityLabel}>帮助</span>
-          </ACSButton>
-          <ACSButton
-            aria-label={`切换至${nextThemeLabel}模式`}
-            onClick={toggleTheme}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span>
-            <span className={styles.utilityLabel}>{nextThemeLabel}模式</span>
-          </ACSButton>
-          <ACSButton
-            aria-haspopup="dialog"
-            aria-label="打开用户与工作区菜单"
-            onClick={() => setWorkspaceMenuOpen(true)}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.avatar} aria-hidden="true">张</span>
-            <span className={styles.workspaceLabel}>{workspaceLabel}</span>
-          </ACSButton>
-        </div>
-      </div>
-
-      <ACSDrawer
-        description="当前创作者与工作区信息。"
-        onClose={() => setWorkspaceMenuOpen(false)}
-        open={workspaceMenuOpen}
-        title="创作者空间"
-      >
-        <div className={styles.workspaceMenu}>
-          <span className={styles.workspaceMenuAvatar} aria-hidden="true">张</span>
-          <div>
-            <h3>张导</h3>
-            <p>{workspaceLabel}</p>
-          </div>
-          <ACSBadge tone="primary">专业版</ACSBadge>
-        </div>
-      </ACSDrawer>
-    </>
-  );
-}
-
 export type StoryWorldPageIntroProps = {
   eyebrow: "STORY WORLD / IP BIBLE";
   title: string;
@@ -417,10 +314,9 @@ export function StoryWorldPageIntro({
 
 export type WorldContextBarProps = {
   context: WorldContext;
-  onBack: () => void;
 };
 
-export function WorldContextBar({ context, onBack }: WorldContextBarProps) {
+export function WorldContextBar({ context }: WorldContextBarProps) {
   const badgeTone =
     context.statusLabel === "本地世界预览已确认"
       ? "primary"
@@ -431,9 +327,6 @@ export function WorldContextBar({ context, onBack }: WorldContextBarProps) {
   return (
     <ACSCard className={styles.contextBar} padding="compact">
       <div className={styles.contextContent}>
-        <ACSButton onClick={onBack} size="small" variant="ghost">
-          返回 AI 导演
-        </ACSButton>
         <div className={styles.contextIdentity}>
           <strong>{context.worldTitle}</strong>
           <span aria-hidden="true">·</span>
@@ -1304,7 +1197,6 @@ function WorldAssetViewer({
 }
 
 export function StoryWorldPage() {
-  const router = useRouter();
   const { theme } = useACSTheme();
   const [premise, setPremise] = useState(initialPreview.premise);
   const [selectedTimelineEventId, setSelectedTimelineEventId] = useState(initialTimeline[1].id);
@@ -1317,9 +1209,6 @@ export function StoryWorldPage() {
   const [assetIndex, setAssetIndex] = useState(0);
   const [assistantPending, setAssistantPending] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [hasLocalChanges, setHasLocalChanges] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [backConfirmOpen, setBackConfirmOpen] = useState(false);
   const [nextStepOpen, setNextStepOpen] = useState(false);
   const timerRef = useRef<number | null>(null);
 
@@ -1380,34 +1269,14 @@ export function StoryWorldPage() {
   const selectedLocation = preview.locations.find((item) => item.id === locationDetailId);
   const selectedFaction = preview.factions.find((item) => item.id === factionDetailId);
 
-  function leaveForDirector() {
-    router.push("/director");
-  }
-
-  function handleBack() {
-    if (hasLocalChanges) {
-      setBackConfirmOpen(true);
-      return;
-    }
-    leaveForDirector();
-  }
-
   return (
     <CustomerLayout
       className={styles.storyWorldLayout}
       contained={false}
       data-page-state={pageState}
-      header={
-        <StoryWorldHeader
-          onBack={handleBack}
-          onOpenHelp={() => setHelpOpen(true)}
-          productName="AI Cinematic Studio"
-          workspaceLabel="创作者空间"
-        />
-      }
     >
       <div className={styles.page}>
-        <WorldContextBar context={context} onBack={handleBack} />
+        <WorldContextBar context={context} />
         <StoryWorldPageIntro
           eyebrow="STORY WORLD / IP BIBLE"
           subtitle="定义世界前提、规则、历史、地点、阵营、文化和视觉语言，为角色与剧本提供一致的创作基线。"
@@ -1418,7 +1287,6 @@ export function StoryWorldPage() {
           onPremiseChange={(value) => {
             setPremise(value);
             setConfirmed(false);
-            setHasLocalChanges(true);
             queueLocalRefresh();
           }}
           preview={preview}
@@ -1471,7 +1339,6 @@ export function StoryWorldPage() {
         <AIWorldAssistantPanel
           onRebuild={() => {
             setConfirmed(false);
-            setHasLocalChanges(true);
             queueLocalRefresh();
           }}
           status={assistantPending ? "thinking" : premise.trim().length >= 30 ? "ready" : "empty"}
@@ -1500,35 +1367,6 @@ export function StoryWorldPage() {
           />
         </div>
       </div>
-
-      <ACSDrawer
-        description="从世界前提开始，让规则、历史、地点和视觉语言形成一致的电影世界。"
-        footer={<ACSButton fullWidth onClick={() => setHelpOpen(false)} variant="secondary">返回故事世界</ACSButton>}
-        onClose={() => setHelpOpen(false)}
-        open={helpOpen}
-        title="故事世界使用帮助"
-      >
-        <div className={styles.helpContent}>
-          <section><span>01</span><div><h3>建立前提</h3><p>说明时代、核心规则与会推动故事的矛盾。</p></div></section>
-          <section><span>02</span><div><h3>阅读世界关系</h3><p>通过历史、地点与阵营确认世界能否支撑人物选择。</p></div></section>
-          <section><span>03</span><div><h3>确认视觉语言</h3><p>把色彩、建筑、服装、光线与摄影方向带入角色设计。</p></div></section>
-        </div>
-      </ACSDrawer>
-
-      <ACSModal
-        description="当前修改只存在于本地页面预览。"
-        footer={
-          <div className={styles.modalActions}>
-            <ACSButton onClick={() => setBackConfirmOpen(false)} variant="secondary">继续编辑</ACSButton>
-            <ACSButton onClick={leaveForDirector} variant="danger">放弃本地修改</ACSButton>
-          </div>
-        }
-        onClose={() => setBackConfirmOpen(false)}
-        open={backConfirmOpen}
-        title="返回 AI 导演？"
-      >
-        <p>返回后，本次未保存的世界前提调整将不会保留。</p>
-      </ACSModal>
 
       <ACSModal
         description="当前世界预览仍属于本地展示状态。"
