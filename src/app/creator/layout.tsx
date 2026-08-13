@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PRIMARY_NAVIGATION } from "@/lib/navigation";
+import { CreatorNavigation } from "./creator-navigation";
 import styles from "./global-shell.module.css";
 
 interface CreatorLayoutProps {
@@ -32,23 +32,18 @@ export default function CreatorLayout({ children }: CreatorLayoutProps) {
             </span>
           </Link>
 
-          <nav aria-label="Creator 全局导航" className={styles.navigation}>
-            <ul>
-              {PRIMARY_NAVIGATION.map((item) => (
-                <li key={item.href}>
-                  {item.available ? (
-                    <Link href={item.href}>{item.label}</Link>
-                  ) : (
-                    <span aria-disabled="true" title="尚未开放">
-                      {item.label}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <CreatorNavigation />
         </div>
       </header>
+
+      <aside aria-label="本地呈现边界" className={styles.presentationBoundary}>
+        <div>
+          <strong>本地演示</strong>
+          <span>
+            当前 Creator 界面使用本地演示内容验证布局与交互，不代表已连接正式项目、生产状态或资产记录。
+          </span>
+        </div>
+      </aside>
 
       <div className={styles.content}>{children}</div>
     </div>

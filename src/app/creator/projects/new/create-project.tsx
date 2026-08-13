@@ -202,6 +202,7 @@ function SelectionGroup({
                     <Image
                       alt={option.alt ?? ""}
                       fill
+                      loading={index < 3 ? "eager" : "lazy"}
                       sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1439px) 220px, 240px"
                       src={option.image}
                     />

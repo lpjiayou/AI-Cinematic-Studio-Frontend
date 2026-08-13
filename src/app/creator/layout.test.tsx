@@ -1,6 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import CreatorLayout from "./layout";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/creator",
+}));
 
 describe("CreatorLayout", () => {
   it("renders the shared brand, navigation, and route content", () => {
@@ -17,6 +21,9 @@ describe("CreatorLayout", () => {
     expect(
       screen.getByRole("region", { name: "Creator route content" }),
     ).toHaveTextContent("Creator child");
+    expect(screen.getByRole("complementary", { name: "本地呈现边界" })).toHaveTextContent(
+      /不代表已连接正式项目、生产状态或资产记录/,
+    );
   });
 
   it("links only available destinations and exposes unavailable items as disabled", () => {
@@ -34,6 +41,10 @@ describe("CreatorLayout", () => {
     expect(within(navigation).getByRole("link", { name: "首页" })).toHaveAttribute(
       "href",
       "/creator",
+    );
+    expect(within(navigation).getByRole("link", { name: "首页" })).toHaveAttribute(
+      "aria-current",
+      "page",
     );
     expect(
       within(navigation).getByRole("link", { name: "AI导演" }),
