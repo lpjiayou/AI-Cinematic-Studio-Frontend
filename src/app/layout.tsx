@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Script from "next/script";
 import { ThemeProvider } from "@/theme";
 import "./globals.css";
@@ -18,7 +19,7 @@ const themeBootstrap = `
   } catch (_) {}
 })();`;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-CN" data-theme="dark" suppressHydrationWarning>
       <body>
