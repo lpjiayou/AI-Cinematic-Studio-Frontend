@@ -1,0 +1,90 @@
+.contextBar {
+  border-bottom: 1px solid var(--acs-border);
+  background: var(--acs-surface-deep);
+}
+
+.inner {
+  display: grid;
+  width: min(100%, var(--acs-content-max-width));
+  margin-inline: auto;
+  padding: var(--acs-space-4) var(--acs-space-6);
+  align-items: center;
+  gap: var(--acs-space-5);
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.heading {
+  min-width: 10rem;
+}
+
+.heading p,
+.heading strong {
+  display: block;
+  margin: 0;
+}
+
+.heading p {
+  color: var(--acs-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+  letter-spacing: 0.1em;
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.heading strong {
+  margin-top: var(--acs-space-1);
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-body-size);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.contextGrid {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  gap: var(--acs-space-2);
+  grid-template-columns: repeat(6, minmax(5rem, 1fr));
+}
+
+.contextItem {
+  min-width: 0;
+  padding-left: var(--acs-space-3);
+  border-left: 1px solid var(--acs-border);
+}
+
+.contextItem dt {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.contextItem dd {
+  margin: var(--acs-space-1) 0 0;
+  overflow: hidden;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-body-size);
+  line-height: var(--acs-type-body-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 64rem) {
+  .inner {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .contextGrid {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 42rem) {
+  .inner {
+    padding: var(--acs-space-4);
+  }
+
+  .contextGrid {
+    grid-template-columns: repeat(6, minmax(6rem, 1fr));
+  }
+}

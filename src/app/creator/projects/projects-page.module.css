@@ -1,0 +1,87 @@
+.main {
+  display: grid;
+  min-height: calc(100dvh - var(--acs-header-height));
+  padding: var(--acs-space-12) var(--acs-space-6);
+  place-items: center;
+}
+
+.panel {
+  width: min(100%, 48rem);
+  padding: var(--acs-space-12);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface);
+  box-shadow: var(--acs-shadow-soft);
+}
+
+.eyebrow {
+  margin: 0 0 var(--acs-space-3);
+  color: var(--acs-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+  letter-spacing: 0.12em;
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.panel h1 {
+  margin: 0;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-display-size);
+  line-height: var(--acs-type-display-line-height);
+}
+
+.description {
+  max-width: 38rem;
+  margin: var(--acs-space-5) 0 0;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-body-size);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.actions {
+  display: flex;
+  margin-top: var(--acs-space-8);
+  align-items: center;
+  gap: var(--acs-space-4);
+  flex-wrap: wrap;
+}
+
+.primaryAction {
+  display: inline-flex;
+  min-height: 2.5rem;
+  padding-inline: var(--acs-space-5);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-primary);
+  color: var(--acs-on-primary);
+  font-size: var(--acs-type-body-size);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+  transition: background var(--acs-motion-fast) var(--acs-ease-standard);
+}
+
+.primaryAction:hover {
+  background: var(--acs-primary-hover);
+}
+
+.primaryAction:focus-visible {
+  outline: 3px solid var(--acs-focus-ring);
+  outline-offset: 2px;
+}
+
+.status {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+@media (max-width: 42rem) {
+  .main {
+    padding: var(--acs-space-8) var(--acs-space-4);
+  }
+
+  .panel {
+    padding: var(--acs-space-8) var(--acs-space-6);
+  }
+}
