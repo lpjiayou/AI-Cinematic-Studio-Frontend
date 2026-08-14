@@ -85,12 +85,14 @@ describe("CreateProjectPage", () => {
     expect(screen.getByRole("status")).toHaveTextContent("导演方案预览已准备好");
   });
 
-  it("inherits and switches the ACS theme provider", async () => {
-    const user = userEvent.setup();
+  it("keeps preview theme reads without rendering a page-owned theme control", async () => {
+    window.localStorage.setItem("acs-theme", "light");
     renderCreateProject();
 
-    await user.click(screen.getByRole("button", { name: "切换至浅色模式" }));
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
-    expect(window.localStorage.getItem("acs-theme")).toBe("light");
+    expect(screen.queryByRole("button", { name: /切换至.*模式/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByAltText("明亮专业的AI影视创作工作室中摆放摄影机与视觉设计屏幕"),
+    ).toBeInTheDocument();
   });
 });

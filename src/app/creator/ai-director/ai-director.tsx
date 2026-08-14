@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -16,7 +15,6 @@ import {
   ACSBadge,
   ACSButton,
   ACSCard,
-  ACSDrawer,
   ACSModal,
   AIAssistantPanel,
   AIThinkingState,
@@ -293,108 +291,6 @@ function statusLabelForAnalysis(status: DirectorAnalysisState["status"]) {
   return "等待导演意图";
 }
 
-function BrandLockup() {
-  return (
-    <div className={styles.brandLockup} aria-label="镜构智能 AI Cinematic Studio">
-      <Image
-        alt=""
-        className={styles.brandMark}
-        height={40}
-        src="/assets/acs/brand/jinggou-mark.webp"
-        width={40}
-      />
-      <span className={styles.brandCopy}>
-        <strong>镜构智能</strong>
-      </span>
-    </div>
-  );
-}
-
-export type AIDirectorHeaderProps = {
-  productName: "AI Cinematic Studio";
-  workspaceLabel: string;
-  onBack: () => void;
-  onOpenHelp: () => void;
-};
-
-export function AIDirectorHeader({
-  productName,
-  workspaceLabel,
-  onBack,
-  onOpenHelp,
-}: AIDirectorHeaderProps) {
-  const { theme, toggleTheme } = useACSTheme();
-  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
-  const nextThemeLabel = theme === "dark" ? "浅色" : "深色";
-
-  return (
-    <>
-      <div className={styles.headerInner}>
-        <div className={styles.headerLeading}>
-          <ACSButton
-            aria-label="返回创建影片"
-            className={styles.headerBackButton}
-            onClick={onBack}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">←</span>
-            <span className={styles.backLabel}>返回</span>
-          </ACSButton>
-          <BrandLockup />
-          <span className={styles.headerProductName}>{productName}</span>
-        </div>
-        <div className={styles.headerActions}>
-          <ACSButton
-            aria-label="打开 AI 导演帮助"
-            onClick={onOpenHelp}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">?</span>
-            <span className={styles.utilityLabel}>帮助</span>
-          </ACSButton>
-          <ACSButton
-            aria-label={`切换至${nextThemeLabel}模式`}
-            onClick={toggleTheme}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span>
-            <span className={styles.utilityLabel}>{nextThemeLabel}模式</span>
-          </ACSButton>
-          <ACSButton
-            aria-haspopup="dialog"
-            aria-label="打开用户与工作区菜单"
-            onClick={() => setWorkspaceMenuOpen(true)}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.avatar} aria-hidden="true">张</span>
-            <span className={styles.workspaceLabel}>{workspaceLabel}</span>
-          </ACSButton>
-        </div>
-      </div>
-
-      <ACSDrawer
-        description="当前创作者与工作区信息。"
-        onClose={() => setWorkspaceMenuOpen(false)}
-        open={workspaceMenuOpen}
-        title="创作者空间"
-      >
-        <div className={styles.workspaceMenu}>
-          <span className={styles.workspaceMenuAvatar} aria-hidden="true">张</span>
-          <div>
-            <h3>张导</h3>
-            <p>{workspaceLabel}</p>
-          </div>
-          <ACSBadge tone="primary">专业版</ACSBadge>
-        </div>
-      </ACSDrawer>
-    </>
-  );
-}
-
 export type DirectorPageIntroProps = {
   eyebrow: "AI DIRECTOR STUDIO";
   title: string;
@@ -417,13 +313,9 @@ export function DirectorPageIntro({
 
 export type DirectorContextBarProps = {
   context: DirectorContext;
-  onBack: () => void;
 };
 
-export function DirectorContextBar({
-  context,
-  onBack,
-}: DirectorContextBarProps) {
+export function DirectorContextBar({ context }: DirectorContextBarProps) {
   const badgeTone =
     context.statusLabel === "本地预览已确认"
       ? "primary"
@@ -434,9 +326,6 @@ export function DirectorContextBar({
   return (
     <ACSCard className={styles.contextBar} padding="compact">
       <div className={styles.contextContent}>
-        <ACSButton onClick={onBack} size="small" variant="ghost">
-          返回创建页
-        </ACSButton>
         <div className={styles.contextIdentity}>
           <strong>{context.projectTitle}</strong>
           <span aria-hidden="true">·</span>
@@ -1224,13 +1113,9 @@ function updateInput(
 }
 
 export function AIDirectorPage() {
-  const router = useRouter();
   const [input, setInput] = useState<DirectorInputState>(initialInput);
   const [analysisPending, setAnalysisPending] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [hasLocalChanges, setHasLocalChanges] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [backConfirmOpen, setBackConfirmOpen] = useState(false);
   const [nextStepOpen, setNextStepOpen] = useState(false);
   const analysisTimer = useRef<number | null>(null);
 
@@ -1253,7 +1138,6 @@ export function AIDirectorPage() {
     (payload: DirectorInputChangePayload) => {
       setInput((current) => updateInput(current, payload));
       setConfirmed(false);
-      setHasLocalChanges(true);
       queueLocalAnalysis();
     },
     [queueLocalAnalysis],
@@ -1297,34 +1181,14 @@ export function AIDirectorPage() {
           : "等待输入",
   };
 
-  function leaveForCreate() {
-    router.push("/create");
-  }
-
-  function handleBack() {
-    if (hasLocalChanges) {
-      setBackConfirmOpen(true);
-      return;
-    }
-    leaveForCreate();
-  }
-
   return (
     <CustomerLayout
       className={styles.directorLayout}
       contained={false}
       data-page-state={pageState}
-      header={
-        <AIDirectorHeader
-          onBack={handleBack}
-          onOpenHelp={() => setHelpOpen(true)}
-          productName="AI Cinematic Studio"
-          workspaceLabel="创作者空间"
-        />
-      }
     >
       <div className={styles.page}>
-        <DirectorContextBar context={context} onBack={handleBack} />
+        <DirectorContextBar context={context} />
         <DirectorPageIntro
           eyebrow="AI DIRECTOR STUDIO"
           subtitle="明确故事意图、目标观众、情绪和参考风格，形成一份可以进入后续制作的导演方案预览。"
@@ -1342,68 +1206,11 @@ export function AIDirectorPage() {
           onInputChange={handleInputChange}
           onReanalyze={() => {
             setConfirmed(false);
-            setHasLocalChanges(true);
             queueLocalAnalysis();
           }}
           plan={plan}
         />
       </div>
-
-      <ACSDrawer
-        description="用创作语言完成导演意图，AI 会在本地页面中整理一份可供确认的方案预览。"
-        footer={
-          <ACSButton fullWidth onClick={() => setHelpOpen(false)} variant="secondary">
-            返回导演室
-          </ACSButton>
-        }
-        onClose={() => setHelpOpen(false)}
-        open={helpOpen}
-        title="AI 导演使用帮助"
-      >
-        <div className={styles.helpContent}>
-          <section>
-            <span>01</span>
-            <div>
-              <h3>说清故事感受</h3>
-              <p>描述人物、情绪和希望观众带走的感受，不需要编写技术提示词。</p>
-            </div>
-          </section>
-          <section>
-            <span>02</span>
-            <div>
-              <h3>选择创作方向</h3>
-              <p>确认观众、情绪和参考风格，让分析保持在同一条电影方向上。</p>
-            </div>
-          </section>
-          <section>
-            <span>03</span>
-            <div>
-              <h3>由你最终确认</h3>
-              <p>导演方案始终是本地预览，由你判断是否进入下一段创作。</p>
-            </div>
-          </section>
-        </div>
-      </ACSDrawer>
-
-      <ACSModal
-        description="当前修改仅存在于本地页面状态。"
-        footer={
-          <div className={styles.modalActions}>
-            <ACSButton onClick={() => setBackConfirmOpen(false)} variant="secondary">
-              继续编辑
-            </ACSButton>
-            <ACSButton onClick={leaveForCreate} variant="primary">
-              放弃本地修改
-            </ACSButton>
-          </div>
-        }
-        onClose={() => setBackConfirmOpen(false)}
-        open={backConfirmOpen}
-        size="small"
-        title="返回创建影片？"
-      >
-        <p className={styles.modalCopy}>返回后，本次未确认的导演意图修改将不会保留。</p>
-      </ACSModal>
 
       <ACSModal
         description="本地导演方案预览"

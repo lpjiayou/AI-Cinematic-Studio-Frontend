@@ -4,134 +4,14 @@
     var(--acs-bg);
 }
 
-.directorLayout > header {
-  background: color-mix(in srgb, var(--acs-surface), transparent 4%);
-  backdrop-filter: blur(var(--acs-space-4));
-}
-
-.headerInner {
-  display: flex;
-  width: min(100%, var(--acs-content-max-width));
-  min-height: var(--acs-header-height);
-  margin-inline: auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--acs-space-4);
-  padding-inline: var(--acs-space-6);
-}
-
-.headerLeading,
-.headerActions,
-.brandLockup,
-.brandCopy,
 .contextContent,
 .contextIdentity,
 .fieldHeading,
 .inputActions,
 .planStateRow,
-.analysisCardHeading,
-.modalActions {
+.analysisCardHeading {
   display: flex;
   align-items: center;
-}
-
-.headerLeading,
-.headerActions {
-  min-width: 0;
-  gap: var(--acs-space-2);
-}
-
-.headerBackButton {
-  flex: 0 0 auto;
-}
-
-.brandLockup {
-  min-width: 0;
-  gap: var(--acs-space-3);
-}
-
-.brandMark {
-  width: var(--acs-space-10);
-  height: var(--acs-space-10);
-  border-radius: var(--acs-radius-control);
-  object-fit: cover;
-}
-
-.brandCopy {
-  min-width: 0;
-  align-items: flex-start;
-  gap: var(--acs-space-1);
-  flex-direction: column;
-  line-height: 1;
-}
-
-.brandCopy strong {
-  color: var(--acs-text-primary);
-  font-size: var(--acs-type-section-size);
-  font-weight: var(--acs-weight-semibold);
-}
-
-.brandCopy span,
-.headerProductName {
-  color: var(--acs-text-muted);
-  font-size: var(--acs-type-caption-size);
-}
-
-.headerProductName {
-  margin-left: var(--acs-space-2);
-  padding-left: var(--acs-space-4);
-  border-left: 1px solid var(--acs-border);
-  white-space: nowrap;
-}
-
-.headerActions > button {
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-}
-
-.avatar,
-.workspaceMenuAvatar {
-  display: grid;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--acs-primary), transparent 42%);
-  border-radius: var(--acs-radius-full);
-  background: var(--acs-primary-soft);
-  color: var(--acs-primary);
-  font-weight: var(--acs-weight-semibold);
-}
-
-.avatar {
-  width: var(--acs-space-6);
-  height: var(--acs-space-6);
-  font-size: var(--acs-type-caption-size);
-}
-
-.workspaceMenu {
-  display: grid;
-  justify-items: center;
-  gap: var(--acs-space-4);
-  text-align: center;
-}
-
-.workspaceMenuAvatar {
-  width: var(--acs-space-16);
-  height: var(--acs-space-16);
-  font-size: var(--acs-type-title-size);
-}
-
-.workspaceMenu h3,
-.workspaceMenu p {
-  margin: 0;
-}
-
-.workspaceMenu h3 {
-  font-size: var(--acs-type-title-size);
-  font-weight: var(--acs-weight-semibold);
-}
-
-.workspaceMenu p {
-  margin-top: var(--acs-space-1);
-  color: var(--acs-text-muted);
 }
 
 .page {
@@ -709,54 +589,10 @@
   text-align: center;
 }
 
-.helpContent {
-  display: grid;
-  gap: var(--acs-space-3);
-}
-
-.helpContent section {
-  display: grid;
-  align-items: start;
-  gap: var(--acs-space-3);
-  padding: var(--acs-space-4);
-  border: 1px solid var(--acs-border);
-  border-radius: var(--acs-radius-card);
-  background: var(--acs-surface-deep);
-  grid-template-columns: var(--acs-space-8) minmax(0, 1fr);
-}
-
-.helpContent section > span {
-  color: var(--acs-ai-accent);
-  font-size: var(--acs-type-caption-size);
-  font-weight: var(--acs-weight-semibold);
-}
-
-.helpContent h3,
-.helpContent p,
-.modalCopy,
 .nextStepContent h3,
 .nextStepContent p {
   margin: 0;
 }
-
-.helpContent h3 {
-  font-size: var(--acs-type-section-size);
-  font-weight: var(--acs-weight-semibold);
-}
-
-.helpContent p {
-  margin-top: var(--acs-space-1);
-  color: var(--acs-text-muted);
-  font-size: var(--acs-type-body-size);
-}
-
-.modalActions {
-  width: 100%;
-  justify-content: flex-end;
-  gap: var(--acs-space-2);
-}
-
-.modalCopy,
 .nextStepContent p {
   color: var(--acs-text-secondary);
 }
@@ -845,26 +681,8 @@
 }
 
 @media (max-width: 47.9375rem) {
-  .headerInner,
   .page {
     padding-inline: var(--acs-space-4);
-  }
-
-  .headerProductName,
-  .utilityLabel,
-  .workspaceLabel,
-  .backLabel {
-    display: none;
-  }
-
-  .headerLeading,
-  .headerActions {
-    gap: var(--acs-space-1);
-  }
-
-  .headerActions > button,
-  .headerBackButton {
-    padding-inline: var(--acs-space-2);
   }
 
   .page {
@@ -932,30 +750,12 @@
     width: 100%;
   }
 
-  .modalActions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .modalActions > button {
-    width: 100%;
-  }
-
   .confirmButton {
     min-width: 0;
   }
 }
 
 @media (max-width: 30rem) {
-  .brandMark {
-    width: var(--acs-space-8);
-    height: var(--acs-space-8);
-  }
-
-  .headerActions > button:first-child {
-    display: none;
-  }
-
   .contextIdentity {
     flex-wrap: wrap;
   }

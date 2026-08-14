@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -21,7 +20,6 @@ import {
   AIThinkingState,
 } from "@/components";
 import { CustomerLayout } from "@/layouts";
-import { useACSTheme } from "@/theme";
 import styles from "./character-studio.module.css";
 
 export type CharacterStudioPageState =
@@ -200,7 +198,6 @@ export type CharacterStudioWorkspaceProps = {
 
 export type CharacterContextBarProps = {
   context: CharacterContext;
-  onBack: () => void;
 };
 
 export type CharacterOverviewCardProps = {
@@ -652,92 +649,13 @@ function useIsMobile() {
   return isMobile;
 }
 
-function BrandLockup() {
-  return (
-    <div className={styles.brandLockup} aria-label="镜构智能 AI Cinematic Studio">
-      <Image
-        alt=""
-        className={styles.brandMark}
-        height={40}
-        src="/assets/acs/brand/jinggou-mark.webp"
-        width={40}
-      />
-      <span className={styles.brandCopy}><strong>镜构智能</strong></span>
-    </div>
-  );
-}
-
-type CharacterStudioHeaderProps = {
-  onBack: () => void;
-  onOpenHelp: () => void;
-};
-
-function CharacterStudioHeader({ onBack, onOpenHelp }: CharacterStudioHeaderProps) {
-  const { theme, toggleTheme } = useACSTheme();
-  const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const nextThemeLabel = theme === "dark" ? "浅色" : "深色";
-
-  return (
-    <>
-      <div className={styles.headerInner}>
-        <div className={styles.headerLeading}>
-          <ACSButton
-            aria-label="返回故事世界"
-            className={styles.headerBackButton}
-            onClick={onBack}
-            size="small"
-            variant="ghost"
-          >
-            <span aria-hidden="true">←</span>
-            <span className={styles.backLabel}>返回</span>
-          </ACSButton>
-          <BrandLockup />
-          <span className={styles.headerProductName}>Character Studio</span>
-        </div>
-        <div className={styles.headerActions}>
-          <ACSButton aria-label="打开角色工作室帮助" onClick={onOpenHelp} size="small" variant="ghost">
-            <span aria-hidden="true">?</span>
-            <span className={styles.utilityLabel}>帮助</span>
-          </ACSButton>
-          <ACSButton aria-label={`切换至${nextThemeLabel}模式`} onClick={toggleTheme} size="small" variant="ghost">
-            <span aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span>
-            <span className={styles.utilityLabel}>{nextThemeLabel}模式</span>
-          </ACSButton>
-          <ACSButton
-            aria-haspopup="dialog"
-            aria-label="打开创作者空间"
-            onClick={() => setWorkspaceOpen(true)}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.avatar} aria-hidden="true">张</span>
-            <span className={styles.workspaceLabel}>创作者空间</span>
-          </ACSButton>
-        </div>
-      </div>
-      <ACSDrawer
-        description="当前创作者与工作区信息。"
-        onClose={() => setWorkspaceOpen(false)}
-        open={workspaceOpen}
-        title="创作者空间"
-      >
-        <div className={styles.workspaceMenu}>
-          <span className={styles.workspaceMenuAvatar} aria-hidden="true">张</span>
-          <div><h3>张导</h3><p>未来之城 · 角色设计</p></div>
-          <ACSBadge tone="primary">专业版</ACSBadge>
-        </div>
-      </ACSDrawer>
-    </>
-  );
-}
-
 function displayStatus(status: CharacterContextStatus) {
   if (status === "预览已过期") return "待重新整理";
   if (status === "预览完成") return "预览已更新";
   return status;
 }
 
-export function CharacterContextBar({ context, onBack }: CharacterContextBarProps) {
+export function CharacterContextBar({ context }: CharacterContextBarProps) {
   const badgeTone =
     context.statusLabel === "本地确认" || context.statusLabel === "预览完成"
       ? "primary"
@@ -750,7 +668,6 @@ export function CharacterContextBar({ context, onBack }: CharacterContextBarProp
   return (
     <ACSCard className={styles.contextBar} padding="compact">
       <div className={styles.contextContent}>
-        <ACSButton onClick={onBack} size="small" variant="ghost">返回故事世界</ACSButton>
         <div className={styles.contextIdentity}>
           <strong>{context.seriesTitle}</strong>
           <span aria-hidden="true">/</span>
@@ -1912,12 +1829,10 @@ function contextStatusFor(pageState: CharacterStudioPageState): CharacterContext
 }
 
 export function CharacterStudioPage() {
-  const router = useRouter();
   const [character, setCharacter] = useState<CharacterPreview>(initialCharacter);
   const [pageState, setPageState] = useState<CharacterStudioPageState>("consistency-preview-ready");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>("lin-che");
   const [, setSelectedRelationId] = useState<string | null>("lin-che-gu-yan");
-  const [helpOpen, setHelpOpen] = useState(false);
   const [nextStepOpen, setNextStepOpen] = useState(false);
   const rebuildTimer = useRef<number | null>(null);
 
@@ -1970,10 +1885,9 @@ export function CharacterStudioPage() {
       className={styles.characterStudioLayout}
       contained={false}
       data-page-state={pageState}
-      header={<CharacterStudioHeader onBack={() => router.push("/story-world")} onOpenHelp={() => setHelpOpen(true)} />}
     >
       <div className={styles.page}>
-        <CharacterContextBar context={context} onBack={() => router.push("/story-world")} />
+        <CharacterContextBar context={context} />
         <CharacterStudioPageIntro />
         <CharacterStudioWorkspace
           character={{ ...character, nodes: character.nodes.map((node) => ({ ...node, isPrimary: node.id === selectedNodeId })), relationships: character.relationships }}
@@ -1988,20 +1902,6 @@ export function CharacterStudioPage() {
           pageState={pageState}
         />
       </div>
-
-      <ACSDrawer
-        description="角色生产工作区的本地操作流程。"
-        footer={<ACSButton fullWidth onClick={() => setHelpOpen(false)} variant="secondary">返回角色工作室</ACSButton>}
-        onClose={() => setHelpOpen(false)}
-        open={helpOpen}
-        title="角色工作室帮助"
-      >
-        <div className={styles.helpContent}>
-          <section><span>01</span><div><h3>编辑当前方向</h3><p>直接修改身份、性格与外观工作字段。</p></div></section>
-          <section><span>02</span><div><h3>比较并采用候选</h3><p>本地生成候选，比较后再采用，不覆盖正式内容。</p></div></section>
-          <section><span>03</span><div><h3>重新整理一致性</h3><p>修改后检查角色阶段、关系和视觉约束。</p></div></section>
-        </div>
-      </ACSDrawer>
 
       <ACSModal
         description="本地角色方向已确认"
