@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/theme";
+import { getLocalProjectPresentation, ProjectPresentationProvider } from "@/features/project-data";
 import { CharacterStudioPage } from "./character-studio";
 
 let mobileViewport = false;
@@ -26,7 +27,9 @@ function installMatchMedia() {
 function renderCharacterStudio() {
   return render(
     <ThemeProvider>
-      <CharacterStudioPage />
+      <ProjectPresentationProvider value={getLocalProjectPresentation("future-city")}>
+        <CharacterStudioPage />
+      </ProjectPresentationProvider>
     </ThemeProvider>,
   );
 }
@@ -55,6 +58,9 @@ describe("CharacterStudioPage", () => {
     expect(screen.getByRole("heading", { name: "角色阶段状态" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "角色关系" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "视觉一致性预览" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "结构化阶段与关系边界" })).toBeInTheDocument();
+    expect(screen.getByText("characterRef").nextElementSibling).toHaveTextContent("未连接");
+    expect(screen.getAllByRole("combobox", { name: /开始计划项|结束计划项/ }).length).toBeGreaterThanOrEqual(4);
     expect(screen.getByRole("heading", { name: "AI 角色助理 · 镜构小构" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "进入剧本设计" })).toBeEnabled();
 
@@ -68,7 +74,7 @@ describe("CharacterStudioPage", () => {
     }
     expect(
       screen.queryByText(
-        /Provider|Database|GPU|Queue ID|characterRef|identityRef|assetRef|versionRef|Identity Locked/,
+        /Provider|Database|GPU|Queue ID|Identity Locked/,
       ),
     ).not.toBeInTheDocument();
   });

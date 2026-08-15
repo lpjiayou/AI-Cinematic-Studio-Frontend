@@ -2049,3 +2049,160 @@
     transition: none;
   }
 }
+.domainAlignmentPanel {
+  display: grid;
+  gap: var(--acs-space-5);
+}
+
+.domainAlignmentHeading,
+.sectionHeadingRow,
+.intervalTitle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-4);
+}
+
+.domainAlignmentHeading h2,
+.intervalSection h3 {
+  margin: 0;
+}
+
+.domainAlignmentHeading p,
+.intervalCard p {
+  color: var(--acs-text-secondary);
+}
+
+.alignmentBadges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--acs-space-2);
+  flex-wrap: wrap;
+}
+
+.identityRefs,
+.referenceCollections {
+  display: grid;
+  margin: 0;
+  gap: var(--acs-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.identityRefs > div,
+.referenceCollections > div {
+  display: grid;
+  padding: var(--acs-space-3);
+  gap: var(--acs-space-1);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+}
+
+.identityRefs dt,
+.referenceCollections strong {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.identityRefs dd {
+  margin: 0;
+  color: var(--acs-text-primary);
+}
+
+.intervalSection {
+  display: grid;
+  gap: var(--acs-space-3);
+}
+
+.intervalGrid,
+.relationshipIntervals {
+  display: grid;
+  gap: var(--acs-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.intervalCard,
+.relationshipIntervals article {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-4);
+  gap: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-card);
+  background: var(--acs-surface-deep);
+}
+
+.intervalCard[data-conflict="true"] {
+  border-color: var(--acs-warning);
+}
+
+.intervalTitle small,
+.relationshipIntervals span,
+.referenceCollections span {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.intervalSelectors {
+  display: grid;
+  gap: var(--acs-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.planItemSelector {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-1);
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.planItemSelector select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding-inline: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface);
+  color: var(--acs-text-primary);
+}
+
+.planItemSelector select:focus-visible {
+  outline: 3px solid var(--acs-focus-ring);
+  outline-offset: 2px;
+}
+
+.intervalWarning {
+  color: var(--acs-warning) !important;
+  font-size: var(--acs-type-caption-size);
+}
+
+.referenceCollections {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 64rem) {
+  .domainAlignmentHeading,
+  .sectionHeadingRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .alignmentBadges {
+    justify-content: flex-start;
+  }
+
+  .intervalGrid,
+  .relationshipIntervals,
+  .referenceCollections {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 42rem) {
+  .identityRefs,
+  .intervalSelectors {
+    grid-template-columns: 1fr;
+  }
+}

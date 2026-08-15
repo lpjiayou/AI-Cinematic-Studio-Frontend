@@ -19,6 +19,11 @@ import {
   AICandidateCard,
   AIThinkingState,
 } from "@/components";
+import {
+  findStateIntervalOverlaps,
+  useProjectPresentation,
+  type EpisodePlanItemOption,
+} from "@/features/project-data";
 import { CustomerLayout } from "@/layouts";
 import styles from "./character-studio.module.css";
 
@@ -1814,6 +1819,147 @@ export function CharacterStudioWorkspace({
   );
 }
 
+export function EpisodePlanItemSelector({
+  id,
+  label,
+  options,
+  selectedClientKey,
+  allowOpenEnd = false,
+}: {
+  id: string;
+  label: string;
+  options: readonly EpisodePlanItemOption[];
+  selectedClientKey: string | null;
+  allowOpenEnd?: boolean;
+}) {
+  return (
+    <label className={styles.planItemSelector} htmlFor={id}>
+      <span>{label}</span>
+      <select defaultValue={selectedClientKey ?? ""} id={id}>
+        {allowOpenEnd ? <option value="">未设置 · 开放区间</option> : null}
+        {options.map((option) => (
+          <option key={option.clientKey} value={option.clientKey}>
+            {option.label} · {option.episodePlanItemRef ? "可信 Ref" : "LOCAL"}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function CharacterDomainAlignmentPanel() {
+  const project = useProjectPresentation();
+  const conflicts = findStateIntervalOverlaps(
+    project.characterStudio.stateIntervals,
+    project.storyWorld.planItems,
+  );
+
+  return (
+    <ACSCard className={styles.domainAlignmentPanel} padding="spacious">
+      <div className={styles.domainAlignmentHeading}>
+        <div>
+          <p className={styles.sectionEyebrow}>ACCEPTED CHARACTER SURFACE</p>
+          <h2>结构化阶段与关系边界</h2>
+          <p>区间采用开始项包含、结束项不包含；结束未设置表示开放区间。</p>
+        </div>
+        <div className={styles.alignmentBadges}>
+          <ACSBadge tone="neutral">{project.dataOrigin} · 非权威</ACSBadge>
+          <ACSBadge tone="ai">设计探索区域不计入完成度</ACSBadge>
+        </div>
+      </div>
+
+      <dl className={styles.identityRefs}>
+        <div>
+          <dt>本地 clientKey</dt>
+          <dd>{project.characterStudio.characterClientKey}</dd>
+        </div>
+        <div>
+          <dt>characterRef</dt>
+          <dd>{project.characterStudio.characterRef ?? "未连接"}</dd>
+        </div>
+      </dl>
+
+      <section className={styles.intervalSection} aria-labelledby="character-intervals-title">
+        <div className={styles.sectionHeadingRow}>
+          <h3 id="character-intervals-title">角色状态区间</h3>
+          <ACSBadge tone={conflicts.length ? "warning" : "primary"}>
+            {conflicts.length ? `${conflicts.length} 个区间冲突` : "区间检查通过"}
+          </ACSBadge>
+        </div>
+        <div className={styles.intervalGrid}>
+          {project.characterStudio.stateIntervals.map((interval) => (
+            <article className={styles.intervalCard} data-conflict={conflicts.includes(interval.clientKey) || undefined} key={interval.clientKey}>
+              <div className={styles.intervalTitle}>
+                <strong>{interval.category}</strong>
+                <small>{interval.intervalRef ?? "intervalRef 未连接"}</small>
+              </div>
+              <div className={styles.intervalSelectors}>
+                <EpisodePlanItemSelector
+                  id={`${interval.clientKey}-start`}
+                  label="开始计划项"
+                  options={project.storyWorld.planItems}
+                  selectedClientKey={interval.startPlanItemClientKey}
+                />
+                <EpisodePlanItemSelector
+                  allowOpenEnd
+                  id={`${interval.clientKey}-end`}
+                  label="结束计划项"
+                  options={project.storyWorld.planItems}
+                  selectedClientKey={interval.endPlanItemClientKey}
+                />
+              </div>
+              <p>{interval.annotation}</p>
+              {interval.category === "Location" && !interval.valueRef ? (
+                <p className={styles.intervalWarning}>地点区间缺少可信 valueRef，当前仅为不完整本地草稿。</p>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.intervalSection} aria-labelledby="character-relationships-title">
+        <h3 id="character-relationships-title">有时间边界的关系</h3>
+        <div className={styles.relationshipIntervals}>
+          {project.characterStudio.relationships.map((relationship) => (
+            <article key={relationship.clientKey}>
+              <strong>{relationship.sourceLabel} — {relationship.relationType} → {relationship.targetLabel}</strong>
+              <span>{relationship.relationshipRef ?? "relationshipRef 未连接"}</span>
+              <div className={styles.intervalSelectors}>
+                <EpisodePlanItemSelector
+                  id={`${relationship.clientKey}-start`}
+                  label="开始计划项"
+                  options={project.storyWorld.planItems}
+                  selectedClientKey={relationship.startPlanItemClientKey}
+                />
+                <EpisodePlanItemSelector
+                  allowOpenEnd
+                  id={`${relationship.clientKey}-end`}
+                  label="结束计划项"
+                  options={project.storyWorld.planItems}
+                  selectedClientKey={relationship.endPlanItemClientKey}
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.referenceCollections} aria-label="角色引用集合">
+        {[
+          ["地点引用", project.characterStudio.locationRefs],
+          ["道具引用", project.characterStudio.propRefs],
+          ["时间线事件引用", project.characterStudio.timelineEventRefs],
+        ].map(([label, refs]) => (
+          <div key={label as string}>
+            <strong>{label as string}</strong>
+            <span>{(refs as readonly string[]).length ? (refs as readonly string[]).join("、") : "无可信 Ref · 等待 Story World 目录连接"}</span>
+          </div>
+        ))}
+      </section>
+    </ACSCard>
+  );
+}
+
 function updateCharacter(current: CharacterPreview, payload: CharacterUpdatePayload): CharacterPreview {
   if (payload.area === "identity") return { ...current, identity: { ...current.identity, [payload.field]: payload.value }, visualConsistency: { ...current.visualConsistency, status: "stale" } };
   if (payload.area === "appearance") return { ...current, appearance: { ...current.appearance, [payload.field]: payload.value }, visualConsistency: { ...current.visualConsistency, status: "stale" } };
@@ -1829,7 +1975,16 @@ function contextStatusFor(pageState: CharacterStudioPageState): CharacterContext
 }
 
 export function CharacterStudioPage() {
-  const [character, setCharacter] = useState<CharacterPreview>(initialCharacter);
+  const project = useProjectPresentation();
+  const projectInitialCharacter = useMemo<CharacterPreview>(
+    () => ({
+      ...initialCharacter,
+      name: project.display.characterName,
+      role: project.display.characterRole,
+    }),
+    [project.display.characterName, project.display.characterRole],
+  );
+  const [character, setCharacter] = useState<CharacterPreview>(projectInitialCharacter);
   const [pageState, setPageState] = useState<CharacterStudioPageState>("consistency-preview-ready");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>("lin-che");
   const [, setSelectedRelationId] = useState<string | null>("lin-che-gu-yan");
@@ -1845,9 +2000,9 @@ export function CharacterStudioPage() {
     roleLabel: "故事主角",
     stageLabel: "角色设计",
     statusLabel: contextStatusFor(pageState),
-    seriesTitle: "未来之城",
+    seriesTitle: project.display.worldTitle,
     worldContextLabel: "记忆信用时代",
-  }), [character.name, pageState]);
+  }), [character.name, pageState, project.display.worldTitle]);
 
   const handleUpdate = useCallback((payload: CharacterUpdatePayload) => {
     setCharacter((current) => updateCharacter(current, payload));
@@ -1901,6 +2056,7 @@ export function CharacterStudioPage() {
           onUpdate={handleUpdate}
           pageState={pageState}
         />
+        <CharacterDomainAlignmentPanel />
       </div>
 
       <ACSModal
