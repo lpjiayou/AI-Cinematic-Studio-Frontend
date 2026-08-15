@@ -173,6 +173,14 @@ export type CharacterDesignCandidate = {
   rationale: string;
 };
 
+type CharacterCandidateTask = {
+  id: string;
+  area: "IDENTITY";
+  field: IdentityField;
+  revision: number;
+  status: "results";
+};
+
 export type CharacterReferenceSelection = {
   assetId: string;
   state: "current" | "candidate" | "adopted-local";
@@ -1019,7 +1027,7 @@ function CharacterCandidateStrip({
       <div aria-label="身份候选结果" className={styles.candidateStripResults} role="group">
         {candidates.map((candidate, index) => (
           <button
-            aria-label={`选择候选：${candidate.label}`}
+            aria-label={`比较候选：${candidate.label}`}
             aria-pressed={candidate.id === selectedCandidateId}
             className={styles.candidateStripOption}
             key={candidate.id}
@@ -1661,7 +1669,8 @@ export function CharacterStudioWorkspace({
   const [activeArea, setActiveArea] = useState<CharacterWorkspaceArea>("IDENTITY");
   const [activeIdentityField, setActiveIdentityField] = useState<IdentityField>("motivation");
   const [candidateRevision, setCandidateRevision] = useState(0);
-  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>("motivation-a");
+  const [activeTask, setActiveTask] = useState<CharacterCandidateTask | null>(null);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [adoptedCandidates, setAdoptedCandidates] = useState<Partial<Record<IdentityField, string>>>({});
   const [adoptedAssetId, setAdoptedAssetId] = useState<string | null>(null);
   const [assistantThinking, setAssistantThinking] = useState(false);
@@ -1681,6 +1690,14 @@ export function CharacterStudioWorkspace({
 
   const selectedAsset = character.appearance.assets.find((asset) => asset.selected) ?? character.appearance.assets[0];
   const selectedRelation = character.relationships.find((relation) => relation.id === selectedRelationshipId);
+  const candidateTaskMatchesCurrentScope = Boolean(
+    activeTask
+      && activeTask.status === "results"
+      && activeTask.area === activeArea
+      && activeTask.field === activeIdentityField
+      && activeTask.revision === candidateRevision
+      && visibleCandidates.length > 1,
+  );
   const isStale = pageState === "stale-preview";
   const canContinue = !isStale && pageState !== "empty" && pageState !== "editing" && pageState !== "local-error";
 
@@ -1710,7 +1727,7 @@ export function CharacterStudioWorkspace({
 
   function selectIdentityField(field: IdentityField) {
     setActiveIdentityField(field);
-    setSelectedCandidateId(candidateCatalog[field][candidateRevision % candidateCatalog[field].length].id);
+    if (activeTask?.field !== field) setSelectedCandidateId(null);
     selectArea("IDENTITY");
   }
 
@@ -1719,6 +1736,13 @@ export function CharacterStudioWorkspace({
     setCandidateRevision(nextRevision);
     const catalog = candidateCatalog[activeIdentityField];
     setSelectedCandidateId(catalog[nextRevision % catalog.length].id);
+    setActiveTask({
+      id: `character-studio:identity:${activeIdentityField}:${nextRevision}`,
+      area: "IDENTITY",
+      field: activeIdentityField,
+      revision: nextRevision,
+      status: "results",
+    });
     setAssistantActionNote("本地候选已重新生成；没有发送或保存任何数据。");
   }
 
@@ -1761,7 +1785,7 @@ export function CharacterStudioWorkspace({
             selectedCandidateId={selectedCandidateId}
           />
         }
-        candidateStripMode={activeArea === "IDENTITY" && visibleCandidates.length > 1 ? "results" : "hidden"}
+        candidateStripMode={candidateTaskMatchesCurrentScope ? "results" : "hidden"}
         className={styles.primaryWorkbench}
         contentLabel="角色设计画布"
         embedded

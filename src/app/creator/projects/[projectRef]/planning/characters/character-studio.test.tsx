@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import axe from "axe-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/theme";
 import { getLocalProjectPresentation, ProjectPresentationProvider } from "@/features/project-data";
@@ -78,6 +79,26 @@ describe("CharacterStudioPage", () => {
       ),
     ).not.toBeInTheDocument();
   });
+
+  it("has no critical or serious axe violations in idle and candidate-result states", async () => {
+    const user = userEvent.setup();
+    const { container } = renderCharacterStudio();
+
+    const assertAccessible = async () => {
+      const result = await axe.run(container, {
+        rules: { "color-contrast": { enabled: false } },
+      });
+      expect(
+        result.violations.filter(
+          (violation) => violation.impact === "critical" || violation.impact === "serious",
+        ),
+      ).toEqual([]);
+    };
+
+    await assertAccessible();
+    await user.click(screen.getByRole("button", { name: "生成本地候选" }));
+    await assertAccessible();
+  }, 15_000);
 
   it("uses semantic identity fields with descriptions and validation state", async () => {
     const user = userEvent.setup();
@@ -180,12 +201,15 @@ describe("CharacterStudioPage", () => {
     const user = userEvent.setup();
     renderCharacterStudio();
 
-    const candidate = screen.getByRole("button", { name: "选择候选：找回原始记忆" });
+    expect(screen.queryByRole("region", { name: "候选结果" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "生成本地候选" }));
+
+    const candidate = screen.getByRole("button", { name: "比较候选：保护被删除者" });
     expect(candidate).toHaveAttribute("aria-pressed", "true");
     await user.click(screen.getByRole("button", { name: "采用候选" }));
 
     expect(screen.getByRole("textbox", { name: "核心动机" })).toHaveValue(
-      "寻找被系统判定不存在、却与母亲失踪有关的原始记忆，并确认它为何只对自己产生回应。",
+      "在追查母亲之前，先阻止议会继续删除与异常影像有关的普通人身份。",
     );
     expect(screen.getAllByText("已采用（LOCAL）").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "进入剧本设计" })).toBeDisabled();
@@ -198,7 +222,11 @@ describe("CharacterStudioPage", () => {
     const user = userEvent.setup();
     renderCharacterStudio();
 
-    expect(screen.getByRole("region", { name: "候选结果" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "候选结果" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "生成本地候选" }));
+
+    const candidateRegion = screen.getByRole("region", { name: "候选结果" });
+    expect(within(candidateRegion).getAllByRole("button", { name: /比较候选/ })).toHaveLength(2);
     await user.click(screen.getByRole("button", { name: "采用候选" }));
 
     await user.click(screen.getByRole("tab", { name: "外观" }));
