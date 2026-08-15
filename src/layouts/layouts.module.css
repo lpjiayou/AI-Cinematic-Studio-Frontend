@@ -53,6 +53,12 @@
   grid-template-columns: var(--acs-sidebar-collapsed-width) minmax(0, 1fr);
 }
 
+.workspaceLayout[data-embedded="true"],
+.workspaceLayout[data-embedded="true"] .workspaceFrame {
+  min-height: 0;
+  height: 100%;
+}
+
 .workspaceSidebar {
   position: sticky;
   top: 0;
@@ -68,7 +74,7 @@
   display: grid;
   min-width: 0;
   min-height: 100dvh;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
 }
 
 .workspaceTopbar {
@@ -122,12 +128,23 @@
 }
 
 .workspaceDrawer,
-.editorDrawer {
+.editorDrawer,
+.workspaceCandidateStrip {
   min-width: 0;
   max-height: var(--acs-bottom-drawer-height);
   overflow: auto;
   border-top: 1px solid var(--acs-border);
   background: var(--acs-surface-deep);
+}
+
+.workspaceCandidateStrip {
+  max-height: none;
+  overflow: hidden;
+  background: var(--acs-sidebar);
+}
+
+.workspaceCandidateStrip[data-mode="progress"] {
+  min-height: var(--acs-space-10);
 }
 
 .editorLayout {

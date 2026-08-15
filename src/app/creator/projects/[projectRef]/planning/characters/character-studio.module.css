@@ -132,14 +132,14 @@
 }
 
 .primaryWorkbench {
-  display: grid;
   min-width: 0;
-  align-items: start;
-  gap: var(--acs-space-4);
-  grid-template-columns:
-    minmax(17.5rem, 0.96fr)
-    minmax(34.25rem, 2.05fr)
-    minmax(20rem, 0.98fr);
+  height: 78dvh;
+  min-height: 44rem;
+  max-height: 64rem;
+  overflow: hidden;
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  box-shadow: var(--acs-shadow-soft);
 }
 
 .primaryWorkbench > * {
@@ -159,6 +159,15 @@
   display: grid;
   padding: var(--acs-space-3);
   gap: var(--acs-space-3);
+}
+
+.primaryWorkbench .referenceRail,
+.primaryWorkbench .designCanvas {
+  height: 100%;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .panelToolbar,
@@ -694,6 +703,95 @@
 .currentDirection {
   min-width: 0;
   align-self: stretch;
+}
+
+.characterCandidateStrip {
+  display: grid;
+  min-width: 0;
+  max-height: 15rem;
+  padding: var(--acs-space-3);
+  grid-template-columns: minmax(12rem, 0.55fr) minmax(20rem, 1fr) minmax(22rem, 1.25fr);
+  align-items: stretch;
+  gap: var(--acs-space-3);
+}
+
+.candidateStripHeading,
+.candidateStripReview > div:first-child {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: var(--acs-space-1);
+}
+
+.candidateStripHeading small,
+.candidateStripReview p,
+.candidateStripOption small {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.candidateStripResults {
+  display: flex;
+  min-width: 0;
+  overflow-x: auto;
+  gap: var(--acs-space-2);
+  scrollbar-width: thin;
+}
+
+.candidateStripOption {
+  display: grid;
+  min-width: 10rem;
+  padding: var(--acs-space-2);
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--acs-space-2);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface);
+  color: var(--acs-text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.candidateStripOption > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-1);
+}
+
+.candidateStripOption[aria-pressed="true"] {
+  border-color: var(--acs-ai-accent);
+  background: var(--acs-ai-soft);
+}
+
+.candidateStripOption:focus-visible {
+  outline: 3px solid var(--acs-focus-ring);
+  outline-offset: 2px;
+}
+
+.candidateStripReview {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--acs-space-2) var(--acs-space-3);
+  gap: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-card);
+  background: var(--acs-surface-deep);
+}
+
+.candidateStripReview p {
+  max-height: 3.2rem;
+  margin: 0;
+  overflow: auto;
+}
+
+.candidateStripActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--acs-space-2);
 }
 
 .candidateCompare > article {
@@ -1751,10 +1849,6 @@
 }
 
 @media (max-width: 1439px) {
-  .primaryWorkbench {
-    grid-template-columns: minmax(17rem, 0.78fr) minmax(0, 1.52fr);
-  }
-
   .assistantPanel {
     position: static;
     max-height: none;
@@ -1813,10 +1907,6 @@
     justify-content: flex-start;
   }
 
-  .primaryWorkbench {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .referenceRail,
   .assistantPanel {
     position: static;
@@ -1855,6 +1945,29 @@
 
   .relationshipVisual {
     min-height: 28rem;
+  }
+}
+
+@media (max-width: 72rem) {
+  .characterCandidateStrip {
+    grid-template-columns: minmax(12rem, 0.65fr) minmax(0, 1.35fr);
+  }
+
+  .candidateStripReview {
+    display: none;
+  }
+}
+
+@media (max-width: 48rem) {
+  .primaryWorkbench {
+    height: auto;
+    min-height: 42rem;
+    max-height: none;
+  }
+
+  .characterCandidateStrip {
+    max-height: 18rem;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

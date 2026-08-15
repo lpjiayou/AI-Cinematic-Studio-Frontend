@@ -19,12 +19,201 @@
 
 .page {
   display: grid;
-  width: min(100%, var(--acs-content-max-width));
+  width: 100%;
   min-width: 0;
   margin: 0 auto;
   padding: var(--acs-space-6);
   gap: var(--acs-space-8);
   grid-template-columns: minmax(0, 1fr);
+}
+
+.worldProductionWorkspace {
+  height: 78dvh;
+  min-height: 46rem;
+  max-height: 68rem;
+  overflow: hidden;
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  box-shadow: var(--acs-shadow-soft);
+}
+
+.worldTaskCanvas {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-4);
+  gap: var(--acs-space-6);
+}
+
+.worldTaskNavigator {
+  display: grid;
+  min-width: 0;
+  height: 100%;
+  padding: var(--acs-space-3);
+  align-content: start;
+  gap: var(--acs-space-4);
+}
+
+.worldTaskNavigatorHeading {
+  display: grid;
+  gap: var(--acs-space-1);
+}
+
+.worldTaskNavigatorHeading small,
+.worldNavigatorBoundary,
+.worldSelectionFacts dt,
+.worldInspectorAction p {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.worldTaskNavigator ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: var(--acs-space-1);
+  list-style: none;
+}
+
+.worldTaskNavigator a {
+  display: flex;
+  min-height: 2.75rem;
+  padding: 0 var(--acs-space-3);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--acs-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--acs-radius-control);
+  color: var(--acs-text-secondary);
+  text-decoration: none;
+}
+
+.worldTaskNavigator a:hover,
+.worldTaskNavigator a:focus-visible {
+  border-color: var(--acs-border);
+  background: var(--acs-surface-hover);
+  color: var(--acs-text-primary);
+}
+
+.worldTaskNavigator a:focus-visible {
+  outline: 3px solid var(--acs-focus-ring);
+  outline-offset: 2px;
+}
+
+.worldTaskNavigator a[aria-current="location"] {
+  border-color: var(--acs-border-strong);
+  background: var(--acs-surface-selected);
+  color: var(--acs-text-primary);
+}
+
+.worldTaskNavigator a small {
+  min-width: 1.75rem;
+  padding: var(--acs-space-1);
+  border-radius: var(--acs-radius-full);
+  background: var(--acs-surface);
+  color: var(--acs-text-muted);
+  text-align: center;
+}
+
+.worldNavigatorBoundary {
+  display: grid;
+  margin-top: auto;
+  padding: var(--acs-space-3);
+  gap: var(--acs-space-1);
+  border-left: 2px solid var(--acs-accent);
+  background: var(--acs-accent-soft);
+}
+
+.worldNavigatorBoundary strong {
+  color: var(--acs-accent);
+}
+
+.worldInspector {
+  display: grid;
+  min-width: 0;
+  height: 100%;
+  align-content: start;
+}
+
+.worldInspectorSection,
+.worldInspectorAction {
+  display: grid;
+  padding: var(--acs-space-4);
+  gap: var(--acs-space-3);
+  border-bottom: 1px solid var(--acs-border);
+}
+
+.worldInspectorHeading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-2);
+}
+
+.worldInspectorHeading > div {
+  display: grid;
+  gap: var(--acs-space-1);
+}
+
+.worldInspectorHeading span {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  letter-spacing: 0.08em;
+}
+
+.worldValidationList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: var(--acs-space-2);
+  list-style: none;
+}
+
+.worldValidationList li {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+  gap: var(--acs-space-2);
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+}
+
+.worldValidationList li span {
+  color: var(--acs-accent);
+}
+
+.worldValidationList li[data-ready="true"] span {
+  color: var(--acs-primary);
+}
+
+.worldSelectionFacts {
+  display: grid;
+  margin: 0;
+  gap: var(--acs-space-2);
+}
+
+.worldSelectionFacts div {
+  display: grid;
+  gap: var(--acs-space-1);
+}
+
+.worldSelectionFacts dd {
+  margin: 0;
+  color: var(--acs-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.worldSelectionFacts div:last-child dd {
+  color: var(--acs-text-muted);
+  font-family: var(--acs-font-mono);
+}
+
+.worldInspectorAction {
+  border-bottom: 0;
+}
+
+.worldInspectorAction p {
+  margin: 0;
 }
 
 .contextBar[data-padding="compact"] {
@@ -1116,6 +1305,17 @@
 }
 
 @media (max-width: 64rem) {
+  .worldProductionWorkspace {
+    height: auto;
+    min-height: 44rem;
+    max-height: none;
+  }
+
+  .worldTaskCanvas {
+    padding: var(--acs-space-3);
+    gap: var(--acs-space-4);
+  }
+
   .catalogGrid {
     grid-template-columns: 1fr;
   }

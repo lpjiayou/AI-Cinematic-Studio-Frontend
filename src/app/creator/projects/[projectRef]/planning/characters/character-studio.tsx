@@ -24,7 +24,7 @@ import {
   useProjectPresentation,
   type EpisodePlanItemOption,
 } from "@/features/project-data";
-import { CustomerLayout } from "@/layouts";
+import { CustomerLayout, WorkspaceLayout } from "@/layouts";
 import styles from "./character-studio.module.css";
 
 export type CharacterStudioPageState =
@@ -220,6 +220,7 @@ export type IdentityCanvasProps = {
   activeField?: IdentityField;
   selectedCandidateId?: string | null;
   adoptedCandidateId?: string | null;
+  candidateSurface?: "inline" | "external";
   onActiveFieldChange?: (field: IdentityField) => void;
   onSelectCandidate?: (candidateId: string) => void;
   onAdoptCandidate?: (candidateId: string) => void;
@@ -860,6 +861,7 @@ export function IdentityCanvas({
   activeField = "motivation",
   selectedCandidateId = null,
   adoptedCandidateId = null,
+  candidateSurface = "inline",
   onActiveFieldChange,
   onSelectCandidate,
   onAdoptCandidate,
@@ -935,7 +937,7 @@ export function IdentityCanvas({
           );
         })}
       </form>
-      <div className={styles.candidateWorkbench}>
+      {candidateSurface === "inline" ? <div className={styles.candidateWorkbench}>
         <div className={styles.candidateList}>
           <div className={styles.candidateListHeading}>
             <span>AI SUGGESTIONS</span><strong>候选方向</strong>
@@ -979,7 +981,7 @@ export function IdentityCanvas({
             </div>
           )}
         </div>
-      </div>
+      </div> : null}
       <div className={styles.constraintBar}>
         <span>角色约束</span>
         <strong>{value.forbiddenBehaviors[0]}</strong>
@@ -987,6 +989,71 @@ export function IdentityCanvas({
         <strong>{value.continuityNotes[0]}</strong>
       </div>
     </section>
+  );
+}
+
+function CharacterCandidateStrip({
+  candidates,
+  selectedCandidateId,
+  adoptedCandidateId,
+  onSelectCandidate,
+  onAdoptCandidate,
+  onReturnCurrent,
+}: {
+  candidates: readonly CharacterDesignCandidate[];
+  selectedCandidateId: string | null;
+  adoptedCandidateId: string | null;
+  onSelectCandidate: (candidateId: string) => void;
+  onAdoptCandidate: (candidateId: string) => void;
+  onReturnCurrent: () => void;
+}) {
+  const selectedCandidate = candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null;
+
+  return (
+    <div className={styles.characterCandidateStrip}>
+      <div className={styles.candidateStripHeading}>
+        <span className={styles.workLabel}>ACTIVE TASK · IDENTITY CANDIDATES</span>
+        <strong>身份候选</strong>
+        <small>{candidates.length} 个本地结果 · 不会自动替换当前方向</small>
+      </div>
+      <div aria-label="身份候选结果" className={styles.candidateStripResults} role="group">
+        {candidates.map((candidate, index) => (
+          <button
+            aria-label={`选择候选：${candidate.label}`}
+            aria-pressed={candidate.id === selectedCandidateId}
+            className={styles.candidateStripOption}
+            key={candidate.id}
+            onClick={() => onSelectCandidate(candidate.id)}
+            type="button"
+          >
+            <span>{String.fromCharCode(65 + index)}</span>
+            <span>
+              <strong>{candidate.label}</strong>
+              <small>{candidate.rationale}</small>
+            </span>
+          </button>
+        ))}
+      </div>
+      <div className={styles.candidateStripReview}>
+        {selectedCandidate ? (
+          <>
+            <div>
+              <ACSBadge tone={selectedCandidate.id === adoptedCandidateId ? "primary" : "ai"}>
+                {selectedCandidate.id === adoptedCandidateId ? "已采用（LOCAL）" : "当前候选"}
+              </ACSBadge>
+              <strong>{selectedCandidate.label}</strong>
+              <p>{selectedCandidate.value}</p>
+            </div>
+            <div className={styles.candidateStripActions}>
+              <ACSButton onClick={onReturnCurrent} size="small" variant="ghost">恢复当前</ACSButton>
+              <ACSButton onClick={() => onAdoptCandidate(selectedCandidate.id)} size="small">采用候选</ACSButton>
+            </div>
+          </>
+        ) : (
+          <p>选择候选开始比较，或继续编辑当前方向。</p>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1683,17 +1750,53 @@ export function CharacterStudioWorkspace({
 
   return (
     <div aria-label={`${context.characterName}角色工作区`} className={styles.workspace}>
-      <section className={styles.primaryWorkbench} aria-label="角色生产主工作区">
-        <CharacterReferenceRail
-          activeAssetId={selectedAsset?.id ?? null}
-          adoptedAssetId={adoptedAssetId}
-          character={character}
-          onContextChange={selectArea}
-          onOpenViewer={openAsset}
-          onSelectAsset={onSelectAsset}
-          statusLabel={context.statusLabel}
-        />
-        <main aria-label="角色设计画布" className={styles.designCanvas}>
+      <WorkspaceLayout
+        candidateStrip={
+          <CharacterCandidateStrip
+            adoptedCandidateId={adoptedCandidates[activeIdentityField] ?? null}
+            candidates={visibleCandidates}
+            onAdoptCandidate={adoptCandidate}
+            onReturnCurrent={() => setSelectedCandidateId(null)}
+            onSelectCandidate={setSelectedCandidateId}
+            selectedCandidateId={selectedCandidateId}
+          />
+        }
+        candidateStripMode={activeArea === "IDENTITY" && visibleCandidates.length > 1 ? "results" : "hidden"}
+        className={styles.primaryWorkbench}
+        contentLabel="角色设计画布"
+        embedded
+        inspector={
+          <AICharacterAssistantPanel
+            actionNote={assistantActionNote}
+            insight={assistantInsights[activeArea]}
+            onAdoptSuggestion={() => {
+              if (activeArea === "IDENTITY" && selectedCandidateId) adoptCandidate(selectedCandidateId);
+              else setAssistantActionNote("建议已加入本地工作方向，等待你在对应工作区确认。");
+            }}
+            onGenerateCandidate={activeArea === "IDENTITY" ? generateCandidates : () => setAssistantActionNote("已生成一条本地工作建议；没有连接外部服务。")}
+            onRebuild={reanalyzeAssistant}
+            onViewConflict={() => selectArea(activeArea === "IDENTITY" ? "PERSONALITY" : activeArea)}
+            status={assistantThinking ? "thinking" : assistantStatusFor(pageState)}
+            suggestions={[
+              "先比较当前方向与候选，不直接覆盖当前版本。",
+              "每次采用都会把一致性预览标记为需要重新整理。",
+            ]}
+            summary="镜构小构正在围绕当前工作区域提供分析、冲突、候选与下一步，不作为聊天或正式创作决策。"
+          />
+        }
+        projectNavigator={
+          <CharacterReferenceRail
+            activeAssetId={selectedAsset?.id ?? null}
+            adoptedAssetId={adoptedAssetId}
+            character={character}
+            onContextChange={selectArea}
+            onOpenViewer={openAsset}
+            onSelectAsset={onSelectAsset}
+            statusLabel={context.statusLabel}
+          />
+        }
+      >
+        <section className={styles.designCanvas}>
           <div className={styles.workspaceTabs} aria-label="角色工作区导航" role="tablist">
             {areaTabs.map(([area, label], index) => (
               <button
@@ -1720,6 +1823,7 @@ export function CharacterStudioWorkspace({
               <IdentityCanvas
                 activeField={activeIdentityField}
                 adoptedCandidateId={adoptedCandidates[activeIdentityField] ?? null}
+                candidateSurface="external"
                 candidates={visibleCandidates}
                 onActiveFieldChange={selectIdentityField}
                 onAdoptCandidate={adoptCandidate}
@@ -1736,25 +1840,8 @@ export function CharacterStudioWorkspace({
               <ActiveCanvasSummary activeAsset={selectedAsset} area={activeArea} character={character} />
             )}
           </div>
-        </main>
-        <AICharacterAssistantPanel
-          actionNote={assistantActionNote}
-          insight={assistantInsights[activeArea]}
-          onAdoptSuggestion={() => {
-            if (activeArea === "IDENTITY" && selectedCandidateId) adoptCandidate(selectedCandidateId);
-            else setAssistantActionNote("建议已加入本地工作方向，等待你在对应工作区确认。");
-          }}
-          onGenerateCandidate={activeArea === "IDENTITY" ? generateCandidates : () => setAssistantActionNote("已生成一条本地工作建议；没有连接外部服务。")}
-          onRebuild={reanalyzeAssistant}
-          onViewConflict={() => selectArea(activeArea === "IDENTITY" ? "PERSONALITY" : activeArea)}
-          status={assistantThinking ? "thinking" : assistantStatusFor(pageState)}
-          suggestions={[
-            "先比较当前方向与候选，不直接覆盖当前版本。",
-            "每次采用都会把一致性预览标记为需要重新整理。",
-          ]}
-          summary="镜构小构正在围绕当前工作区域提供分析、冲突、候选与下一步，不作为聊天或正式创作决策。"
-        />
-      </section>
+        </section>
+      </WorkspaceLayout>
 
       <div className={styles.secondaryNavigation} aria-label="角色制作次级工作区">
         <span>继续工作</span>

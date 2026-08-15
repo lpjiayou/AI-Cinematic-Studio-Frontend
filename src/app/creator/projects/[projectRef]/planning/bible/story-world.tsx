@@ -20,7 +20,7 @@ import {
   AIThinkingState,
 } from "@/components";
 import { useProjectPresentation, type SeriesBibleCatalogItem } from "@/features/project-data";
-import { CustomerLayout } from "@/layouts";
+import { CustomerLayout, WorkspaceLayout } from "@/layouts";
 import { useACSTheme } from "@/theme";
 import styles from "./story-world.module.css";
 
@@ -358,6 +358,114 @@ export function StoryWorldPageIntro({
       <h1 id="story-world-page-title">{title}</h1>
       <p className={styles.introSubtitle}>{subtitle}</p>
     </section>
+  );
+}
+
+function WorldWorkspaceNavigator({ preview }: { preview: StoryWorldPreview }) {
+  const project = useProjectPresentation();
+  const sections = [
+    ["world-overview-workspace", "世界前提与规则", preview.rules.length],
+    ["world-timeline-workspace", "历史与时间线", preview.timeline.length],
+    ["world-space-workspace", "地点与空间", preview.locations.length],
+    ["world-society-workspace", "阵营与文化", preview.factions.length],
+    ["world-visual-workspace", "视觉语言", Object.keys(preview.visualLanguage).length],
+    [
+      "world-catalog-workspace",
+      "术语、道具与禁忌",
+      project.storyWorld.glossaryTerms.length
+        + project.storyWorld.props.length
+        + project.storyWorld.prohibitedNarrativePatterns.length,
+    ],
+  ] as const;
+
+  return (
+    <nav aria-label="世界构建任务导航" className={styles.worldTaskNavigator}>
+      <div className={styles.worldTaskNavigatorHeading}>
+        <span className={styles.sectionEyebrow}>WORLD OBJECTS</span>
+        <strong>世界对象</strong>
+        <small>当前仅显示已接入的本地集合</small>
+      </div>
+      <ul>
+        {sections.map(([id, label, count]) => (
+          <li key={id}>
+            <a href={`#${id}`}>
+              <span>{label}</span>
+              <small>{count}</small>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div className={styles.worldNavigatorBoundary}>
+        <strong>LOCAL_FIXTURE</strong>
+        <span>权威 Ref 未连接，不补造缺失集合。</span>
+      </div>
+    </nav>
+  );
+}
+
+function WorldWorkspaceInspector({
+  pageState,
+  selectedTimelineEvent,
+  selectedLocation,
+  selectedFaction,
+  canContinue,
+  assistantPending,
+  premiseReady,
+  onRebuild,
+  onContinue,
+}: {
+  pageState: StoryWorldPageState;
+  selectedTimelineEvent?: TimelineEventPreview;
+  selectedLocation?: LocationPreview;
+  selectedFaction?: FactionPreview;
+  canContinue: boolean;
+  assistantPending: boolean;
+  premiseReady: boolean;
+  onRebuild: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <aside aria-label="世界工作区检查器" className={styles.worldInspector}>
+      <section className={styles.worldInspectorSection}>
+        <div className={styles.worldInspectorHeading}>
+          <div><span>VALIDATION</span><strong>当前完成条件</strong></div>
+          <ACSBadge tone={canContinue ? "primary" : "warning"}>{canContinue ? "可以推进" : "需要补充"}</ACSBadge>
+        </div>
+        <ul className={styles.worldValidationList}>
+          <li data-ready={premiseReady || undefined}><span>{premiseReady ? "已满足" : "未满足"}</span>世界前提不少于 30 字</li>
+          <li data-ready="true"><span>已满足</span>规则、历史、地点与阵营基线</li>
+          <li data-ready="true"><span>已满足</span>视觉语言五项方向</li>
+          <li data-ready={pageState === "confirmed-preview" || undefined}><span>{pageState === "confirmed-preview" ? "已确认" : "待确认"}</span>本地世界预览确认</li>
+        </ul>
+      </section>
+
+      <section className={styles.worldInspectorSection}>
+        <div className={styles.worldInspectorHeading}><div><span>SELECTION</span><strong>当前选择摘要</strong></div></div>
+        <dl className={styles.worldSelectionFacts}>
+          <div><dt>历史</dt><dd>{selectedTimelineEvent ? `${selectedTimelineEvent.yearLabel} · ${selectedTimelineEvent.title}` : "未选择"}</dd></div>
+          <div><dt>地点</dt><dd>{selectedLocation?.name ?? "未选择"}</dd></div>
+          <div><dt>阵营</dt><dd>{selectedFaction?.name ?? "未选择"}</dd></div>
+          <div><dt>权威引用</dt><dd>未连接</dd></div>
+        </dl>
+      </section>
+
+      <AIWorldAssistantPanel
+        onRebuild={onRebuild}
+        status={assistantPending ? "thinking" : premiseReady ? "ready" : "empty"}
+        summary="世界的核心规则已经能够支撑当前故事，但能源来源、记忆继承方式与外环自治边界仍可进一步明确。"
+        suggestions={[
+          "建议补充城市能源来源，让建筑、交通与生活方式共享同一套视觉依据。",
+          "时间线中的“外环记忆断层”可以进一步说明它如何改变记忆议会与外环居民的关系。",
+          "优先区分三个阵营的材料触感，再统一到冷色城市与暖色人物光的视觉基线。",
+        ]}
+      />
+
+      <div className={styles.worldInspectorAction}>
+        <strong>下一阶段：角色设计</strong>
+        <p>只确认本地预览；正式角色实体与 IP Bible 持久化仍未接入。</p>
+        <ContinueCharacterButton disabled={!canContinue} loading={false} onContinue={onContinue} />
+      </div>
+    </aside>
   );
 }
 
@@ -1326,6 +1434,9 @@ export function StoryWorldPage() {
   const selectedTimelineEvent = preview.timeline.find((item) => item.id === timelineDetailId);
   const selectedLocation = preview.locations.find((item) => item.id === locationDetailId);
   const selectedFaction = preview.factions.find((item) => item.id === factionDetailId);
+  const activeTimelineEvent = preview.timeline.find((item) => item.id === selectedTimelineEventId);
+  const activeLocation = preview.locations.find((item) => item.id === selectedLocationId);
+  const activeFaction = preview.factions.find((item) => item.id === selectedFactionId);
 
   return (
     <CustomerLayout
@@ -1341,26 +1452,60 @@ export function StoryWorldPage() {
           title="建立一个可以持续生长的电影世界"
         />
 
-        <WorldOverviewCanvas
-          onPremiseChange={(value) => {
-            setPremise(value);
-            setConfirmed(false);
-            queueLocalRefresh();
-          }}
-          preview={preview}
-          theme={theme}
-        />
+        <WorkspaceLayout
+          candidateStripMode="hidden"
+          className={styles.worldProductionWorkspace}
+          contentLabel="故事世界主要任务区"
+          embedded
+          inspector={
+            <WorldWorkspaceInspector
+              assistantPending={assistantPending}
+              canContinue={canContinue}
+              onContinue={() => {
+                if (!canContinue) return;
+                setConfirmed(true);
+                setNextStepOpen(true);
+              }}
+              onRebuild={() => {
+                setConfirmed(false);
+                queueLocalRefresh();
+              }}
+              pageState={pageState}
+              premiseReady={premise.trim().length >= 30}
+              selectedFaction={activeFaction}
+              selectedLocation={activeLocation}
+              selectedTimelineEvent={activeTimelineEvent}
+            />
+          }
+          projectNavigator={<WorldWorkspaceNavigator preview={preview} />}
+        >
+          <div className={styles.worldTaskCanvas}>
 
-        <div className={styles.historySpaceGrid}>
-          <WorldTimeline
+            <div id="world-overview-workspace">
+              <WorldOverviewCanvas
+                onPremiseChange={(value) => {
+                  setPremise(value);
+                  setConfirmed(false);
+                  queueLocalRefresh();
+                }}
+                preview={preview}
+                theme={theme}
+              />
+            </div>
+
+            <div className={styles.historySpaceGrid}>
+              <div id="world-timeline-workspace">
+                <WorldTimeline
             events={preview.timeline}
             onSelect={(eventId) => {
               setSelectedTimelineEventId(eventId);
               setTimelineDetailId(eventId);
             }}
             selectedEventId={selectedTimelineEventId}
-          />
-          <WorldMapCanvas
+                />
+              </div>
+              <div id="world-space-workspace">
+                <WorldMapCanvas
             locations={preview.locations}
             mapAlt="展示电影世界中城市区域、特殊地点和空间关系的概念地图"
             mapAssetUrl={preview.assets.map}
@@ -1369,22 +1514,24 @@ export function StoryWorldPage() {
               setLocationDetailId(locationId);
             }}
             selectedLocationId={selectedLocationId}
-          />
-        </div>
+                />
+              </div>
+            </div>
 
-        <div className={styles.societyCultureGrid}>
-          <FactionSystem
+            <div className={styles.societyCultureGrid} id="world-society-workspace">
+              <FactionSystem
             factions={preview.factions}
             onSelectFaction={(factionId) => {
               setSelectedFactionId(factionId);
               setFactionDetailId(factionId);
             }}
             selectedFactionId={selectedFactionId}
-          />
-          <CultureCanvas culture={preview.culture} />
-        </div>
+              />
+              <CultureCanvas culture={preview.culture} />
+            </div>
 
-        <VisualLanguagePanel
+            <div id="world-visual-workspace">
+              <VisualLanguagePanel
           assetUrls={Object.values(preview.assets)}
           onOpenAsset={(assetUrl) => {
             const nextIndex = assetMetadata.findIndex((asset) => asset.src === assetUrl);
@@ -1392,40 +1539,13 @@ export function StoryWorldPage() {
             setAssetViewerOpen(true);
           }}
           value={preview.visualLanguage}
-        />
+              />
+            </div>
 
-        <SeriesBibleCatalogPanel />
+            <div id="world-catalog-workspace"><SeriesBibleCatalogPanel /></div>
 
-        <AIWorldAssistantPanel
-          onRebuild={() => {
-            setConfirmed(false);
-            queueLocalRefresh();
-          }}
-          status={assistantPending ? "thinking" : premise.trim().length >= 30 ? "ready" : "empty"}
-          summary="世界的核心规则已经能够支撑当前故事，但能源来源、记忆继承方式与外环自治边界仍可进一步明确。"
-          suggestions={[
-            "建议补充城市能源来源，让建筑、交通与生活方式共享同一套视觉依据。",
-            "时间线中的“外环记忆断层”可以进一步说明它如何改变记忆议会与外环居民的关系。",
-            "角色设计可优先区分三个阵营的材料触感，再统一到冷色城市与暖色人物光的视觉基线。",
-          ]}
-        />
-
-        <div className={styles.continueSection}>
-          <div>
-            <p className={styles.sectionEyebrow}>NEXT CREATIVE STAGE</p>
-            <h2>让角色从这个世界中生长出来</h2>
-            <p>确认当前世界预览后，将规则、文化和视觉语言带入角色设计。</p>
           </div>
-          <ContinueCharacterButton
-            disabled={!canContinue}
-            loading={false}
-            onContinue={() => {
-              if (!canContinue) return;
-              setConfirmed(true);
-              setNextStepOpen(true);
-            }}
-          />
-        </div>
+        </WorkspaceLayout>
       </div>
 
       <ACSModal

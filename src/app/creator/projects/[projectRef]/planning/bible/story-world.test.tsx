@@ -73,6 +73,9 @@ describe("StoryWorldPage", () => {
     expect(
       screen.queryByText(/worldRef|locationRef|factionRef|assetRef|Provider|Queue|GPU|Hash|Database/),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "世界构建任务导航" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "世界工作区检查器" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "候选结果" })).not.toBeInTheDocument();
   });
 
   it("associates the world premise label, help, limit, and validation copy", async () => {

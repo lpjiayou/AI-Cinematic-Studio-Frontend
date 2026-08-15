@@ -44,6 +44,25 @@ describe("ACS frontend foundation", () => {
     expect(screen.getByLabelText("编辑器画布")).toHaveTextContent("编辑画布");
   });
 
+  it("unmounts the candidate strip when the active task hides it", () => {
+    const { rerender } = render(
+      <WorkspaceLayout candidateStrip="候选结果" candidateStripMode="results">
+        主要任务
+      </WorkspaceLayout>,
+    );
+
+    expect(screen.getByRole("region", { name: "候选结果" })).toHaveTextContent("候选结果");
+
+    rerender(
+      <WorkspaceLayout candidateStrip="候选结果" candidateStripMode="hidden">
+        主要任务
+      </WorkspaceLayout>,
+    );
+
+    expect(screen.queryByRole("region", { name: "候选结果" })).not.toBeInTheDocument();
+    expect(screen.queryByText("候选结果")).not.toBeInTheDocument();
+  });
+
   it("provides the inspector specialization", async () => {
     render(
       <InspectorDrawer open onClose={() => undefined}>

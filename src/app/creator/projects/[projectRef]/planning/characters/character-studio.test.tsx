@@ -194,6 +194,21 @@ describe("CharacterStudioPage", () => {
     expect(screen.getByText("选择候选开始比较，或继续编辑当前方向。")).toBeInTheDocument();
   });
 
+  it("mounts candidates only for the matching active task and preserves page task state", async () => {
+    const user = userEvent.setup();
+    renderCharacterStudio();
+
+    expect(screen.getByRole("region", { name: "候选结果" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "采用候选" }));
+
+    await user.click(screen.getByRole("tab", { name: "外观" }));
+    expect(screen.queryByRole("region", { name: "候选结果" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "身份核心" }));
+    expect(screen.getByRole("region", { name: "候选结果" })).toBeInTheDocument();
+    expect(screen.getAllByText("已采用（LOCAL）").length).toBeGreaterThan(0);
+  });
+
   it("adopts an appearance reference as a local candidate workflow", async () => {
     const user = userEvent.setup();
     renderCharacterStudio();

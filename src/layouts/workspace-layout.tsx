@@ -2,6 +2,8 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { mergeClassNames } from "@/lib/merge-class-names";
 import styles from "./layouts.module.css";
 
+export type CandidateStripMode = "hidden" | "progress" | "results";
+
 export interface WorkspaceLayoutProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: ReactNode;
@@ -10,9 +12,12 @@ export interface WorkspaceLayoutProps
   topbar?: ReactNode;
   inspector?: ReactNode;
   bottomDrawer?: ReactNode;
+  candidateStrip?: ReactNode;
+  candidateStripMode?: CandidateStripMode;
   sidebarCollapsed?: boolean;
   inspectorOpen?: boolean;
   bottomDrawerOpen?: boolean;
+  embedded?: boolean;
   contentLabel?: string;
 }
 
@@ -23,9 +28,12 @@ export function WorkspaceLayout({
   topbar,
   inspector,
   bottomDrawer,
+  candidateStrip,
+  candidateStripMode = "hidden",
   sidebarCollapsed = false,
   inspectorOpen = true,
   bottomDrawerOpen = false,
+  embedded = false,
   contentLabel = "工作区内容",
   className,
   ...props
@@ -33,10 +41,13 @@ export function WorkspaceLayout({
   const hasProjectNavigator = Boolean(projectNavigator);
   const hasInspector = Boolean(inspector && inspectorOpen);
   const hasBottomDrawer = Boolean(bottomDrawer && bottomDrawerOpen);
+  const hasCandidateStrip = Boolean(candidateStrip && candidateStripMode !== "hidden");
 
   return (
     <div
       className={mergeClassNames(styles.workspaceLayout, className)}
+      data-candidate-strip-mode={candidateStripMode}
+      data-embedded={embedded || undefined}
       data-has-sidebar={Boolean(sidebar) || undefined}
       data-sidebar-collapsed={sidebarCollapsed || undefined}
       {...props}
@@ -67,6 +78,15 @@ export function WorkspaceLayout({
             </aside>
           )}
         </div>
+        {hasCandidateStrip && (
+          <section
+            aria-label={candidateStripMode === "progress" ? "候选任务进度" : "候选结果"}
+            className={styles.workspaceCandidateStrip}
+            data-mode={candidateStripMode}
+          >
+            {candidateStrip}
+          </section>
+        )}
         {hasBottomDrawer && (
           <section className={styles.workspaceDrawer} aria-label="工作区底部抽屉">
             {bottomDrawer}
