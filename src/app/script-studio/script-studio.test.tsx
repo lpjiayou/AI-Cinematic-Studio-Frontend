@@ -8,6 +8,7 @@ const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => "/script-studio",
 }));
 
 function renderScriptStudio() {
@@ -36,8 +37,8 @@ describe("ScriptStudioPage", () => {
     renderScriptStudio();
 
     expect(screen.getByRole("heading", { level: 1, name: "剧本制作工作台" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "客户制作模块导航" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "剧本与分镜" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByLabelText("当前编辑器")).toHaveTextContent("剧本工作台");
+    expect(screen.queryByRole("navigation", { name: "客户制作模块导航" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "当前内容" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "候选内容" })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "对象导航器" })).toBeInTheDocument();
@@ -114,7 +115,7 @@ describe("ScriptStudioPage", () => {
     await user.clear(dialogue);
     await user.type(dialogue, "保留这段本地对白。");
 
-    await user.click(screen.getByRole("link", { name: "AI导演" }));
+    await user.click(screen.getByRole("link", { name: "镜构智能 Creator 首页" }));
     let guard = await screen.findByRole("dialog", { name: "尚有未保存的本地修改" });
     await user.click(within(guard).getByRole("button", { name: "取消" }));
     expect(pushMock).not.toHaveBeenCalled();

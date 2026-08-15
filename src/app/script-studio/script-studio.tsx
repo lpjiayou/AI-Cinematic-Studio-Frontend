@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -12,7 +10,6 @@ import {
   type ChangeEvent,
   type CompositionEvent,
   type KeyboardEvent,
-  type MouseEvent,
 } from "react";
 import {
   ACSBadge,
@@ -24,10 +21,10 @@ import {
   AICandidateCard,
   AIThinkingState,
   InspectorDrawer,
+  UnifiedAppHeader,
   VersionTimeline,
 } from "@/components";
 import { EditorLayout } from "@/layouts";
-import { useACSTheme } from "@/theme";
 import {
   initialCandidate,
   initialLocalHistory,
@@ -86,20 +83,6 @@ const iconSources = {
 type ScriptStudioIconName = keyof typeof iconSources;
 type IconStyle = CSSProperties & { "--script-studio-icon": string };
 type GuidedMessage = { title: string; description: string };
-
-const moduleNavigation: ReadonlyArray<{
-  label: string;
-  href?: string;
-  current?: boolean;
-}> = [
-  { label: "工作台首页", href: "/workspace" },
-  { label: "AI导演", href: "/director" },
-  { label: "项目工坊" },
-  { label: "系列规划" },
-  { label: "剧本与分镜", href: "/script-studio", current: true },
-  { label: "资产库" },
-  { label: "成片交付" },
-];
 
 const toolbarActions = [
   { label: "视图", icon: "template" },
@@ -161,164 +144,20 @@ function useViewportWidth() {
 function ScriptStudioHeader({
   dirty,
   onNavigate,
-  onGuide,
 }: {
   dirty: boolean;
   onNavigate: (intent: "route-navigation" | "back-navigation", href: string) => void;
-  onGuide: (message: GuidedMessage) => void;
 }) {
-  const { theme, toggleTheme } = useACSTheme();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const nextThemeLabel = theme === "dark" ? "浅色" : "深色";
-
-  function handleKnownLink(
-    event: MouseEvent<HTMLAnchorElement>,
-    href: string,
-    intent: "route-navigation" | "back-navigation" = "route-navigation",
-  ) {
-    if (!dirty) return;
-    event.preventDefault();
-    onNavigate(intent, href);
-  }
-
-  const navigation = (
-    <nav className={styles.primaryNavigation} aria-label="客户制作模块导航">
-      {moduleNavigation.map((item) =>
-        item.href ? (
-          <Link
-            aria-current={item.current ? "page" : undefined}
-            className={item.current ? styles.activeNavigation : undefined}
-            href={item.href}
-            key={item.label}
-            onClick={(event) => {
-              if (item.current) return;
-              handleKnownLink(event, item.href!);
-              setMenuOpen(false);
-            }}
-          >
-            {item.label}
-          </Link>
-        ) : (
-          <button
-            key={item.label}
-            onClick={() => {
-              setMenuOpen(false);
-              onGuide({
-                title: item.label,
-                description: `${item.label}将在对应制作空间开放。当前剧本内容不会因此改变。`,
-              });
-            }}
-            type="button"
-          >
-            {item.label}
-          </button>
-        ),
-      )}
-    </nav>
-  );
-
   return (
-    <header className={styles.customerHeader}>
-      <div className={styles.headerInner}>
-        <Link
-          aria-label="返回镜构智能工作台首页"
-          className={styles.brandLockup}
-          href="/workspace"
-          onClick={(event) => handleKnownLink(event, "/workspace", "back-navigation")}
-        >
-          <Image
-            alt=""
-            className={styles.brandMark}
-            height={40}
-            priority
-            src="/assets/acs/brand/jinggou-mark.webp"
-            width={40}
-          />
-          <span className={styles.brandCopy}>
-            <strong>镜构智能</strong>
-            <span>JINGGOU AI</span>
-          </span>
-        </Link>
-
-        {navigation}
-
-        <div className={styles.headerActions}>
-          <ACSButton
-            aria-label="打开全局搜索"
-            className={styles.iconButton}
-            leadingIcon={<ScriptStudioIcon name="search" />}
-            onClick={() => onGuide({ title: "全局搜索", description: "可在当前剧本中使用工具栏的“查找”定位内容。" })}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.visuallyHidden}>搜索</span>
-          </ACSButton>
-          <ACSButton
-            aria-label={`切换至${nextThemeLabel}模式`}
-            className={styles.iconButton}
-            leadingIcon={<ScriptStudioIcon name={theme === "dark" ? "light" : "dark"} />}
-            onClick={toggleTheme}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.visuallyHidden}>{nextThemeLabel}</span>
-          </ACSButton>
-          <ACSButton
-            aria-label="查看通知"
-            className={styles.iconButton}
-            leadingIcon={<ScriptStudioIcon name="notification" />}
-            onClick={() => onGuide({ title: "制作通知", description: "当前没有需要处理的新制作通知。" })}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.visuallyHidden}>通知</span>
-          </ACSButton>
-          <ACSButton
-            aria-label="打开帮助"
-            className={styles.helpButton}
-            leadingIcon={<ScriptStudioIcon name="help" />}
-            onClick={() => onGuide({ title: "剧本工作台帮助", description: "选择场景或文本，生成候选后即可比较、采用或恢复当前内容。" })}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.visuallyHidden}>帮助</span>
-          </ACSButton>
-          <button
-            aria-label="打开张导的工作空间菜单"
-            className={styles.accountButton}
-            onClick={() => onGuide({ title: "张导 · 导演工作室", description: "当前正在《未来之城》剧本工作区进行本地创作。" })}
-            type="button"
-          >
-            <span className={styles.headerAvatar}>张</span>
-            <span className={styles.accountCopy}>
-              <strong>张导</strong>
-              <small>导演工作室</small>
-            </span>
-          </button>
-          <ACSButton
-            aria-label="打开制作模块菜单"
-            className={`${styles.iconButton} ${styles.mobileMenuButton}`}
-            leadingIcon={<ScriptStudioIcon name="menu" />}
-            onClick={() => setMenuOpen(true)}
-            size="small"
-            variant="ghost"
-          >
-            <span className={styles.visuallyHidden}>菜单</span>
-          </ACSButton>
-        </div>
-      </div>
-
-      <ACSDrawer
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        title="制作模块"
-        description="镜构智能客户创作空间"
-        side="right"
-        size="narrow"
-      >
-        <div className={styles.mobileNavigation}>{navigation}</div>
-      </ACSDrawer>
-    </header>
+    <UnifiedAppHeader
+      editorLabel="剧本工作台"
+      mode="editor"
+      onNavigate={(event, href) => {
+        if (!dirty) return;
+        event.preventDefault();
+        onNavigate("back-navigation", href);
+      }}
+    />
   );
 }
 
@@ -1528,7 +1367,7 @@ export function ScriptStudioPage() {
 
   return (
     <div className={styles.pageShell} data-candidate-state={pageState.candidate} data-dirty={dirty || undefined}>
-      <ScriptStudioHeader dirty={dirty} onGuide={setGuidedMessage} onNavigate={handleNavigate} />
+      <ScriptStudioHeader dirty={dirty} onNavigate={handleNavigate} />
       <ScriptContextBar dirty={dirty} onSwitch={handleSwitch} />
       <EditorLayout
         actionBar={
