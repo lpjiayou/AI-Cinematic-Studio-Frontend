@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ThemeProvider } from "@/theme";
+import { getLocalProjectPresentation, ProjectPresentationProvider } from "@/features/project-data";
 import {
   StoryWorldPage,
   WorldTimeline,
@@ -12,7 +13,9 @@ import {
 function renderStoryWorldPage() {
   return render(
     <ThemeProvider>
-      <StoryWorldPage />
+      <ProjectPresentationProvider value={getLocalProjectPresentation("future-city")}>
+        <StoryWorldPage />
+      </ProjectPresentationProvider>
     </ThemeProvider>,
   );
 }
@@ -40,6 +43,9 @@ describe("StoryWorldPage", () => {
     expect(screen.getByRole("heading", { name: "阵营系统" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "文化画布" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "视觉语言" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "术语、道具与叙事约束" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "禁止叙事模式" })).toBeInTheDocument();
+    expect(screen.getAllByText(/LOCAL · Ref 未连接/).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "AI 世界构建建议" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "进入角色设计" })).toBeEnabled();
 

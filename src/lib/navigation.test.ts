@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PRIMARY_NAVIGATION } from "./navigation";
+import { PROJECT_NAVIGATION } from "./project-navigation";
 
 describe("PRIMARY_NAVIGATION", () => {
   it("freezes the six global destinations in product order", () => {
@@ -17,5 +18,24 @@ describe("PRIMARY_NAVIGATION", () => {
     expect(
       PRIMARY_NAVIGATION.filter((item) => item.available).map((item) => item.href),
     ).toEqual(["/creator", "/creator/ai-director", "/creator/projects"]);
+  });
+});
+
+describe("PROJECT_NAVIGATION", () => {
+  it("freezes the six project destinations in product order", () => {
+    expect(PROJECT_NAVIGATION.map((item) => item.label)).toEqual([
+      "概览",
+      "策划",
+      "内容",
+      "制作",
+      "后期",
+      "交付",
+    ]);
+  });
+
+  it("links only the planning route that currently exists", () => {
+    expect(PROJECT_NAVIGATION.filter((item) => item.available).map((item) => item.segment)).toEqual([
+      "planning",
+    ]);
   });
 });

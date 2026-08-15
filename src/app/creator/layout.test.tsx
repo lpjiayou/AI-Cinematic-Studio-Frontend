@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { ThemeProvider } from "@/theme";
 import CreatorLayout from "./layout";
 
 vi.mock("next/navigation", () => ({
@@ -9,9 +10,11 @@ vi.mock("next/navigation", () => ({
 describe("CreatorLayout", () => {
   it("renders the shared brand, navigation, and route content", () => {
     render(
-      <CreatorLayout>
-        <section aria-label="Creator route content">Creator child</section>
-      </CreatorLayout>,
+      <ThemeProvider>
+        <CreatorLayout>
+          <section aria-label="Creator route content">Creator child</section>
+        </CreatorLayout>
+      </ThemeProvider>,
     );
 
     expect(screen.getByRole("banner")).toBeInTheDocument();
@@ -28,9 +31,11 @@ describe("CreatorLayout", () => {
 
   it("links only available destinations and exposes unavailable items as disabled", () => {
     render(
-      <CreatorLayout>
-        <div>Creator child</div>
-      </CreatorLayout>,
+      <ThemeProvider>
+        <CreatorLayout>
+          <div>Creator child</div>
+        </CreatorLayout>
+      </ThemeProvider>,
     );
 
     const navigation = screen.getByRole("navigation", {

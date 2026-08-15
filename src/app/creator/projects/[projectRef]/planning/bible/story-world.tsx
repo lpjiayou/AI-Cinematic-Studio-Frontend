@@ -19,6 +19,7 @@ import {
   AIAssistantPanel,
   AIThinkingState,
 } from "@/components";
+import { useProjectPresentation, type SeriesBibleCatalogItem } from "@/features/project-data";
 import { CustomerLayout } from "@/layouts";
 import { useACSTheme } from "@/theme";
 import styles from "./story-world.module.css";
@@ -107,6 +108,54 @@ export type StoryWorldPreview = {
   visualLanguage: VisualLanguagePreview;
   assets: Readonly<Record<WorldAssetKind, string>>;
 };
+
+function CatalogList({
+  items,
+  title,
+}: {
+  items: readonly SeriesBibleCatalogItem[];
+  title: string;
+}) {
+  return (
+    <section className={styles.catalogGroup}>
+      <h3>{title}</h3>
+      {items.length ? (
+        <ul>
+          {items.map((item) => (
+            <li key={item.clientKey}>
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+              <small>{item.authoritativeRef ? "可信 Ref 已连接" : "LOCAL · Ref 未连接"}</small>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>当前本地项目没有可展示条目。</p>
+      )}
+    </section>
+  );
+}
+
+function SeriesBibleCatalogPanel() {
+  const project = useProjectPresentation();
+
+  return (
+    <ACSCard className={styles.catalogPanel} padding="spacious">
+      <div className={styles.catalogHeading}>
+        <div>
+          <p className={styles.sectionEyebrow}>ACCEPTED SERIES BIBLE SURFACES</p>
+          <h2>术语、道具与叙事约束</h2>
+        </div>
+        <ACSBadge tone="neutral">{project.dataOrigin} · 非权威</ACSBadge>
+      </div>
+      <div className={styles.catalogGrid}>
+        <CatalogList items={project.storyWorld.glossaryTerms} title="术语表" />
+        <CatalogList items={project.storyWorld.props} title="道具目录" />
+        <CatalogList items={project.storyWorld.prohibitedNarrativePatterns} title="禁止叙事模式" />
+      </div>
+    </ACSCard>
+  );
+}
 
 const worldAssets = {
   overview: "/assets/story-world/overview/world-overview.webp",
@@ -1198,7 +1247,16 @@ function WorldAssetViewer({
 
 export function StoryWorldPage() {
   const { theme } = useACSTheme();
-  const [premise, setPremise] = useState(initialPreview.premise);
+  const project = useProjectPresentation();
+  const projectInitialPreview = useMemo<StoryWorldPreview>(
+    () => ({
+      ...initialPreview,
+      title: project.display.worldTitle,
+      premise: project.display.worldPremise,
+    }),
+    [project.display.worldPremise, project.display.worldTitle],
+  );
+  const [premise, setPremise] = useState(projectInitialPreview.premise);
   const [selectedTimelineEventId, setSelectedTimelineEventId] = useState(initialTimeline[1].id);
   const [selectedLocationId, setSelectedLocationId] = useState(initialLocations[0].id);
   const [selectedFactionId, setSelectedFactionId] = useState(initialFactions[0].id);
@@ -1229,11 +1287,11 @@ export function StoryWorldPage() {
 
   const preview: StoryWorldPreview = useMemo(
     () => ({
-      ...initialPreview,
+      ...projectInitialPreview,
       premise,
       status: premise.trim().length < 30 ? "empty" : assistantPending ? "editing" : "ready",
     }),
-    [assistantPending, premise],
+    [assistantPending, premise, projectInitialPreview],
   );
 
   const canContinue =
@@ -1335,6 +1393,8 @@ export function StoryWorldPage() {
           }}
           value={preview.visualLanguage}
         />
+
+        <SeriesBibleCatalogPanel />
 
         <AIWorldAssistantPanel
           onRebuild={() => {
