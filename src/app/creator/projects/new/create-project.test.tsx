@@ -25,13 +25,13 @@ describe("CreateProjectPage", () => {
       screen.getByRole("heading", { level: 1, name: "让一个创意，成为一部电影" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "创意简报" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "AI 创意理解" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "创意方向检查" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "故事方向" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "人物方向" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "视觉方向" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "制作建议" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "创作摘要" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "开始生成导演方案" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "确认本地导演方案预览" })).toBeDisabled();
 
     expect(screen.queryByText(/Provider|Queue ID|GPU|projectRef|seriesRef|episodeRef/)).not.toBeInTheDocument();
   });
@@ -42,7 +42,7 @@ describe("CreateProjectPage", () => {
     const ideaInput = screen.getByRole("textbox", { name: "你的创意" });
     expect(ideaInput).toHaveAttribute("aria-describedby", "creative-idea-description");
     expect(document.getElementById("creative-idea-description")).toHaveTextContent(
-      "写下人物、世界或一瞬间的画面",
+      "至少输入 20 个字符",
     );
   });
 
@@ -77,12 +77,12 @@ describe("CreateProjectPage", () => {
 
     await user.type(
       screen.getByRole("textbox", { name: "你的创意" }),
-      "一位仿生人在未来城市寻找失落的记忆。",
+      "一位仿生人在未来城市寻找失落的记忆，并决定公开创造者留下的真相。",
     );
-    await user.click(screen.getByRole("button", { name: "开始生成导演方案" }));
+    await user.click(screen.getByRole("button", { name: "确认本地导演方案预览" }));
 
-    expect(screen.getAllByText("导演方案预览已就绪").length).toBeGreaterThan(0);
-    expect(screen.getByRole("status")).toHaveTextContent("导演方案预览已准备好");
+    expect(screen.getAllByText("本地预览已确认").length).toBeGreaterThan(0);
+    expect(screen.getByRole("status")).toHaveTextContent("尚未保存为正式项目");
   });
 
   it("keeps preview theme reads without rendering a page-owned theme control", async () => {

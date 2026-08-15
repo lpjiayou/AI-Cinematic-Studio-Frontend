@@ -3,21 +3,27 @@ import { describe, expect, it } from "vitest";
 import ProjectsPage from "./page";
 
 describe("ProjectsPage", () => {
-  it("renders an honest empty project center without authoritative fixtures", () => {
+  it("renders an actionable disconnected project browser", () => {
     render(<ProjectsPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "项目" })).toBeInTheDocument();
-    expect(screen.getByText("PROJECT CENTER")).toBeInTheDocument();
-    expect(screen.getByText(/尚未连接权威项目数据/)).toBeInTheDocument();
-    expect(screen.getByText("项目上下文未连接")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "项目数据源" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "还没有可显示的权威项目" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/这不代表项目数量为零/)).toBeInTheDocument();
+    expect(screen.getByText("未连接")).toBeInTheDocument();
   });
 
-  it("offers New Project only at its frozen Project Center route", () => {
+  it("offers only valid next actions", () => {
     render(<ProjectsPage />);
 
-    expect(screen.getByRole("link", { name: "新建项目" })).toHaveAttribute(
+    for (const link of screen.getAllByRole("link", { name: /新建项目|建立本地创意方案/ })) {
+      expect(link).toHaveAttribute("href", "/creator/projects/new");
+    }
+    expect(screen.getByRole("link", { name: "返回创作入口" })).toHaveAttribute(
       "href",
-      "/creator/projects/new",
+      "/creator",
     );
     expect(screen.queryByRole("link", { name: "创作中心" })).not.toBeInTheDocument();
   });

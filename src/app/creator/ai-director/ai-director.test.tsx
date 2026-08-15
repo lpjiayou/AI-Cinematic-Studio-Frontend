@@ -26,18 +26,18 @@ describe("AIDirectorPage", () => {
     renderDirectorPage();
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "让 AI 导演理解你的电影" }),
+      screen.getByRole("heading", { level: 1, name: "建立可执行的导演简报" }),
     ).toBeInTheDocument();
     expect(screen.getByText("AI DIRECTOR STUDIO")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "创作方向" })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: "AI 导演分析" }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "导演输入检查" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "故事分析" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "主题分析" })).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { name: "角色方向" })).toHaveLength(2);
     expect(screen.getByRole("heading", { name: "视觉语言" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "制作策略" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "导演方案" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "确认导演方案" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "确认本地导演方案" })).toBeDisabled();
 
     expect(
       screen.getByAltText(
@@ -46,7 +46,7 @@ describe("AIDirectorPage", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByAltText(
-        "AI 辅助导演分析故事结构、角色方向、色彩和镜头语言的电影创意规划画面",
+        "导演简报结构、角色方向、色彩和镜头语言的静态规划示意图",
       ),
     ).toBeInTheDocument();
     expect(
@@ -149,18 +149,22 @@ describe("AIDirectorPage", () => {
       "aria-describedby",
       "director-custom-reference-help",
     );
-    expect(screen.getByRole("button", { name: "确认导演方案" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "确认本地导演方案" })).toBeDisabled();
   });
 
   it("uses only local presentation state while reorganizing analysis", async () => {
     const user = userEvent.setup();
     renderDirectorPage();
 
-    await user.click(screen.getByRole("button", { name: "重新整理分析" }));
+    await user.click(screen.getByRole("button", { name: "使用示例摘要" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "重新检查输入" })).toBeEnabled(),
+    );
+    await user.click(screen.getByRole("button", { name: "重新检查输入" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("正在整理导演判断");
+    expect(screen.getByRole("status")).toHaveTextContent("正在检查当前输入");
     expect(screen.getByRole("status")).toHaveTextContent(
-      "正在把新的创作选择重新汇入故事、人物和视觉方向。",
+      "正在重新检查故事意图、观众、情绪和参考风格。",
     );
     await waitFor(
       () => expect(screen.queryByRole("status")).not.toBeInTheDocument(),
@@ -172,13 +176,17 @@ describe("AIDirectorPage", () => {
     const user = userEvent.setup();
     renderDirectorPage();
 
-    await user.click(screen.getByRole("button", { name: "确认导演方案" }));
+    await user.click(screen.getByRole("button", { name: "使用示例摘要" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "确认本地导演方案" })).toBeEnabled(),
+    );
+    await user.click(screen.getByRole("button", { name: "确认本地导演方案" }));
 
     expect(
       await screen.findByRole("dialog", { name: "导演方案预览已确认" }),
     ).toBeInTheDocument();
     expect(screen.getAllByText("本地预览已确认").length).toBeGreaterThan(0);
-    expect(screen.getByText(/故事世界将在后续阶段接入/)).toBeInTheDocument();
+    expect(screen.getByText(/故事世界工作区已经可用/)).toBeInTheDocument();
     expect(screen.getByText(/不会创建正式项目/)).toBeInTheDocument();
   });
 

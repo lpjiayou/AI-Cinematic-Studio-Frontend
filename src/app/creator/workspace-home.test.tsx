@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ThemeProvider } from "@/theme";
 import { WorkspaceHomePage } from "./workspace-home";
 
@@ -13,55 +12,46 @@ function renderWorkspace() {
 }
 
 describe("WorkspaceHomePage", () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-    document.documentElement.dataset.theme = "dark";
-  });
-
-  it("renders the frozen Workspace Home experience with approved mock projects", () => {
+  it("renders a truthful task launchpad without fictional operational data", () => {
     renderWorkspace();
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "欢迎回来，张导" }),
+      screen.getByRole("heading", { level: 1, name: "从明确任务开始创作" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("CREATOR WORKSPACE")).toBeInTheDocument();
-    expect(screen.getByText("镜构智能创作云，让每一次创作都更有想象力")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "快速开始" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "AI 助理 · 镜构小构" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "最近项目" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "制作进度总览" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "项目状态时间线" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "现在可以完成的工作" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "数据与能力边界" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "制作路径" })).toBeInTheDocument();
 
-    for (const project of ["未来之城", "雪落无声", "追光者", "星际回响"]) {
-      expect(screen.getByRole("heading", { name: project })).toBeInTheDocument();
+    expect(screen.queryByText(/未来之城|雪落无声|追光者|星际回响/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/GB|团队成员|在线|专业版|项目总数/)).not.toBeInTheDocument();
+  });
+
+  it("exposes only real reachable task routes", () => {
+    renderWorkspace();
+
+    for (const link of screen.getAllByRole("link", { name: "新建本地方案" })) {
+      expect(link).toHaveAttribute("href", "/creator/projects/new");
     }
-
-    expect(screen.getAllByRole("progressbar")).toHaveLength(4);
-    expect(screen.queryByText(/GPU|Queue ID|Provider|Hash|Ref/)).not.toBeInTheDocument();
-  });
-
-  it("keeps guided actions local without rendering page-owned shell controls", async () => {
-    const user = userEvent.setup();
-    renderWorkspace();
-
-    expect(screen.queryByRole("button", { name: /切换至.*模式/ })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("navigation", { name: "工作台主要导航" }),
-    ).not.toBeInTheDocument();
-
-    await user.click(screen.getAllByRole("button", { name: /新建项目/ })[0]);
-    expect(await screen.findByRole("dialog", { name: "新建项目" })).toBeInTheDocument();
-  });
-
-  it("moves an AI suggestion into the compact assistant input without submitting", async () => {
-    const user = userEvent.setup();
-    renderWorkspace();
-
-    await user.click(screen.getByRole("button", { name: "帮我分析剧本的情绪曲线" }));
-
-    expect(screen.getByRole("textbox", { name: "输入创意或制作需求" })).toHaveValue(
-      "帮我分析剧本的情绪曲线",
+    expect(screen.getByRole("link", { name: "进入 AI 导演" })).toHaveAttribute(
+      "href",
+      "/creator/ai-director",
     );
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "打开项目中心" })).toHaveAttribute(
+      "href",
+      "/creator/projects",
+    );
+    expect(screen.getByRole("link", { name: "打开剧本工作室" })).toHaveAttribute(
+      "href",
+      "/script-studio",
+    );
+    expect(screen.queryByRole("link", { name: /资产库|作品|创作中心/ })).not.toBeInTheDocument();
+  });
+
+  it("keeps unavailable production stages informative and non-interactive", () => {
+    renderWorkspace();
+
+    expect(screen.getByText("分镜、资产与渲染")).toBeInTheDocument();
+    expect(screen.getByText("尚未开放")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /分镜、资产与渲染/ })).not.toBeInTheDocument();
   });
 });
