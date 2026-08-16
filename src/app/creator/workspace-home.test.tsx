@@ -21,6 +21,7 @@ describe("WorkspaceHomePage", () => {
     expect(screen.getByRole("heading", { name: "现在可以完成的工作" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "数据与能力边界" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "制作路径" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "M1–M19 前端映射" })).toBeInTheDocument();
 
     expect(screen.queryByText(/未来之城|雪落无声|追光者|星际回响/)).not.toBeInTheDocument();
     expect(screen.queryByText(/GB|团队成员|在线|专业版|项目总数/)).not.toBeInTheDocument();
@@ -29,29 +30,24 @@ describe("WorkspaceHomePage", () => {
   it("exposes only real reachable task routes", () => {
     renderWorkspace();
 
-    for (const link of screen.getAllByRole("link", { name: "新建本地方案" })) {
+    for (const link of screen.getAllByRole("link", { name: /开始新项目|新建制作项目/ })) {
       expect(link).toHaveAttribute("href", "/creator/projects/new");
     }
     expect(screen.getByRole("link", { name: "进入 AI 导演" })).toHaveAttribute(
       "href",
       "/creator/ai-director",
     );
-    expect(screen.getByRole("link", { name: "打开项目中心" })).toHaveAttribute(
-      "href",
-      "/creator/projects",
-    );
-    expect(screen.getByRole("link", { name: "打开剧本工作室" })).toHaveAttribute(
-      "href",
-      "/script-studio",
-    );
+    for (const link of screen.getAllByRole("link", { name: /打开项目中心|选择项目与集数/ })) {
+      expect(link).toHaveAttribute("href", "/creator/projects");
+    }
     expect(screen.queryByRole("link", { name: /资产库|作品|创作中心/ })).not.toBeInTheDocument();
   });
 
-  it("keeps unavailable production stages informative and non-interactive", () => {
+  it("keeps unverified production stages informative and non-interactive", () => {
     renderWorkspace();
 
-    expect(screen.getByText("分镜、资产与渲染")).toBeInTheDocument();
-    expect(screen.getByText("尚未开放")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /分镜、资产与渲染/ })).not.toBeInTheDocument();
+    expect(screen.getByText("M7–M19 后续制作与商业化")).toBeInTheDocument();
+    expect(screen.getAllByText("待核对").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: /M7–M19/ })).not.toBeInTheDocument();
   });
 });

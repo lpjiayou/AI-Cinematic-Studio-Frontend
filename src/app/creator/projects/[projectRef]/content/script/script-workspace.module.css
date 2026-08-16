@@ -1,0 +1,425 @@
+.page,
+.statePage {
+  width: 100%;
+  max-width: var(--acs-content-max-width);
+  margin: 0 auto;
+  padding: var(--acs-space-8) var(--acs-space-6) var(--acs-space-16);
+}
+
+.page {
+  display: grid;
+  gap: var(--acs-space-6);
+}
+
+.pageHeader,
+.panelHeading,
+.emptyWorkspace {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-6);
+}
+
+.pageHeader > div,
+.emptyWorkspace > div:first-child {
+  max-width: 58rem;
+}
+
+.eyebrow {
+  margin: 0 0 var(--acs-space-2);
+  color: var(--acs-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-bold);
+  letter-spacing: 0.12em;
+}
+
+.pageHeader h1,
+.panelHeading h2,
+.emptyWorkspace h2,
+.stateCard h1,
+.contextPanel h2 {
+  margin: 0;
+  color: var(--acs-text-primary);
+}
+
+.pageHeader h1 {
+  font-size: var(--acs-type-display-size);
+  line-height: var(--acs-type-display-line-height);
+}
+
+.pageHeader > div > p:last-child,
+.emptyWorkspace > div > p:last-child,
+.stateCard p {
+  margin: var(--acs-space-3) 0 0;
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.scopeBar {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface-deep);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.scopeBar > div,
+.scopeBar > label {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-3) var(--acs-space-4);
+  border-right: 1px solid var(--acs-border);
+  gap: var(--acs-space-1);
+}
+
+.scopeBar > :last-child {
+  border-right: 0;
+}
+
+.scopeBar span,
+.episodeForm span,
+.synopsisField > span {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.scopeBar strong,
+.scopeBar select {
+  overflow: hidden;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scopeBar select {
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.emptyWorkspace,
+.stateCard {
+  padding: var(--acs-space-8);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface);
+}
+
+.emptyWorkspace {
+  align-items: center;
+}
+
+.episodeForm {
+  display: grid;
+  width: min(100%, 44rem);
+  gap: var(--acs-space-3);
+  grid-template-columns: 2fr 0.65fr 1.2fr auto;
+}
+
+.episodeForm label {
+  display: grid;
+  gap: var(--acs-space-2);
+}
+
+.episodeForm input,
+.synopsisField textarea {
+  width: 100%;
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  outline: 0;
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font: inherit;
+}
+
+.episodeForm input {
+  min-height: 2.75rem;
+  padding-inline: var(--acs-space-3);
+}
+
+.episodeForm button {
+  align-self: end;
+}
+
+.editorGrid {
+  display: grid;
+  min-height: 42rem;
+  overflow: hidden;
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface);
+  grid-template-columns: minmax(14rem, 0.8fr) minmax(30rem, 2.5fr) minmax(18rem, 1fr);
+}
+
+.sceneNavigator,
+.scriptEditor,
+.contextPanel {
+  min-width: 0;
+  padding: var(--acs-space-5);
+}
+
+.sceneNavigator,
+.scriptEditor {
+  border-right: 1px solid var(--acs-border);
+}
+
+.sceneNavigator ol {
+  display: grid;
+  margin: var(--acs-space-5) 0 0;
+  padding: 0;
+  gap: var(--acs-space-2);
+  list-style: none;
+}
+
+.sceneNavigator li {
+  display: grid;
+  padding: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  gap: var(--acs-space-3);
+  grid-template-columns: auto 1fr;
+}
+
+.sceneNavigator li > span {
+  color: var(--acs-primary);
+  font-family: var(--acs-font-mono);
+}
+
+.sceneNavigator li div {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-1);
+}
+
+.sceneNavigator strong,
+.scriptScenes strong {
+  color: var(--acs-text-primary);
+}
+
+.sceneNavigator small,
+.panelHeading > span,
+.sceneMeta {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.scriptEditor {
+  display: grid;
+  align-content: start;
+  gap: var(--acs-space-5);
+}
+
+.logline {
+  margin: 0;
+  padding: var(--acs-space-4);
+  border-left: 3px solid var(--acs-primary);
+  background: var(--acs-primary-soft);
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-section-size);
+  line-height: var(--acs-type-section-line-height);
+}
+
+.synopsisField {
+  display: grid;
+  gap: var(--acs-space-2);
+}
+
+.synopsisField textarea {
+  min-height: 6rem;
+  padding: var(--acs-space-3);
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.episodeForm input:focus-visible,
+.synopsisField textarea:focus-visible {
+  border-color: var(--acs-primary);
+  box-shadow: 0 0 0 3px var(--acs-primary-soft);
+}
+
+.scriptScenes {
+  display: grid;
+  gap: var(--acs-space-4);
+}
+
+.scriptScenes article {
+  padding: var(--acs-space-5);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+}
+
+.scriptScenes header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--acs-space-3);
+}
+
+.scriptScenes header > span {
+  color: var(--acs-primary);
+  font-family: var(--acs-font-mono);
+}
+
+.scriptScenes header small {
+  margin-left: auto;
+  color: var(--acs-text-muted);
+}
+
+.scriptScenes article > p {
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.scriptScenes blockquote {
+  margin: var(--acs-space-3) 0 0 var(--acs-space-6);
+  padding: var(--acs-space-3) var(--acs-space-4);
+  border-left: 2px solid var(--acs-primary);
+  background: var(--acs-surface);
+}
+
+.scriptScenes blockquote p {
+  margin: var(--acs-space-1) 0 0;
+  color: var(--acs-text-primary);
+}
+
+.editorActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+}
+
+.contextPanel dl {
+  display: grid;
+  margin: var(--acs-space-5) 0;
+  gap: var(--acs-space-3);
+}
+
+.contextPanel dl > div {
+  display: grid;
+  padding-bottom: var(--acs-space-3);
+  border-bottom: 1px solid var(--acs-border);
+  gap: var(--acs-space-1);
+}
+
+.contextPanel dt {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.contextPanel dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--acs-text-secondary);
+}
+
+.nextBoundary {
+  display: grid;
+  margin-bottom: var(--acs-space-5);
+  padding: var(--acs-space-4);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  gap: var(--acs-space-3);
+}
+
+.nextBoundary p {
+  margin: 0;
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.operationMessage {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+}
+
+.textLink {
+  color: var(--acs-primary);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+}
+
+.statePage {
+  min-height: 32rem;
+  display: grid;
+  place-items: center;
+}
+
+.stateCard {
+  width: min(100%, 42rem);
+}
+
+.stateCard button {
+  margin-top: var(--acs-space-5);
+}
+
+@media (max-width: 76rem) {
+  .editorGrid {
+    grid-template-columns: minmax(13rem, 0.75fr) minmax(0, 2fr);
+  }
+
+  .contextPanel {
+    border-top: 1px solid var(--acs-border);
+    grid-column: 1 / -1;
+  }
+
+  .scriptEditor {
+    border-right: 0;
+  }
+
+  .episodeForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .planRefField {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 52rem) {
+  .page,
+  .statePage {
+    padding-inline: var(--acs-space-4);
+  }
+
+  .pageHeader,
+  .panelHeading,
+  .emptyWorkspace {
+    flex-direction: column;
+  }
+
+  .scopeBar,
+  .editorGrid,
+  .episodeForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scopeBar > div,
+  .scopeBar > label {
+    border-right: 0;
+    border-bottom: 1px solid var(--acs-border);
+  }
+
+  .sceneNavigator,
+  .scriptEditor {
+    border-right: 0;
+    border-bottom: 1px solid var(--acs-border);
+  }
+
+  .contextPanel,
+  .planRefField {
+    grid-column: auto;
+  }
+
+  .editorActions,
+  .editorActions > * {
+    width: 100%;
+  }
+}

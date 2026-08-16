@@ -646,6 +646,187 @@
   background: var(--acs-surface-hover);
 }
 
+.coreExecution {
+  display: grid;
+  padding: var(--acs-space-6);
+  border: 1px solid var(--acs-primary);
+  border-radius: var(--acs-radius-panel);
+  background: linear-gradient(135deg, var(--acs-primary-soft), var(--acs-surface));
+  gap: var(--acs-space-6);
+}
+
+.coreExecutionHeader,
+.candidateHeading,
+.candidateFooter {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-6);
+}
+
+.coreExecutionHeader > div {
+  max-width: 54rem;
+}
+
+.coreEyebrow {
+  margin: 0 0 var(--acs-space-2);
+  color: var(--acs-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-bold);
+  letter-spacing: 0.12em;
+}
+
+.coreExecutionHeader h2,
+.candidateHeading h3 {
+  margin: 0;
+  color: var(--acs-text-primary);
+}
+
+.coreExecutionHeader h2 {
+  font-size: var(--acs-type-title-size);
+}
+
+.coreExecutionHeader > div > p:last-child,
+.candidateFooter span {
+  color: var(--acs-text-secondary);
+}
+
+.coreExecutionHeader > div > p:last-child {
+  margin: var(--acs-space-2) 0 0;
+  line-height: var(--acs-type-body-line-height);
+}
+
+.executionFields {
+  display: grid;
+  gap: var(--acs-space-4);
+  grid-template-columns: minmax(10rem, 1fr) minmax(12rem, 1fr) minmax(18rem, 2fr);
+}
+
+.executionFields label {
+  display: grid;
+  gap: var(--acs-space-2);
+}
+
+.executionFields label > span {
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.executionFields input,
+.executionFields select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding-inline: var(--acs-space-3);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  outline: 0;
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font: inherit;
+}
+
+.executionFields input:focus-visible,
+.executionFields select:focus-visible {
+  border-color: var(--acs-primary);
+  box-shadow: 0 0 0 3px var(--acs-primary-soft);
+}
+
+.executionActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+}
+
+.executionActions p {
+  flex: 1 1 24rem;
+  margin: 0;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+}
+
+.coreCandidate {
+  display: grid;
+  padding: var(--acs-space-5);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface-deep);
+  gap: var(--acs-space-5);
+}
+
+.candidateHeading h3 {
+  font-size: var(--acs-type-title-size);
+}
+
+.candidateLogline {
+  max-width: 64rem;
+  margin: 0;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-section-size);
+  line-height: var(--acs-type-section-line-height);
+}
+
+.candidateGrid {
+  display: grid;
+  gap: var(--acs-space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.candidateGrid article {
+  min-width: 0;
+  padding: var(--acs-space-4);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface);
+}
+
+.candidateGrid article > span {
+  color: var(--acs-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-bold);
+}
+
+.candidateGrid h4,
+.candidateGrid p {
+  margin: var(--acs-space-2) 0 0;
+}
+
+.candidateGrid h4 {
+  color: var(--acs-text-primary);
+}
+
+.candidateGrid p,
+.candidateGrid li {
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.candidateGrid ol,
+.candidateGrid ul {
+  margin: var(--acs-space-3) 0 0;
+  padding-left: var(--acs-space-5);
+}
+
+.candidateFooter {
+  align-items: center;
+  padding-top: var(--acs-space-4);
+  border-top: 1px solid var(--acs-border);
+}
+
+.candidateFooter > div {
+  display: grid;
+  gap: var(--acs-space-1);
+}
+
+.candidateFooter strong {
+  color: var(--acs-text-primary);
+}
+
+.candidateFooter span {
+  font-size: var(--acs-type-caption-size);
+}
+
 @media (min-width: 90rem) {
   .directorVisualStage {
     min-height: 26.25rem;
@@ -708,6 +889,18 @@
   .confirmButton {
     width: 100%;
   }
+
+  .executionFields,
+  .candidateGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .coreExecutionHeader,
+  .candidateHeading,
+  .candidateFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 47.9375rem) {
@@ -718,6 +911,12 @@
   .nextStepActions,
   .nextStepActions a,
   .nextStepActions button {
+    width: 100%;
+  }
+
+  .executionActions,
+  .executionActions > *,
+  .candidateFooter button {
     width: 100%;
   }
 

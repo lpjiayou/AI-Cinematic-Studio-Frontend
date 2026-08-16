@@ -213,6 +213,17 @@
   background: color-mix(in srgb, var(--acs-primary-soft), var(--acs-surface-deep) 62%);
 }
 
+.presentationBoundary[data-status="disconnected"],
+.presentationBoundary[data-status="error"] {
+  border-bottom-color: color-mix(in srgb, var(--acs-accent), transparent 60%);
+  background: color-mix(in srgb, var(--acs-accent-soft), var(--acs-surface-deep) 72%);
+}
+
+.presentationBoundary[data-status="disconnected"] strong,
+.presentationBoundary[data-status="error"] strong {
+  color: var(--acs-accent);
+}
+
 .presentationBoundary > div {
   display: flex;
   width: min(100%, var(--acs-content-max-width));

@@ -26,7 +26,7 @@ describe("UnifiedAppHeader", () => {
     renderHeader();
     expect(screen.getByRole("navigation", { name: "Creator 全局导航" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "项目工作区导航" })).not.toBeInTheDocument();
-    expect(screen.getByRole("complementary", { name: "本地呈现边界" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Creator 数据连接" })).toBeInTheDocument();
   });
 
   it("renders exactly the six project destinations and no global navigation", () => {
@@ -36,13 +36,17 @@ describe("UnifiedAppHeader", () => {
     const navigation = screen.getByRole("navigation", { name: "项目工作区导航" });
     expect(within(navigation).getAllByRole("listitem")).toHaveLength(6);
     expect(within(navigation).getAllByText(/概览|策划|内容|制作|后期|交付/)).toHaveLength(6);
-    expect(within(navigation).getAllByRole("link")).toHaveLength(1);
+    expect(within(navigation).getAllByRole("link")).toHaveLength(2);
     expect(within(navigation).getByRole("link", { name: "策划" })).toHaveAttribute(
       "href",
       "/creator/projects/future-city/planning/bible",
     );
+    expect(within(navigation).getByRole("link", { name: "内容" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/content/script",
+    );
     expect(screen.queryByRole("navigation", { name: "Creator 全局导航" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("complementary", { name: "本地呈现边界" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "Creator 数据连接" })).not.toBeInTheDocument();
   });
 
   it("renders a minimal editor identity without primary navigation", () => {
@@ -52,4 +56,3 @@ describe("UnifiedAppHeader", () => {
     expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });
 });
-

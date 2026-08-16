@@ -224,6 +224,66 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.capabilitySection {
+  display: grid;
+  gap: var(--acs-space-4);
+}
+
+.capabilityGrid {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.capabilityGrid article {
+  display: grid;
+  min-width: 0;
+  min-height: 7rem;
+  padding: var(--acs-space-4);
+  border-right: 1px solid var(--acs-border);
+  border-bottom: 1px solid var(--acs-border);
+  align-content: start;
+  gap: var(--acs-space-2);
+}
+
+.capabilityGrid article:nth-child(5n) {
+  border-right: 0;
+}
+
+.capabilityGrid article:nth-last-child(-n + 4) {
+  border-bottom: 0;
+}
+
+.capabilityGrid article > span {
+  color: var(--acs-primary);
+  font-family: var(--acs-font-mono);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-bold);
+}
+
+.capabilityGrid strong {
+  overflow: hidden;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-caption-size);
+  text-overflow: ellipsis;
+}
+
+.capabilityGrid small {
+  margin-top: auto;
+  color: var(--acs-text-muted);
+}
+
+.capabilityGrid article[data-state="available"] small {
+  color: var(--acs-success);
+}
+
+.capabilityGrid article[data-state="authority_required"] small {
+  color: var(--acs-warning);
+}
+
 .connectionCard,
 .pathCard {
   min-width: 0;
@@ -299,6 +359,25 @@
   .taskGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .capabilityGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .capabilityGrid article,
+  .capabilityGrid article:nth-child(5n),
+  .capabilityGrid article:nth-last-child(-n + 4) {
+    border-right: 1px solid var(--acs-border);
+    border-bottom: 1px solid var(--acs-border);
+  }
+
+  .capabilityGrid article:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .capabilityGrid article:nth-last-child(-n + 1) {
+    border-bottom: 0;
+  }
 }
 
 @media (max-width: 820px) {
@@ -353,6 +432,18 @@
 
   .taskGrid {
     grid-template-columns: 1fr;
+  }
+
+  .capabilityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .capabilityGrid article:nth-child(3n) {
+    border-right: 1px solid var(--acs-border);
+  }
+
+  .capabilityGrid article:nth-child(2n) {
+    border-right: 0;
   }
 
   .sectionHeading > span {

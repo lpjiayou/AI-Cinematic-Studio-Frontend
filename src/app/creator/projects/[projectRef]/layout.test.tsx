@@ -16,8 +16,8 @@ describe("ProjectContextLayout", () => {
     );
 
     expect(screen.getByRole("region", { name: "项目上下文" })).toBeInTheDocument();
-    expect(screen.getByText("本地工作区")).toBeInTheDocument();
-    expect(screen.getByText("未连接正式项目数据")).toBeInTheDocument();
+    expect(screen.getByText("本地演示")).toBeInTheDocument();
+    expect(screen.getByText("非权威演示数据")).toBeInTheDocument();
     expect(screen.getByText("当前项目")).toBeInTheDocument();
     expect(screen.getByText("未来之城")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Project route content" })).toHaveTextContent(

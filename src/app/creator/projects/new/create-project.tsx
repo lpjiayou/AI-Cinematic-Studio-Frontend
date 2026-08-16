@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useMemo,
   useRef,
@@ -15,6 +16,14 @@ import {
   ACSCard,
   AIAssistantPanel,
 } from "@/components";
+import {
+  creatorRequest,
+  CreatorClientError,
+  useCreatorIntegration,
+  type EpisodeEnvelope,
+  type ProjectEnvelope,
+  type SeriesEnvelope,
+} from "@/features/core-integration";
 import { CustomerLayout } from "@/layouts";
 import { useACSTheme } from "@/theme";
 import styles from "./create-project.module.css";
@@ -531,7 +540,232 @@ export function CreateFilmButton({
   );
 }
 
-export function CreateProjectPage() {
+type CoreCommitState =
+  | { status: "idle" }
+  | { status: "submitting"; step: "series" | "project" | "episode" }
+  | { status: "partial"; message: string }
+  | { status: "error"; message: string }
+  | { status: "success"; projectRef: string };
+
+function coreProjectType(value: string) {
+  if (value === "series") return "series";
+  if (value === "commercial") return "brand-film";
+  return "standalone";
+}
+
+function CoreProjectCommitPanel({
+  creativePlanRef,
+  idea,
+  platform,
+  projectType,
+}: {
+  creativePlanRef?: string;
+  idea: string;
+  platform: string;
+  projectType: string;
+}) {
+  const router = useRouter();
+  const { state: connection, refresh } = useCreatorIntegration();
+  const [title, setTitle] = useState("");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [durationSec, setDurationSec] = useState(90);
+  const [plannedEpisodeCount, setPlannedEpisodeCount] = useState(
+    projectType === "series" ? 6 : 1,
+  );
+  const [seriesRef, setSeriesRef] = useState<string | null>(null);
+  const [projectRef, setProjectRef] = useState<string | null>(null);
+  const [episodeRef, setEpisodeRef] = useState<string | null>(null);
+  const [commit, setCommit] = useState<CoreCommitState>({ status: "idle" });
+  const connected = connection.status === "connected";
+  const busy = commit.status === "submitting" || commit.status === "success";
+  const valid =
+    title.trim().length > 0 &&
+    Number.isInteger(durationSec) &&
+    durationSec > 0 &&
+    Number.isInteger(plannedEpisodeCount) &&
+    plannedEpisodeCount > 0;
+
+  async function commitProject() {
+    if (!connected || !valid || busy) return;
+    let authoritativeSeriesRef = seriesRef;
+    let authoritativeProjectRef = projectRef;
+    let authoritativeEpisodeRef = episodeRef;
+    try {
+      if (!authoritativeSeriesRef) {
+        setCommit({ status: "submitting", step: "series" });
+        const seriesPayload = await creatorRequest<SeriesEnvelope>("series", {
+          method: "POST",
+          body: {
+            title: title.trim(),
+            description: idea.trim(),
+            plannedEpisodeCount,
+          },
+        });
+        authoritativeSeriesRef = seriesPayload.series.seriesRef;
+        setSeriesRef(authoritativeSeriesRef);
+      }
+
+      if (!authoritativeProjectRef) {
+        setCommit({ status: "submitting", step: "project" });
+        const projectPayload = await creatorRequest<ProjectEnvelope>("projects", {
+          method: "POST",
+          body: {
+            projectType: coreProjectType(projectType),
+            seriesRef: authoritativeSeriesRef,
+            title: title.trim(),
+            description: idea.trim(),
+            targetPlatform: platform,
+            aspectRatio,
+            defaultDurationSec: durationSec,
+            plannedEpisodeCount,
+          },
+        });
+        authoritativeProjectRef = projectPayload.project.projectRef;
+        setProjectRef(authoritativeProjectRef);
+      }
+
+      if (creativePlanRef && !authoritativeEpisodeRef) {
+        setCommit({ status: "submitting", step: "episode" });
+        const episodePayload = await creatorRequest<EpisodeEnvelope>("episodes", {
+          method: "POST",
+          body: {
+            seriesRef: authoritativeSeriesRef,
+            creativePlanRef,
+            episodeNumber: 1,
+            seasonNumber: 1,
+            volumeNumber: 1,
+            title: "第 1 集",
+          },
+        });
+        authoritativeEpisodeRef = episodePayload.episode.episodeRef;
+        setEpisodeRef(authoritativeEpisodeRef);
+      }
+
+      setCommit({ status: "success", projectRef: authoritativeProjectRef });
+      router.push(
+        `/creator/projects/${encodeURIComponent(authoritativeProjectRef)}/${creativePlanRef ? "content/script" : "planning/bible"}`,
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof CreatorClientError
+          ? error.detail.message
+          : "项目提交未完成，请检查 Core 连接后重试。";
+      setCommit(
+        authoritativeSeriesRef
+          ? {
+              status: "partial",
+              message: `${authoritativeProjectRef ? `项目身份已创建（${authoritativeProjectRef}）` : `系列身份已创建（${authoritativeSeriesRef}）`}，后续步骤尚未完成：${message}`,
+            }
+          : { status: "error", message },
+      );
+    }
+  }
+
+  const statusMessage = (() => {
+    if (connection.status === "loading") return "正在核对 Creator Core 连接。";
+    if (connection.status === "disconnected" || connection.status === "error") {
+      return connection.error.message;
+    }
+    if (commit.status === "submitting") {
+      if (commit.step === "series") return "正在创建系列身份…";
+      if (commit.step === "project") return "正在创建项目身份…";
+      return "正在用已确认导演方案建立首集身份…";
+    }
+    if (commit.status === "partial" || commit.status === "error") return commit.message;
+    if (commit.status === "success") return "项目已创建，正在进入项目工作区。";
+    return "连接正常。提交后将获得 Creator Core 返回的真实项目身份。";
+  })();
+
+  return (
+    <section aria-labelledby="core-project-commit-title" className={styles.coreCommitPanel}>
+      <div className={styles.coreCommitHeading}>
+        <div>
+          <p className={styles.eyebrow}>CREATE AUTHORITATIVE PROJECT</p>
+          <h2 id="core-project-commit-title">保存为真实制作项目</h2>
+          <p>先建立系列承载身份，再创建项目；任何一步失败都会保留准确回执并支持续交。</p>
+        </div>
+        <ACSBadge dot tone={connected ? "success" : "neutral"}>
+          {connected ? "Core v1 已连接" : "Core 未连接"}
+        </ACSBadge>
+      </div>
+
+      <form
+        className={styles.coreCommitForm}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void commitProject();
+        }}
+      >
+        <label className={styles.commitTitleField}>
+          <span>项目名称</span>
+          <input
+            autoComplete="off"
+            disabled={Boolean(seriesRef) || busy}
+            maxLength={500}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="例如：记忆之城"
+            required
+            value={title}
+          />
+        </label>
+        <label>
+          <span>画幅</span>
+          <select
+            disabled={Boolean(seriesRef) || busy}
+            onChange={(event) => setAspectRatio(event.target.value)}
+            value={aspectRatio}
+          >
+            <option value="16:9">16:9 横屏</option>
+            <option value="9:16">9:16 竖屏</option>
+            <option value="1:1">1:1 方形</option>
+          </select>
+        </label>
+        <label>
+          <span>单集时长（秒）</span>
+          <input
+            disabled={Boolean(seriesRef) || busy}
+            max={86400}
+            min={1}
+            onChange={(event) => setDurationSec(event.currentTarget.valueAsNumber)}
+            type="number"
+            value={durationSec}
+          />
+        </label>
+        <label>
+          <span>规划集数</span>
+          <input
+            disabled={Boolean(seriesRef) || busy}
+            max={10000}
+            min={1}
+            onChange={(event) => setPlannedEpisodeCount(event.currentTarget.valueAsNumber)}
+            type="number"
+            value={plannedEpisodeCount}
+          />
+        </label>
+
+        <div className={styles.commitSummary}>
+          <span>Core 类型：{coreProjectType(projectType)}</span>
+          <span>发行平台：{platform}</span>
+          <span>{seriesRef ? `已建立系列：${seriesRef}` : "尚未建立权威身份"}</span>
+          {creativePlanRef ? <span>已确认导演方案：{creativePlanRef}</span> : null}
+        </div>
+
+        <div className={styles.commitActions}>
+          <ACSButton disabled={!connected || !valid || busy} size="large" type="submit" variant="primary">
+            {commit.status === "partial" ? "继续创建项目" : "创建并进入项目"}
+          </ACSButton>
+          {!connected ? (
+            <ACSButton onClick={refresh} type="button" variant="secondary">重新连接</ACSButton>
+          ) : null}
+          <Link className={styles.secondaryLink} href="/creator/ai-director">先去完善导演简报</Link>
+        </div>
+        <p aria-live="polite" className={styles.commitStatus} role="status">{statusMessage}</p>
+      </form>
+    </section>
+  );
+}
+
+export function CreateProjectPage({ creativePlanRef }: { creativePlanRef?: string }) {
   const [idea, setIdea] = useState("");
   const [projectType, setProjectType] = useState("sci-fi");
   const [platform, setPlatform] = useState("streaming");
@@ -624,7 +858,7 @@ export function CreateProjectPage() {
               <li data-ready={ideaReady}><strong>核心创意不少于 20 个字符</strong><span>{ideaReady ? "已满足" : "待补充"}</span></li>
               <li data-ready><strong>影片形态、平台和视觉基调</strong><span>已选择</span></li>
               <li data-ready={directorReady}><strong>本地导演方向预览</strong><span>{directorReady ? "已确认" : "待确认"}</span></li>
-              <li><strong>权威项目身份与保存回执</strong><span>未连接</span></li>
+              <li><strong>权威项目身份与保存回执</strong><span>{directorReady ? "下一步创建" : "等待方案"}</span></li>
             </ul>
           </ACSCard>
         </section>
@@ -643,19 +877,12 @@ export function CreateProjectPage() {
         </section>
 
         {directorReady ? (
-          <section aria-labelledby="next-workspace-title" className={styles.nextWorkspace}>
-            <div>
-              <p className={styles.eyebrow}>NEXT WORKSPACE</p>
-              <h2 id="next-workspace-title">选择下一步，不自动转移页面状态</h2>
-              <p>
-                当前方案仍只存在于本页。你可以进入 AI 导演继续组织导演简报，或返回项目中心选择一个明确标注的本地演示工作区。
-              </p>
-            </div>
-            <div className={styles.nextActions}>
-              <Link className={styles.primaryLink} href="/creator/ai-director">进入 AI 导演</Link>
-              <Link className={styles.secondaryLink} href="/creator/projects">打开项目中心</Link>
-            </div>
-          </section>
+          <CoreProjectCommitPanel
+            creativePlanRef={creativePlanRef}
+            idea={idea}
+            platform={platform}
+            projectType={projectType}
+          />
         ) : null}
       </div>
     </CustomerLayout>

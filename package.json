@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:gate-c": "node scripts/gate-c-smoke.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },

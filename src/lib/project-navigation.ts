@@ -17,11 +17,11 @@ export const PROJECT_NAVIGATION = [
   },
   {
     label: "内容",
-    description: "分集、故事与剧本",
-    segment: "episodes",
-    hrefSuffix: "episodes",
-    available: false,
-    unavailableReason: "内容页面尚未实施",
+    description: "分集与剧本工作区",
+    segment: "content",
+    hrefSuffix: "content/script",
+    available: true,
+    unavailableReason: null,
   },
   {
     label: "制作",

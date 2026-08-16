@@ -9,9 +9,9 @@ describe("ProjectsPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "项目" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "项目数据源" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "还没有可显示的权威项目" }),
+      screen.getByRole("heading", { name: "正在核对权威项目集合" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/这不代表项目数量为零/)).toBeInTheDocument();
+    expect(screen.getByText(/Frontend Experience Adapter/)).toBeInTheDocument();
     expect(screen.getAllByText("未连接").length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "可浏览的本地演示工作区" })).toBeInTheDocument();
     expect(screen.getAllByText("非权威项目")).toHaveLength(2);

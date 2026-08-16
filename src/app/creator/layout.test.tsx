@@ -24,8 +24,8 @@ describe("CreatorLayout", () => {
     expect(
       screen.getByRole("region", { name: "Creator route content" }),
     ).toHaveTextContent("Creator child");
-    expect(screen.getByRole("complementary", { name: "本地呈现边界" })).toHaveTextContent(
-      /不代表已连接正式项目、生产状态或资产记录/,
+    expect(screen.getByRole("complementary", { name: "Creator 数据连接" })).toHaveTextContent(
+      /正在核对公共 API 与 M1–M19 能力合同/,
     );
   });
 

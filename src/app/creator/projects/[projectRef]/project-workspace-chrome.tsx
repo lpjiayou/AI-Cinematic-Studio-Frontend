@@ -2,26 +2,69 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getLocalProjectPresentation } from "@/features/project-data";
+import { useEffect, useState } from "react";
+import {
+  creatorRequest,
+  CreatorClientError,
+  useCreatorIntegration,
+  type CreatorProject,
+  type ProjectEnvelope,
+} from "@/features/core-integration";
+import { getLocalProjectPresentation, LOCAL_PROJECT_CLIENT_KEYS } from "@/features/project-data";
 import { PLANNING_NAVIGATION, projectRoute } from "@/lib/project-navigation";
 import styles from "./project-context-bar.module.css";
 
 export function ProjectWorkspaceChrome({ clientKey }: { clientKey: string }) {
   const pathname = usePathname();
   const isPlanning = pathname.includes("/planning/");
-  const project = getLocalProjectPresentation(clientKey);
+  const local = new Set<string>(LOCAL_PROJECT_CLIENT_KEYS).has(clientKey);
+  const localProject = local ? getLocalProjectPresentation(clientKey) : null;
+  const { state: connection } = useCreatorIntegration();
+  const [coreProject, setCoreProject] = useState<CreatorProject | null>(null);
+  const [coreError, setCoreError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (local || connection.status !== "connected") return;
+    const controller = new AbortController();
+    void creatorRequest<ProjectEnvelope>(`projects/${encodeURIComponent(clientKey)}`, {
+      signal: controller.signal,
+    })
+      .then((payload) => {
+        setCoreProject(payload.project);
+        setCoreError(null);
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setCoreError(
+          error instanceof CreatorClientError
+            ? error.detail.message
+            : "无法读取当前 Core 项目。",
+        );
+      });
+    return () => controller.abort();
+  }, [clientKey, connection.status, local]);
+
+  const connected = !local && connection.status === "connected" && Boolean(coreProject);
+  const title = localProject?.display.projectTitle ?? coreProject?.title ?? clientKey;
+  const boundaryDetail = local
+    ? "非权威演示数据"
+    : coreError
+      ? coreError
+      : connected
+        ? `项目 ${coreProject?.projectRef}`
+        : "正在核对权威项目";
 
   return (
     <section aria-label="项目上下文" className={styles.contextBar}>
       <div className={styles.inner}>
         <div className={styles.identity}>
           <div className={styles.boundary}>
-            <strong>本地工作区</strong>
-            <span>未连接正式项目数据</span>
+            <strong>{local ? "本地演示" : connected ? "Core v1" : "Core 项目"}</strong>
+            <span>{boundaryDetail}</span>
           </div>
           <div className={styles.workspaceKey}>
             <span>当前项目</span>
-            <strong>{project.display.projectTitle}</strong>
+            <strong>{title}</strong>
           </div>
         </div>
 

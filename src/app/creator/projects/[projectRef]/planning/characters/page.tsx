@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { getLocalProjectPresentation, ProjectPresentationProvider } from "@/features/project-data";
+import {
+  getLocalProjectPresentation,
+  LOCAL_PROJECT_CLIENT_KEYS,
+  ProjectPresentationProvider,
+} from "@/features/project-data";
+import { ConnectedCharacterStudio } from "./connected-character-studio";
 import { CharacterStudioPage } from "./character-studio";
 
 export const metadata: Metadata = {
@@ -13,6 +18,8 @@ export default async function CharacterStudioRoute({
   params: Promise<{ projectRef: string }>;
 }) {
   const { projectRef } = await params;
+  const local = new Set<string>(LOCAL_PROJECT_CLIENT_KEYS).has(projectRef);
+  if (!local) return <ConnectedCharacterStudio projectRef={projectRef} />;
   return (
     <ProjectPresentationProvider value={getLocalProjectPresentation(projectRef)}>
       <CharacterStudioPage />

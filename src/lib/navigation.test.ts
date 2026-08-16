@@ -33,9 +33,10 @@ describe("PROJECT_NAVIGATION", () => {
     ]);
   });
 
-  it("links only the planning route that currently exists", () => {
+  it("links only the planning and Core-backed content routes", () => {
     expect(PROJECT_NAVIGATION.filter((item) => item.available).map((item) => item.segment)).toEqual([
       "planning",
+      "content",
     ]);
   });
 });
