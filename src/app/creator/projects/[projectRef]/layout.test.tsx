@@ -37,4 +37,28 @@ describe("ProjectContextLayout", () => {
     }
     expect(screen.queryByText(/Ref|示例项目|演示项目/)).not.toBeInTheDocument();
   });
+
+  it("separates the local workspace key from empty authoritative context and links only implemented planning pages", async () => {
+    render(
+      await ProjectContextLayout({
+        children: <div>Project child</div>,
+        params: Promise.resolve({ projectRef: "future-city" }),
+      }),
+    );
+
+    expect(screen.getByText("本地工作区键")).toBeInTheDocument();
+    expect(screen.getByText("future-city")).toBeInTheDocument();
+    const navigation = screen.getByRole("navigation", { name: "项目策划导航" });
+    expect(navigation.querySelectorAll("a")).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "故事世界" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/planning/bible",
+    );
+    expect(screen.getByRole("link", { name: "角色工作室" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/planning/characters",
+    );
+    expect(navigation.querySelectorAll("[aria-disabled='true']")).toHaveLength(3);
+    expect(screen.getByText("身份、外观与连续性")).toBeInTheDocument();
+  });
 });

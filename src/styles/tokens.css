@@ -117,8 +117,10 @@
   --acs-sidebar-collapsed-width: 4.5rem;
   --acs-header-height: 4.5rem;
   --acs-project-nav-width: 13.75rem;
-  --acs-object-nav-width: 13.125rem;
-  --acs-inspector-width: 21.25rem;
+  --acs-object-nav-width: 15rem;
+  --acs-inspector-width: 22.5rem;
+  --acs-topbar-min-height: 3.5rem;
+  --acs-candidate-strip-results-min-height: 7.5rem;
   --acs-bottom-drawer-height: 17.5rem;
   --acs-content-max-width: 90rem;
 }

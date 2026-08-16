@@ -101,11 +101,110 @@
 
 .panelHeading h2,
 .emptyState h2,
-.boundaryPanel h2 {
+.boundaryPanel h2,
+.sectionHeader h2 {
   margin: 0;
   color: var(--acs-text-primary);
   font-size: var(--acs-type-title-size);
   line-height: var(--acs-type-title-line-height);
+}
+
+.localWorkspaces {
+  display: grid;
+  gap: var(--acs-space-5);
+}
+
+.sectionHeader {
+  display: grid;
+  align-items: end;
+  gap: var(--acs-space-6);
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(20rem, 1.2fr);
+}
+
+.sectionHeader > p {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.fixtureGrid {
+  display: grid;
+  gap: var(--acs-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fixtureCard {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-6);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface);
+  gap: var(--acs-space-4);
+}
+
+.fixtureHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-4);
+}
+
+.fixtureHeading span {
+  color: var(--acs-primary);
+  font-family: var(--acs-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+}
+
+.fixtureHeading h3 {
+  margin: var(--acs-space-1) 0 0;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-title-size);
+}
+
+.fixtureCard > p {
+  margin: 0;
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.fixtureFacts {
+  display: grid;
+  margin: 0;
+  gap: var(--acs-space-2);
+}
+
+.fixtureFacts > div {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: var(--acs-space-4);
+}
+
+.fixtureFacts dt,
+.fixtureFacts dd {
+  margin: 0;
+  font-size: var(--acs-type-caption-size);
+}
+
+.fixtureFacts dt {
+  color: var(--acs-text-muted);
+}
+
+.fixtureFacts dd {
+  overflow: hidden;
+  color: var(--acs-text-secondary);
+  font-family: var(--acs-font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixtureActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
 }
 
 .sourcePanel > p {
@@ -217,8 +316,14 @@
   }
 
   .browser,
-  .boundaryPanel {
+  .boundaryPanel,
+  .sectionHeader,
+  .fixtureGrid {
     grid-template-columns: 1fr;
+  }
+
+  .fixtureActions a {
+    width: 100%;
   }
 
   .sourcePanel {

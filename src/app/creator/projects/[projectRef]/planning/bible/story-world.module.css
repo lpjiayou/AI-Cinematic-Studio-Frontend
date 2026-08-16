@@ -245,6 +245,40 @@
   gap: var(--acs-space-3);
 }
 
+.workspaceAccessBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+  margin-top: calc(var(--acs-space-4) * -1);
+}
+
+.confirmedActions {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--acs-space-3);
+}
+
+.confirmedActions a {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--acs-space-4);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+}
+
+.confirmedActions a:hover,
+.confirmedActions a:focus-visible {
+  border-color: var(--acs-primary);
+}
+
 .pageIntro p,
 .pageIntro h1,
 .sectionHeader p,
@@ -1234,6 +1268,14 @@
 
   .viewerZoom {
     justify-content: center;
+  }
+
+  .workspaceAccessBar,
+  .workspaceAccessBar button,
+  .confirmedActions,
+  .confirmedActions a,
+  .confirmedActions button {
+    width: 100%;
   }
 
 }

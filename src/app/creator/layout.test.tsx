@@ -61,9 +61,12 @@ describe("CreatorLayout", () => {
 
     for (const label of ["资产库", "创作中心", "作品"]) {
       const item = within(navigation).getByText(label);
-      expect(item).toHaveAttribute("aria-disabled", "true");
+      expect(item.closest("span[aria-disabled='true']")).not.toBeNull();
       expect(item.closest("a")).toBeNull();
       expect(item.closest("button")).toBeNull();
     }
+
+    expect(within(navigation).getByText("任务入口与能力边界")).toBeInTheDocument();
+    expect(within(navigation).getAllByText("尚未开放")).toHaveLength(3);
   });
 });

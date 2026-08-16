@@ -278,8 +278,10 @@
 
 .selectionIndicator {
   display: grid;
-  width: var(--acs-space-5);
-  height: var(--acs-space-5);
+  width: auto;
+  min-width: 2.75rem;
+  min-height: 1.5rem;
+  padding-inline: var(--acs-space-2);
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid var(--acs-border-strong);
@@ -616,6 +618,34 @@
   font-size: var(--acs-type-caption-size);
 }
 
+.nextStepActions {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--acs-space-3);
+}
+
+.nextStepActions a {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--acs-space-4);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+}
+
+.nextStepActions a:hover,
+.nextStepActions a:focus-visible {
+  border-color: var(--acs-primary);
+  background: var(--acs-surface-hover);
+}
+
 @media (min-width: 90rem) {
   .directorVisualStage {
     min-height: 26.25rem;
@@ -683,6 +713,12 @@
 @media (max-width: 47.9375rem) {
   .page {
     padding-inline: var(--acs-space-4);
+  }
+
+  .nextStepActions,
+  .nextStepActions a,
+  .nextStepActions button {
+    width: 100%;
   }
 
   .page {

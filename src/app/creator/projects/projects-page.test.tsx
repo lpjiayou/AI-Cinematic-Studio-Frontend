@@ -12,7 +12,9 @@ describe("ProjectsPage", () => {
       screen.getByRole("heading", { name: "还没有可显示的权威项目" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/这不代表项目数量为零/)).toBeInTheDocument();
-    expect(screen.getByText("未连接")).toBeInTheDocument();
+    expect(screen.getAllByText("未连接").length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "可浏览的本地演示工作区" })).toBeInTheDocument();
+    expect(screen.getAllByText("非权威项目")).toHaveLength(2);
   });
 
   it("offers only valid next actions", () => {
@@ -26,5 +28,18 @@ describe("ProjectsPage", () => {
       "/creator",
     );
     expect(screen.queryByRole("link", { name: "创作中心" })).not.toBeInTheDocument();
+  });
+
+  it("links each local fixture to its real story and character workspaces", () => {
+    render(<ProjectsPage />);
+
+    expect(screen.getAllByRole("link", { name: "打开故事世界" }).map((link) => link.getAttribute("href"))).toEqual([
+      "/creator/projects/future-city/planning/bible",
+      "/creator/projects/amber-archive/planning/bible",
+    ]);
+    expect(screen.getAllByRole("link", { name: "打开角色工作室" }).map((link) => link.getAttribute("href"))).toEqual([
+      "/creator/projects/future-city/planning/characters",
+      "/creator/projects/amber-archive/planning/characters",
+    ]);
   });
 });

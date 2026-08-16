@@ -658,7 +658,7 @@ function ScriptInspector({
       <section className={styles.inspectorSection}>
         <div className={styles.inspectorHeading}>
           <h2>人物一致性</h2>
-          <ACSButton onClick={() => onOpenOwner("M6")} size="small" variant="ghost">查看</ACSButton>
+          <ACSButton onClick={() => onOpenOwner("M6")} size="small" variant="ghost">打开角色工作室</ACSButton>
         </div>
         <strong className={styles.constraintLead}>林澈 · 对白规则：短句、低声、少修饰</strong>
         <ul className={styles.constraintList}>
@@ -672,7 +672,7 @@ function ScriptInspector({
       <section className={styles.inspectorSection}>
         <div className={styles.inspectorHeading}>
           <h2>世界规则</h2>
-          <ACSButton onClick={() => onOpenOwner("M6")} size="small" variant="ghost">查看</ACSButton>
+          <ACSButton onClick={() => onOpenOwner("M5")} size="small" variant="ghost">打开故事世界</ACSButton>
         </div>
         <ul className={styles.worldRules}>
           <li>年份：2047</li>
@@ -1261,11 +1261,17 @@ export function ScriptStudioPage() {
   }
 
   function handleOpenOwner(owner: UpstreamConstraintOwner) {
+    const href = owner === "M6"
+      ? "/creator/projects/future-city/planning/characters"
+      : owner === "M5"
+        ? "/creator/projects/future-city/planning/bible"
+        : "/creator/ai-director";
+
     if (dirty) {
-      setPendingAction({ intent: "route-navigation", href: owner === "M6" ? "/character-studio" : "/director" });
+      setPendingAction({ intent: "route-navigation", href });
       return;
     }
-    router.push(owner === "M6" ? "/character-studio" : "/director");
+    router.push(href);
   }
 
   function handleStoryboardProgression() {

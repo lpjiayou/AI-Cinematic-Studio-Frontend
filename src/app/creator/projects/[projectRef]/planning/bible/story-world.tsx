@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -21,6 +22,7 @@ import {
 } from "@/components";
 import { useProjectPresentation, type SeriesBibleCatalogItem } from "@/features/project-data";
 import { CustomerLayout, WorkspaceLayout } from "@/layouts";
+import { projectRoute } from "@/lib/project-navigation";
 import { useACSTheme } from "@/theme";
 import styles from "./story-world.module.css";
 
@@ -361,7 +363,13 @@ export function StoryWorldPageIntro({
   );
 }
 
-function WorldWorkspaceNavigator({ preview }: { preview: StoryWorldPreview }) {
+function WorldWorkspaceNavigator({
+  preview,
+  onNavigate,
+}: {
+  preview: StoryWorldPreview;
+  onNavigate?: () => void;
+}) {
   const project = useProjectPresentation();
   const sections = [
     ["world-overview-workspace", "世界前提与规则", preview.rules.length],
@@ -388,7 +396,7 @@ function WorldWorkspaceNavigator({ preview }: { preview: StoryWorldPreview }) {
       <ul>
         {sections.map(([id, label, count]) => (
           <li key={id}>
-            <a href={`#${id}`}>
+            <a href={`#${id}`} onClick={onNavigate}>
               <span>{label}</span>
               <small>{count}</small>
             </a>
@@ -1212,19 +1220,23 @@ function DetailContent({ eyebrow, title, children }: DetailContentProps) {
   );
 }
 
-function useSmallViewport() {
-  const [small, setSmall] = useState(false);
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia("(max-width: 767px)");
-    const update = () => setSmall(media.matches);
+    const media = window.matchMedia(query);
+    const update = () => setMatches(media.matches);
     update();
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
-  }, []);
+  }, [query]);
 
-  return small;
+  return matches;
+}
+
+function useSmallViewport() {
+  return useMediaQuery("(max-width: 767px)");
 }
 
 type ResponsiveDetailProps = {
@@ -1324,7 +1336,7 @@ function WorldAssetViewer({
           />
         </div>
         <div className={styles.viewerToolbar}>
-          <ACSButton aria-label="上一张世界资产" onClick={() => move(-1)} variant="secondary">← 上一张</ACSButton>
+          <ACSButton aria-label="上一张世界资产" onClick={() => move(-1)} variant="secondary">上一张</ACSButton>
           <div className={styles.viewerZoom}>
             <ACSButton
               aria-label="缩小世界资产"
@@ -1333,7 +1345,7 @@ function WorldAssetViewer({
               size="small"
               variant="ghost"
             >
-              −
+              缩小
             </ACSButton>
             <span>{Math.round(zoom * 100)}%</span>
             <ACSButton
@@ -1343,10 +1355,10 @@ function WorldAssetViewer({
               size="small"
               variant="ghost"
             >
-              +
+              放大
             </ACSButton>
           </div>
-          <ACSButton aria-label="下一张世界资产" onClick={() => move(1)} variant="secondary">下一张 →</ACSButton>
+          <ACSButton aria-label="下一张世界资产" onClick={() => move(1)} variant="secondary">下一张</ACSButton>
         </div>
       </div>
     </ResponsiveDetail>
@@ -1376,6 +1388,10 @@ export function StoryWorldPage() {
   const [assistantPending, setAssistantPending] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [nextStepOpen, setNextStepOpen] = useState(false);
+  const [navigatorDrawerOpen, setNavigatorDrawerOpen] = useState(false);
+  const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  const navigatorNeedsDrawer = useMediaQuery("(max-width: 767px)");
+  const inspectorNeedsDrawer = useMediaQuery("(max-width: 1152px)");
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -1438,6 +1454,33 @@ export function StoryWorldPage() {
   const activeLocation = preview.locations.find((item) => item.id === selectedLocationId);
   const activeFaction = preview.factions.find((item) => item.id === selectedFactionId);
 
+  const workspaceNavigator = (
+    <WorldWorkspaceNavigator
+      onNavigate={() => setNavigatorDrawerOpen(false)}
+      preview={preview}
+    />
+  );
+  const workspaceInspector = (
+    <WorldWorkspaceInspector
+      assistantPending={assistantPending}
+      canContinue={canContinue}
+      onContinue={() => {
+        if (!canContinue) return;
+        setConfirmed(true);
+        setNextStepOpen(true);
+      }}
+      onRebuild={() => {
+        setConfirmed(false);
+        queueLocalRefresh();
+      }}
+      pageState={pageState}
+      premiseReady={premise.trim().length >= 30}
+      selectedFaction={activeFaction}
+      selectedLocation={activeLocation}
+      selectedTimelineEvent={activeTimelineEvent}
+    />
+  );
+
   return (
     <CustomerLayout
       className={styles.storyWorldLayout}
@@ -1452,32 +1495,28 @@ export function StoryWorldPage() {
           title="建立一个可以持续生长的电影世界"
         />
 
+        {navigatorNeedsDrawer || inspectorNeedsDrawer ? (
+          <div aria-label="故事世界移动工作区入口" className={styles.workspaceAccessBar}>
+            {navigatorNeedsDrawer ? (
+              <ACSButton onClick={() => setNavigatorDrawerOpen(true)} variant="secondary">
+                打开世界对象导航
+              </ACSButton>
+            ) : null}
+            {inspectorNeedsDrawer ? (
+              <ACSButton onClick={() => setInspectorDrawerOpen(true)} variant="secondary">
+                打开检查与下一步
+              </ACSButton>
+            ) : null}
+          </div>
+        ) : null}
+
         <WorkspaceLayout
           candidateStripMode="hidden"
           className={styles.worldProductionWorkspace}
           contentLabel="故事世界主要任务区"
           embedded
-          inspector={
-            <WorldWorkspaceInspector
-              assistantPending={assistantPending}
-              canContinue={canContinue}
-              onContinue={() => {
-                if (!canContinue) return;
-                setConfirmed(true);
-                setNextStepOpen(true);
-              }}
-              onRebuild={() => {
-                setConfirmed(false);
-                queueLocalRefresh();
-              }}
-              pageState={pageState}
-              premiseReady={premise.trim().length >= 30}
-              selectedFaction={activeFaction}
-              selectedLocation={activeLocation}
-              selectedTimelineEvent={activeTimelineEvent}
-            />
-          }
-          projectNavigator={<WorldWorkspaceNavigator preview={preview} />}
+          inspector={inspectorNeedsDrawer ? undefined : workspaceInspector}
+          projectNavigator={navigatorNeedsDrawer ? undefined : workspaceNavigator}
         >
           <div className={styles.worldTaskCanvas}>
 
@@ -1550,7 +1589,12 @@ export function StoryWorldPage() {
 
       <ACSModal
         description="当前世界预览仍属于本地展示状态。"
-        footer={<ACSButton fullWidth onClick={() => setNextStepOpen(false)} variant="primary">留在故事世界</ACSButton>}
+        footer={
+          <div className={styles.confirmedActions}>
+            <Link href={projectRoute(project.clientKey, "planning/characters")}>打开角色工作室</Link>
+            <ACSButton onClick={() => setNextStepOpen(false)} variant="primary">留在故事世界</ACSButton>
+          </div>
+        }
         onClose={() => setNextStepOpen(false)}
         open={nextStepOpen}
         title="世界预览已确认"
@@ -1558,9 +1602,31 @@ export function StoryWorldPage() {
         <div className={styles.confirmedState}>
           <ACSBadge dot tone="primary">本地世界预览已确认</ACSBadge>
           <h3>可以进入角色设计继续完善</h3>
-          <p>角色设计将在后续阶段接入。当前确认不会创建角色实体，也不会持久化 IP Bible。</p>
+          <p>角色工作室已可作为下一页面打开。当前确认不会创建正式角色实体，也不会持久化 IP Bible。</p>
         </div>
       </ACSModal>
+
+      <ACSDrawer
+        description="浏览当前本地世界对象与任务区域"
+        onClose={() => setNavigatorDrawerOpen(false)}
+        open={navigatorDrawerOpen}
+        side="left"
+        size="narrow"
+        title="世界对象导航"
+      >
+        {workspaceNavigator}
+      </ACSDrawer>
+
+      <ACSDrawer
+        description="检查完成条件、当前选择和下一步"
+        onClose={() => setInspectorDrawerOpen(false)}
+        open={inspectorDrawerOpen}
+        side="right"
+        size="narrow"
+        title="世界检查与下一步"
+      >
+        {workspaceInspector}
+      </ACSDrawer>
 
       <ResponsiveDetail
         description={selectedTimelineEvent?.description}

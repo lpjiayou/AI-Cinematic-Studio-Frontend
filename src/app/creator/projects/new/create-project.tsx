@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useMemo,
   useRef,
@@ -209,7 +210,7 @@ function SelectionGroup({
                       src={option.image}
                     />
                     <span className={styles.selectedIndicator} aria-hidden="true">
-                      {selected ? "✓" : ""}
+                      {selected ? "已选" : ""}
                     </span>
                   </span>
                 )}
@@ -523,7 +524,6 @@ export function CreateFilmButton({
       disabled={disabled}
       onClick={onCreate}
       size="large"
-      trailingIcon={<span aria-hidden="true">→</span>}
       variant="primary"
     >
       确认本地导演方案预览
@@ -560,6 +560,21 @@ export function CreateProjectPage() {
           <ACSBadge tone="neutral">本地方案 · 未保存</ACSBadge>
         </section>
 
+        <ol aria-label="本地创意方案流程" className={styles.workflowSteps}>
+          {[
+            ["01", "写下核心创意", idea.trim() ? "进行中" : "待开始"],
+            ["02", "确认影片约束", "已预选"],
+            ["03", "检查导演方向", ideaReady ? "可检查" : "等待创意"],
+            ["04", "选择下一工作区", directorReady ? "可选择" : "等待确认"],
+          ].map(([index, label, status]) => (
+            <li data-ready={status === "可选择" || status === "可检查" || status === "已预选"} key={index}>
+              <span>{index}</span>
+              <strong>{label}</strong>
+              <small>{status}</small>
+            </li>
+          ))}
+        </ol>
+
         <section className={styles.workspaceGrid} aria-label="影片创意工作区">
           <CreativeBriefCanvas
             idea={idea}
@@ -592,26 +607,56 @@ export function CreateProjectPage() {
           />
         </section>
 
-        <CreationSummaryCard
-          directorReady={directorReady}
-          idea={idea}
-          platform={platform}
-          projectType={projectType}
-          visualStyle={visualStyle}
-        />
+        <section className={styles.decisionRegion} aria-label="创意方案确认区">
+          <CreationSummaryCard
+            directorReady={directorReady}
+            idea={idea}
+            platform={platform}
+            projectType={projectType}
+            visualStyle={visualStyle}
+          />
+          <ACSCard
+            className={styles.readinessCard}
+            description="这些条件只决定本地页面能否继续，不代表项目已经创建或保存。"
+            title="进入下一步前检查"
+          >
+            <ul>
+              <li data-ready={ideaReady}><strong>核心创意不少于 20 个字符</strong><span>{ideaReady ? "已满足" : "待补充"}</span></li>
+              <li data-ready><strong>影片形态、平台和视觉基调</strong><span>已选择</span></li>
+              <li data-ready={directorReady}><strong>本地导演方向预览</strong><span>{directorReady ? "已确认" : "待确认"}</span></li>
+              <li><strong>权威项目身份与保存回执</strong><span>未连接</span></li>
+            </ul>
+          </ACSCard>
+        </section>
 
         <section className={styles.ctaRegion} aria-label="确认本地导演方案预览">
-        <CreateFilmButton
-          disabled={!ideaReady}
-          onCreate={() => {
-            if (!ideaReady) return;
-            setDirectorReady(true);
-          }}
-        />
+          <CreateFilmButton
+            disabled={!ideaReady}
+            onCreate={() => {
+              if (!ideaReady) return;
+              setDirectorReady(true);
+            }}
+          />
           <p id="create-film-boundary" role="status">
             {presentationState}
           </p>
         </section>
+
+        {directorReady ? (
+          <section aria-labelledby="next-workspace-title" className={styles.nextWorkspace}>
+            <div>
+              <p className={styles.eyebrow}>NEXT WORKSPACE</p>
+              <h2 id="next-workspace-title">选择下一步，不自动转移页面状态</h2>
+              <p>
+                当前方案仍只存在于本页。你可以进入 AI 导演继续组织导演简报，或返回项目中心选择一个明确标注的本地演示工作区。
+              </p>
+            </div>
+            <div className={styles.nextActions}>
+              <Link className={styles.primaryLink} href="/creator/ai-director">进入 AI 导演</Link>
+              <Link className={styles.secondaryLink} href="/creator/projects">打开项目中心</Link>
+            </div>
+          </section>
+        ) : null}
       </div>
     </CustomerLayout>
   );

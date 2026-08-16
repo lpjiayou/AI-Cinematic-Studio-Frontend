@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -18,6 +19,7 @@ import {
   AIAssistantPanel,
   AICandidateCard,
   AIThinkingState,
+  InspectorDrawer,
 } from "@/components";
 import {
   findStateIntervalOverlaps,
@@ -649,18 +651,23 @@ const assistantInsights: Record<CharacterWorkspaceArea, CharacterAssistantInsigh
   },
 };
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
+function useViewportQuery(queryText: string) {
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(query.matches);
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia(queryText);
+    const update = () => setMatches(query.matches);
     update();
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
-  }, []);
+  }, [queryText]);
 
-  return isMobile;
+  return matches;
+}
+
+function useIsMobile() {
+  return useViewportQuery("(max-width: 767px)");
 }
 
 function displayStatus(status: CharacterContextStatus) {
@@ -1419,9 +1426,9 @@ export function CharacterAssetViewer({ open, assets, activeAssetId, onSelectAsse
         <Image alt={activeAsset.alt} className={styles.viewerImage} fill sizes="(max-width: 767px) 100vw, 960px" src={activeAsset.src} />
       </figure>
       <div className={styles.viewerToolbar}>
-        <ACSButton aria-label="上一张角色资产" onClick={() => selectAt(activeIndex - 1)} variant="secondary">← 上一张</ACSButton>
+        <ACSButton aria-label="上一张角色资产" onClick={() => selectAt(activeIndex - 1)} variant="secondary">上一张</ACSButton>
         <div aria-live="polite"><strong>{activeAsset.label}</strong><span>{activeIndex + 1} / {assets.length}</span></div>
-        <ACSButton aria-label="下一张角色资产" onClick={() => selectAt(activeIndex + 1)} variant="secondary">下一张 →</ACSButton>
+        <ACSButton aria-label="下一张角色资产" onClick={() => selectAt(activeIndex + 1)} variant="secondary">下一张</ACSButton>
       </div>
     </div>
   ) : null;
@@ -1675,6 +1682,10 @@ export function CharacterStudioWorkspace({
   const [adoptedAssetId, setAdoptedAssetId] = useState<string | null>(null);
   const [assistantThinking, setAssistantThinking] = useState(false);
   const [assistantActionNote, setAssistantActionNote] = useState<string | null>(null);
+  const [referenceDrawerOpen, setReferenceDrawerOpen] = useState(false);
+  const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  const referenceNeedsDrawer = useViewportQuery("(max-width: 767px)");
+  const inspectorNeedsDrawer = useViewportQuery("(max-width: 1152px)");
   const tabRefs = useRef(new Map<CharacterWorkspaceArea, HTMLButtonElement>());
   const assistantTimer = useRef<number | null>(null);
 
@@ -1772,8 +1783,56 @@ export function CharacterStudioWorkspace({
     }, 320);
   }
 
+  const referenceRail = (
+    <CharacterReferenceRail
+      activeAssetId={selectedAsset?.id ?? null}
+      adoptedAssetId={adoptedAssetId}
+      character={character}
+      onContextChange={(area) => {
+        selectArea(area);
+        setReferenceDrawerOpen(false);
+      }}
+      onOpenViewer={openAsset}
+      onSelectAsset={onSelectAsset}
+      statusLabel={context.statusLabel}
+    />
+  );
+  const assistantPanel = (
+    <AICharacterAssistantPanel
+      actionNote={assistantActionNote}
+      insight={assistantInsights[activeArea]}
+      onAdoptSuggestion={() => {
+        if (activeArea === "IDENTITY" && selectedCandidateId) adoptCandidate(selectedCandidateId);
+        else setAssistantActionNote("建议已加入本地工作方向，等待你在对应工作区确认。");
+      }}
+      onGenerateCandidate={activeArea === "IDENTITY" ? generateCandidates : () => setAssistantActionNote("已生成一条本地工作建议；没有连接外部服务。")}
+      onRebuild={reanalyzeAssistant}
+      onViewConflict={() => selectArea(activeArea === "IDENTITY" ? "PERSONALITY" : activeArea)}
+      status={assistantThinking ? "thinking" : assistantStatusFor(pageState)}
+      suggestions={[
+        "先比较当前方向与候选，不直接覆盖当前版本。",
+        "每次采用都会把一致性预览标记为需要重新整理。",
+      ]}
+      summary="镜构小构正在围绕当前工作区域提供分析、冲突、候选与下一步，不作为聊天或正式创作决策。"
+    />
+  );
+
   return (
     <div aria-label={`${context.characterName}角色工作区`} className={styles.workspace}>
+      {referenceNeedsDrawer || inspectorNeedsDrawer ? (
+        <div aria-label="角色工作室移动工作区入口" className={styles.workspaceAccessBar}>
+          {referenceNeedsDrawer ? (
+            <ACSButton onClick={() => setReferenceDrawerOpen(true)} variant="secondary">
+              打开角色制作参考
+            </ACSButton>
+          ) : null}
+          {inspectorNeedsDrawer ? (
+            <ACSButton onClick={() => setInspectorDrawerOpen(true)} variant="secondary">
+              打开角色检查与建议
+            </ACSButton>
+          ) : null}
+        </div>
+      ) : null}
       <WorkspaceLayout
         candidateStrip={
           <CharacterCandidateStrip
@@ -1789,36 +1848,8 @@ export function CharacterStudioWorkspace({
         className={styles.primaryWorkbench}
         contentLabel="角色设计画布"
         embedded
-        inspector={
-          <AICharacterAssistantPanel
-            actionNote={assistantActionNote}
-            insight={assistantInsights[activeArea]}
-            onAdoptSuggestion={() => {
-              if (activeArea === "IDENTITY" && selectedCandidateId) adoptCandidate(selectedCandidateId);
-              else setAssistantActionNote("建议已加入本地工作方向，等待你在对应工作区确认。");
-            }}
-            onGenerateCandidate={activeArea === "IDENTITY" ? generateCandidates : () => setAssistantActionNote("已生成一条本地工作建议；没有连接外部服务。")}
-            onRebuild={reanalyzeAssistant}
-            onViewConflict={() => selectArea(activeArea === "IDENTITY" ? "PERSONALITY" : activeArea)}
-            status={assistantThinking ? "thinking" : assistantStatusFor(pageState)}
-            suggestions={[
-              "先比较当前方向与候选，不直接覆盖当前版本。",
-              "每次采用都会把一致性预览标记为需要重新整理。",
-            ]}
-            summary="镜构小构正在围绕当前工作区域提供分析、冲突、候选与下一步，不作为聊天或正式创作决策。"
-          />
-        }
-        projectNavigator={
-          <CharacterReferenceRail
-            activeAssetId={selectedAsset?.id ?? null}
-            adoptedAssetId={adoptedAssetId}
-            character={character}
-            onContextChange={selectArea}
-            onOpenViewer={openAsset}
-            onSelectAsset={onSelectAsset}
-            statusLabel={context.statusLabel}
-          />
-        }
+        inspector={inspectorNeedsDrawer ? undefined : assistantPanel}
+        projectNavigator={referenceNeedsDrawer ? undefined : referenceRail}
       >
         <section className={styles.designCanvas}>
           <div className={styles.workspaceTabs} aria-label="角色工作区导航" role="tablist">
@@ -1866,6 +1897,26 @@ export function CharacterStudioWorkspace({
           </div>
         </section>
       </WorkspaceLayout>
+
+      <ACSDrawer
+        description="浏览角色身份、外观和制作参考"
+        onClose={() => setReferenceDrawerOpen(false)}
+        open={referenceDrawerOpen}
+        side="left"
+        size="narrow"
+        title="角色制作参考"
+      >
+        {referenceRail}
+      </ACSDrawer>
+
+      <InspectorDrawer
+        description="围绕当前工作区域检查冲突、候选和下一步"
+        onClose={() => setInspectorDrawerOpen(false)}
+        open={inspectorDrawerOpen}
+        title="角色检查与建议"
+      >
+        {assistantPanel}
+      </InspectorDrawer>
 
       <div className={styles.secondaryNavigation} aria-label="角色制作次级工作区">
         <span>继续工作</span>
@@ -1920,7 +1971,7 @@ export function CharacterStudioWorkspace({
         <div>
           <p className={styles.sectionEyebrow}>PRODUCTION PROGRESSION</p>
           <h2 id="continue-script-title">当前角色约束已在本地准备</h2>
-          <p>{isStale ? "当前方向已调整，请先重新整理本地一致性预览。" : "下一阶段：Script Studio · 剧本仍由剧本工作室负责。"}</p>
+          <p>{isStale ? "当前方向已调整，请先重新整理本地一致性预览。" : "下一阶段：Script Studio · 可显式打开，当前角色状态不会自动写入剧本。"}</p>
         </div>
         <ContinueScriptButton disabled={!canContinue} loading={pageState === "editing"} onContinue={onConfirmPreview} />
       </section>
@@ -2143,7 +2194,6 @@ export function CharacterStudioPage() {
   function handleContinue() {
     setPageState("confirmed-preview");
     setNextStepOpen(true);
-    window.setTimeout(() => setPageState("next-route-unavailable"), 0);
   }
 
   return (
@@ -2172,17 +2222,22 @@ export function CharacterStudioPage() {
 
       <ACSModal
         description="本地角色方向已确认"
-        footer={<ACSButton fullWidth onClick={() => setNextStepOpen(false)} variant="primary">留在角色工作室</ACSButton>}
+        footer={
+          <div className={styles.nextStepActions}>
+            <Link href="/script-studio">打开剧本工作室</Link>
+            <ACSButton onClick={() => setNextStepOpen(false)} variant="primary">留在角色工作室</ACSButton>
+          </div>
+        }
         onClose={() => setNextStepOpen(false)}
         open={nextStepOpen}
         size="small"
-        title="剧本设计入口即将开放"
+        title="角色预览已确认"
       >
         <div className={styles.nextStepContent}>
           <ACSBadge tone="primary">本地预览已确认</ACSBadge>
           <h3>角色方向已准备好进入剧本</h3>
-          <p>剧本设计功能尚未开放，你可以继续留在这里完善角色方向。</p>
-          <p>当前确认只保留为本地创作预览，不会发布或提交正式制作内容。</p>
+          <p>剧本工作室已可打开，但它保持独立的本地状态，不会把当前角色方向伪装成已写入的正式上游数据。</p>
+          <p>当前确认只保留为本地创作预览，不会发布、保存或提交正式制作内容。</p>
         </div>
       </ACSModal>
     </CustomerLayout>

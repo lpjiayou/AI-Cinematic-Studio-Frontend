@@ -115,7 +115,6 @@ function TaskLaunchpad() {
               </div>
               <Link className={styles.taskAction} href={task.href}>
                 {task.action}
-                <span aria-hidden="true">→</span>
               </Link>
             </div>
           </ACSCard>

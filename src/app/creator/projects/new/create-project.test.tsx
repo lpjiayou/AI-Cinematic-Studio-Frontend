@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ThemeProvider } from "@/theme";
@@ -83,6 +83,25 @@ describe("CreateProjectPage", () => {
 
     expect(screen.getAllByText("本地预览已确认").length).toBeGreaterThan(0);
     expect(screen.getByRole("status")).toHaveTextContent("尚未保存为正式项目");
+  });
+
+  it("shows the four-step contract and exposes only explicit real next routes", async () => {
+    const user = userEvent.setup();
+    renderCreateProject();
+
+    const workflow = screen.getByRole("list", { name: "本地创意方案流程" });
+    expect(within(workflow).getAllByRole("listitem")).toHaveLength(4);
+    expect(within(workflow).getByText("选择下一工作区")).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole("textbox", { name: "你的创意" }),
+      "一位档案修复师在未来城市发现一段无人认领的记忆，并决定寻找它真正的主人。",
+    );
+    await user.click(screen.getByRole("button", { name: "确认本地导演方案预览" }));
+
+    expect(screen.getByRole("link", { name: "进入 AI 导演" })).toHaveAttribute("href", "/creator/ai-director");
+    expect(screen.getByRole("link", { name: "打开项目中心" })).toHaveAttribute("href", "/creator/projects");
+    expect(screen.getByText(/不自动转移页面状态/)).toBeInTheDocument();
   });
 
   it("keeps preview theme reads without rendering a page-owned theme control", async () => {

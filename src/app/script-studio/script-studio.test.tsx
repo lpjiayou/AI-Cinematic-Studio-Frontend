@@ -225,6 +225,18 @@ describe("ScriptStudioPage", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
+  it("opens the implemented character and story-world owner routes", async () => {
+    const user = userEvent.setup();
+    renderScriptStudio();
+    const inspector = screen.getByRole("complementary", { name: "编辑器检查器" });
+
+    await user.click(within(inspector).getByRole("button", { name: "打开角色工作室" }));
+    await user.click(within(inspector).getByRole("button", { name: "打开故事世界" }));
+
+    expect(pushMock).toHaveBeenNthCalledWith(1, "/creator/projects/future-city/planning/characters");
+    expect(pushMock).toHaveBeenNthCalledWith(2, "/creator/projects/future-city/planning/bible");
+  });
+
   it("rejects an empty selected block and recovers with a deterministic local candidate", async () => {
     const user = userEvent.setup();
     renderScriptStudio();

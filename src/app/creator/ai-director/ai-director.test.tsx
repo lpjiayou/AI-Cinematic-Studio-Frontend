@@ -186,8 +186,10 @@ describe("AIDirectorPage", () => {
       await screen.findByRole("dialog", { name: "导演方案预览已确认" }),
     ).toBeInTheDocument();
     expect(screen.getAllByText("本地预览已确认").length).toBeGreaterThan(0);
-    expect(screen.getByText(/故事世界工作区已经可用/)).toBeInTheDocument();
+    expect(screen.getByText(/不会自动带入故事世界/)).toBeInTheDocument();
     expect(screen.getByText(/不会创建正式项目/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "返回本地创意方案" })).toHaveAttribute("href", "/creator/projects/new");
+    expect(screen.getByRole("link", { name: "前往项目中心" })).toHaveAttribute("href", "/creator/projects");
   });
 
   it("keeps body theme reads without rendering page-owned shell controls", async () => {

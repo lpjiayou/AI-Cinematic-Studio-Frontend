@@ -14,9 +14,15 @@ export function ProjectWorkspaceChrome({ clientKey }: { clientKey: string }) {
   return (
     <section aria-label="项目上下文" className={styles.contextBar}>
       <div className={styles.inner}>
-        <div className={styles.boundary}>
-          <strong>本地演示</strong>
-          <span>非权威项目数据</span>
+        <div className={styles.identity}>
+          <div className={styles.boundary}>
+            <strong>本地演示</strong>
+            <span>非权威项目数据</span>
+          </div>
+          <div className={styles.workspaceKey}>
+            <span>本地工作区键</span>
+            <code>{clientKey}</code>
+          </div>
         </div>
 
         <dl className={styles.contextGrid}>
@@ -38,12 +44,19 @@ export function ProjectWorkspaceChrome({ clientKey }: { clientKey: string }) {
                 return (
                   <li key={item.segment}>
                     {item.available ? (
-                      <Link aria-current={current ? "page" : undefined} href={href}>
-                        {item.label}
+                      <Link
+                        aria-current={current ? "page" : undefined}
+                        aria-label={item.label}
+                        href={href}
+                      >
+                        <strong>{item.label}</strong>
+                        <small>{item.description}</small>
                       </Link>
                     ) : (
-                      <span aria-disabled="true" title="页面尚未实施">
-                        {item.label}
+                      <span aria-disabled="true" title={item.unavailableReason}>
+                        <strong>{item.label}</strong>
+                        <small>{item.description}</small>
+                        <em>尚未开放</em>
                       </span>
                     )}
                   </li>
@@ -56,4 +69,3 @@ export function ProjectWorkspaceChrome({ clientKey }: { clientKey: string }) {
     </section>
   );
 }
-

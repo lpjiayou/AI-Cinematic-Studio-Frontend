@@ -13,7 +13,10 @@ function installMatchMedia() {
     configurable: true,
     writable: true,
     value: vi.fn().mockImplementation((query: string) => ({
-      matches: query === "(max-width: 767px)" ? mobileViewport : false,
+      matches:
+        query === "(max-width: 767px)" || query === "(max-width: 1152px)"
+          ? mobileViewport
+          : false,
       media: query,
       onchange: null,
       addEventListener: vi.fn(),
@@ -344,17 +347,18 @@ describe("CharacterStudioPage", () => {
     expect(screen.getByText("本地一致性预览")).toBeInTheDocument();
   });
 
-  it("confirms only the local preview and guides an unavailable next route", async () => {
+  it("confirms only the local preview and exposes the independent script workspace", async () => {
     const user = userEvent.setup();
     renderCharacterStudio();
 
     await user.click(screen.getByRole("button", { name: "进入剧本设计" }));
 
     const dialog = await screen.findByRole("dialog", {
-      name: "剧本设计入口即将开放",
+      name: "角色预览已确认",
     });
     expect(within(dialog).getByText("本地预览已确认")).toBeInTheDocument();
     expect(within(dialog).getByText(/只保留为本地创作预览/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "打开剧本工作室" })).toHaveAttribute("href", "/script-studio");
     expect(screen.queryByRole("button", { name: "返回故事世界" })).not.toBeInTheDocument();
   });
 
@@ -370,8 +374,11 @@ describe("CharacterStudioPage", () => {
     expect(
       screen.getAllByAltText("电影角色站在所属世界环境中的整体身份与视觉设定").length,
     ).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "打开角色检查与建议" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "查看整体身份大图" }));
+    await user.click(screen.getByRole("button", { name: "打开角色制作参考" }));
+    const referenceDrawer = await screen.findByRole("dialog", { name: "角色制作参考" });
+    await user.click(within(referenceDrawer).getByRole("button", { name: "查看整体身份大图" }));
     expect(await screen.findByRole("dialog", { name: "整体身份" })).toBeInTheDocument();
     expect(screen.getByText("本地角色视觉参考")).toBeInTheDocument();
   });

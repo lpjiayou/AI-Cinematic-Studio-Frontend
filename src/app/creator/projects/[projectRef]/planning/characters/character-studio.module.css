@@ -131,6 +131,12 @@
   gap: var(--acs-space-6);
 }
 
+.workspaceAccessBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+}
+
 .primaryWorkbench {
   min-width: 0;
   height: 78dvh;
@@ -1809,6 +1815,33 @@
   color: var(--acs-text-primary);
 }
 
+.nextStepActions {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--acs-space-3);
+}
+
+.nextStepActions a {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--acs-space-4);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+}
+
+.nextStepActions a:hover,
+.nextStepActions a:focus-visible {
+  border-color: var(--acs-primary);
+}
+
 .referenceViewerButton:focus-visible,
 .referenceButton:focus-visible,
 .workspaceTabs button:focus-visible,
@@ -2000,6 +2033,14 @@
 
   .workspace {
     gap: var(--acs-space-4);
+  }
+
+  .workspaceAccessBar,
+  .workspaceAccessBar button,
+  .nextStepActions,
+  .nextStepActions a,
+  .nextStepActions button {
+    width: 100%;
   }
 
   .referenceRail {

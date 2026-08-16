@@ -37,13 +37,17 @@ function GlobalNavigation({ pathname }: { pathname: string }) {
             {item.available ? (
               <Link
                 aria-current={isCurrentGlobalDestination(pathname, item.href) ? "page" : undefined}
+                aria-label={item.label}
                 href={item.href}
               >
-                {item.label}
+                <span className={styles.navigationLabel}>{item.label}</span>
+                <span className={styles.navigationDescription}>{item.description}</span>
               </Link>
             ) : (
-              <span aria-disabled="true" title="尚未开放">
-                {item.label}
+              <span aria-disabled="true" title={item.unavailableReason}>
+                <span className={styles.navigationLabel}>{item.label}</span>
+                <span className={styles.navigationDescription}>{item.description}</span>
+                <span className={styles.navigationAvailability}>尚未开放</span>
               </span>
             )}
           </li>
@@ -64,12 +68,15 @@ function ProjectNavigation({ clientKey, pathname }: { clientKey: string; pathnam
           return (
             <li key={item.segment}>
               {item.available ? (
-                <Link aria-current={current ? "page" : undefined} href={href}>
-                  {item.label}
+                <Link aria-current={current ? "page" : undefined} aria-label={item.label} href={href}>
+                  <span className={styles.navigationLabel}>{item.label}</span>
+                  <span className={styles.navigationDescription}>{item.description}</span>
                 </Link>
               ) : (
                 <span aria-disabled="true" title={item.unavailableReason ?? "尚未开放"}>
-                  {item.label}
+                  <span className={styles.navigationLabel}>{item.label}</span>
+                  <span className={styles.navigationDescription}>{item.description}</span>
+                  <span className={styles.navigationAvailability}>尚未开放</span>
                 </span>
               )}
             </li>
@@ -137,28 +144,33 @@ export function UnifiedAppHeader({
               onClick={() => setUtilityMessage("全局搜索将在可信项目数据接入后开放。")}
               type="button"
             >
-              <span aria-hidden="true">⌕</span>
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-search.svg" width={18} />
             </button>
             <button
               aria-label={`切换至${theme === "dark" ? "浅色" : "深色"}模式`}
               onClick={toggleTheme}
               type="button"
             >
-              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+              <Image
+                alt=""
+                height={18}
+                src={theme === "dark" ? "/assets/workspace-home/icons/utility-theme-light.svg" : "/assets/workspace-home/icons/utility-theme-dark.svg"}
+                width={18}
+              />
             </button>
             <button
               aria-label="通知"
               onClick={() => setUtilityMessage("当前没有新的本地演示通知。")}
               type="button"
             >
-              <span aria-hidden="true">◌</span>
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-notification.svg" width={18} />
             </button>
             <button
               aria-label="帮助"
               onClick={() => setUtilityMessage("当前页面使用本地演示数据，不会提交生产内容。")}
               type="button"
             >
-              <span aria-hidden="true">?</span>
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-help.svg" width={18} />
             </button>
             <button
               aria-label="用户菜单"
@@ -166,7 +178,7 @@ export function UnifiedAppHeader({
               onClick={() => setUtilityMessage("本地演示用户未连接正式账户上下文。")}
               type="button"
             >
-              演
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-menu.svg" width={18} />
             </button>
           </div>
         </div>
@@ -186,4 +198,3 @@ export function UnifiedAppHeader({
     </>
   );
 }
-

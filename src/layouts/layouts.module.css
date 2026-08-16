@@ -82,7 +82,7 @@
   top: 0;
   z-index: 15;
   min-width: 0;
-  min-height: var(--acs-header-height);
+  min-height: var(--acs-topbar-min-height);
   border-bottom: 1px solid var(--acs-border);
   background: color-mix(in srgb, var(--acs-bg), transparent 5%);
   backdrop-filter: blur(16px);
@@ -145,6 +145,12 @@
 
 .workspaceCandidateStrip[data-mode="progress"] {
   min-height: var(--acs-space-10);
+}
+
+.workspaceCandidateStrip[data-mode="results"] {
+  min-height: var(--acs-candidate-strip-results-min-height);
+  max-height: min(12rem, 30dvh);
+  overflow: auto;
 }
 
 .editorLayout {

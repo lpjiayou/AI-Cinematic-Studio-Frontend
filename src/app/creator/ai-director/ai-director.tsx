@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -547,7 +548,7 @@ export function DirectorSelector<T extends string>({
                 {option.description && <small>{option.description}</small>}
               </span>
               <span className={styles.selectionIndicator} aria-hidden="true">
-                {selected ? "✓" : ""}
+                {selected ? "已选" : ""}
               </span>
             </button>
           </ACSCard>
@@ -1031,7 +1032,6 @@ export function ConfirmDirectorButton({
       loading={loading}
       onClick={onConfirm}
       size="large"
-      trailingIcon={<span aria-hidden="true">→</span>}
       variant="primary"
     >
       确认本地导演方案
@@ -1228,9 +1228,13 @@ export function AIDirectorPage() {
       <ACSModal
         description="本地导演方案预览"
         footer={
-          <ACSButton fullWidth onClick={() => setNextStepOpen(false)} variant="primary">
-            继续完善导演方案
-          </ACSButton>
+          <div className={styles.nextStepActions}>
+            <Link href="/creator/projects/new">返回本地创意方案</Link>
+            <Link href="/creator/projects">前往项目中心</Link>
+            <ACSButton onClick={() => setNextStepOpen(false)} variant="primary">
+              留在 AI 导演
+            </ACSButton>
+          </div>
         }
         onClose={() => setNextStepOpen(false)}
         open={nextStepOpen}
@@ -1238,9 +1242,9 @@ export function AIDirectorPage() {
       >
         <div className={styles.nextStepContent}>
           <ACSBadge tone="primary">本地预览已确认</ACSBadge>
-          <h3>下一站 · 故事世界 / IP Bible</h3>
+          <h3>选择下一步工作区</h3>
           <p>
-            故事世界工作区已经可用，但当前导演方案没有可信项目身份，不能自动带入下一页面。
+            当前导演方案没有可信项目身份，因此不会自动带入故事世界。你可以返回创意方案继续调整，或到项目中心选择明确标注的本地演示工作区。
           </p>
           <p className={styles.boundaryNote}>
             此确认不会创建正式项目、保存制作数据或生成作品身份。

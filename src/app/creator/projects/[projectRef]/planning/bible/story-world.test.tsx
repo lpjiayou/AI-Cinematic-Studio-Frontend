@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/theme";
 import { getLocalProjectPresentation, ProjectPresentationProvider } from "@/features/project-data";
 import {
@@ -185,8 +185,33 @@ describe("StoryWorldPage", () => {
       await screen.findByRole("dialog", { name: "世界预览已确认" }),
     ).toBeInTheDocument();
     expect(screen.getAllByText("本地世界预览已确认").length).toBeGreaterThan(0);
-    expect(screen.getByText(/不会创建角色实体/)).toBeInTheDocument();
+    expect(screen.getByText(/不会创建正式角色实体/)).toBeInTheDocument();
     expect(screen.getByText(/不会持久化 IP Bible/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "打开角色工作室" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/planning/characters",
+    );
+  });
+
+  it("restores hidden world navigation and inspection surfaces through responsive drawers", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: query === "(max-width: 767px)" || query === "(max-width: 1152px)",
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    });
+    renderStoryWorldPage();
+
+    await user.click(await screen.findByRole("button", { name: "打开世界对象导航" }));
+    expect(await screen.findByRole("dialog", { name: "世界对象导航" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
+
+    await user.click(screen.getByRole("button", { name: "打开检查与下一步" }));
+    expect(await screen.findByRole("dialog", { name: "世界检查与下一步" })).toBeInTheDocument();
   });
 
   it("keeps body theme reads without rendering page-owned shell controls", async () => {
