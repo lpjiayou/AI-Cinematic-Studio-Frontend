@@ -24,7 +24,6 @@ import {
 import {
   findStateIntervalOverlaps,
   useProjectPresentation,
-  type EpisodePlanItemOption,
 } from "@/features/project-data";
 import { CustomerLayout, WorkspaceLayout } from "@/layouts";
 import styles from "./character-studio.module.css";
@@ -594,6 +593,33 @@ const areaTabs = [
   ["CONSISTENCY", "一致性"],
 ] as const satisfies readonly [CharacterWorkspaceArea, string][];
 
+const characterTaskMeta: Record<CharacterWorkspaceArea, { title: string; description: string }> = {
+  IDENTITY: {
+    title: "身份核心",
+    description: "明确角色为什么行动、相信什么、害怕什么，以及当前必须完成的目标。",
+  },
+  APPEARANCE: {
+    title: "外观方向",
+    description: "选择可持续复用的面部、发型、服装、体态和关键道具参考。",
+  },
+  PERSONALITY: {
+    title: "性格与对白规则",
+    description: "把性格落实成可观察的行为、说话方式和情绪反应，而不是抽象标签。",
+  },
+  RELATIONSHIP: {
+    title: "人物关系",
+    description: "选择一条关系，核对双方目标、情绪距离和剧情中的连续性约束。",
+  },
+  CONTINUITY: {
+    title: "剧情阶段",
+    description: "确认当前阶段允许出现的性格、关系与外观变化，避免角色提前越级。",
+  },
+  CONSISTENCY: {
+    title: "一致性检查",
+    description: "比较当前参考与候选方向，确认不会改变角色的核心身份特征。",
+  },
+};
+
 const assistantInsights: Record<CharacterWorkspaceArea, CharacterAssistantInsight> = {
   IDENTITY: {
     context: "IDENTITY",
@@ -690,13 +716,22 @@ export function CharacterContextBar({ context }: CharacterContextBarProps) {
     <ACSCard className={styles.contextBar} padding="compact">
       <div className={styles.contextContent}>
         <div className={styles.contextIdentity}>
-          <strong>{context.seriesTitle}</strong>
-          <span aria-hidden="true">/</span>
-          <span>{context.worldContextLabel}</span>
-          <span aria-hidden="true">/</span>
-          <span>{context.characterName}</span>
-          <span aria-hidden="true">/</span>
-          <span>{context.stageLabel}</span>
+          <span className={styles.contextField}>
+            <small>当前项目</small>
+            <strong>{context.seriesTitle}</strong>
+          </span>
+          <span className={styles.contextField}>
+            <small>故事世界</small>
+            <strong>{context.worldContextLabel}</strong>
+          </span>
+          <span className={styles.contextField}>
+            <small>当前角色</small>
+            <strong>{context.characterName}</strong>
+          </span>
+          <span className={styles.contextField}>
+            <small>当前阶段</small>
+            <strong>{context.stageLabel}</strong>
+          </span>
         </div>
         <ACSBadge dot tone={badgeTone}>{displayStatus(context.statusLabel)}</ACSBadge>
         {context.statusLabel === "预览已过期" ? (
@@ -713,10 +748,11 @@ function CharacterStudioPageIntro() {
       <div>
         <p className={styles.eyebrow}><span>CHARACTER STUDIO</span> · PRODUCTION WORKSPACE</p>
         <h1 id="character-studio-title">让角色拥有可以持续保持的一致身份</h1>
+        <p>按六个明确任务逐步完成角色设定；当前页面只保留本地创作状态。</p>
       </div>
       <div className={styles.introStatus}>
-        <span>当前任务</span>
-        <strong>设计林澈 · 第一幕角色约束</strong>
+        <span>当前角色</span>
+        <strong>林澈 · 第一幕角色约束</strong>
         <ACSBadge tone="neutral">本地草稿</ACSBadge>
       </div>
     </section>
@@ -808,13 +844,13 @@ export function CharacterReferenceRail({
           <div aria-hidden="true" className={styles.mediaOverlay} />
           <figcaption><span>{activeAsset.label}</span><strong>{character.name}</strong></figcaption>
           <ACSButton
-            aria-label={`查看${activeAsset.label}大图`}
+            aria-label={`在当前任务中使用${activeAsset.label}参考`}
             className={styles.referenceViewerButton}
             onClick={() => onOpenViewer(activeAsset.id)}
             size="small"
             variant="secondary"
           >
-            查看参考
+            使用此参考
           </ACSButton>
         </figure>
       ) : null}
@@ -1242,26 +1278,62 @@ export function CharacterStateCard({ state, readOnly = false }: CharacterStateCa
   );
 }
 
-function nodeName(nodes: readonly CharacterNode[], nodeId: string) {
-  return nodes.find((node) => node.id === nodeId)?.name ?? "未知角色";
+function CharacterContinuityBoundary() {
+  const project = useProjectPresentation();
+  const conflicts = findStateIntervalOverlaps(
+    project.characterStudio.stateIntervals,
+    project.storyWorld.planItems,
+  );
+  const categoryLabel: Record<string, string> = {
+    Appearance: "外观变化",
+    PrimaryGoal: "核心目标",
+    Location: "所在地点",
+  };
+  const itemLabel = (clientKey: string | null) =>
+    project.storyWorld.planItems.find((item) => item.clientKey === clientKey)?.label
+    ?? (clientKey ? "未找到对应阶段" : "保持开放");
+
+  return (
+    <ACSCard
+      className={styles.continuityBoundary}
+      headerAction={(
+        <ACSBadge tone={conflicts.length ? "warning" : "primary"}>
+          {conflicts.length ? `${conflicts.length} 项需要检查` : "范围检查通过"}
+        </ACSBadge>
+      )}
+      padding="compact"
+      title="阶段适用范围"
+    >
+      <p className={styles.continuityBoundaryLead}>
+        这些范围说明角色变化从哪一集开始、到哪一集结束；当前仅用于本地创作核对。
+      </p>
+      <div className={styles.continuityBoundaryGrid}>
+        {project.characterStudio.stateIntervals.map((interval) => (
+          <article
+            data-conflict={conflicts.includes(interval.clientKey) || undefined}
+            key={interval.clientKey}
+          >
+            <div>
+              <strong>{categoryLabel[interval.category] ?? interval.category}</strong>
+              <ACSBadge tone={conflicts.includes(interval.clientKey) ? "warning" : "neutral"}>
+                {conflicts.includes(interval.clientKey) ? "检查重叠" : "本地范围"}
+              </ACSBadge>
+            </div>
+            <p>{itemLabel(interval.startPlanItemClientKey)} 至 {itemLabel(interval.endPlanItemClientKey)}</p>
+            <small>{interval.annotation}</small>
+          </article>
+        ))}
+      </div>
+      <details className={styles.continuityBoundaryDetails}>
+        <summary>查看连接边界</summary>
+        <p>正式角色、地点和关系引用尚未接入；这里不会创建版本或保存到生产项目。</p>
+      </details>
+    </ACSCard>
+  );
 }
 
-function RelationDetail({ relation, nodes }: { relation: CharacterRelation; nodes: readonly CharacterNode[] }) {
-  return (
-    <div className={styles.relationDetail}>
-      <dl>
-        <div><dt>来源角色</dt><dd>{nodeName(nodes, relation.sourceId)}</dd></div>
-        <div><dt>目标角色</dt><dd>{nodeName(nodes, relation.targetId)}</dd></div>
-        <div><dt>关系类型</dt><dd>{relation.relationType}</dd></div>
-        <div><dt>情绪方向</dt><dd>{relation.emotionalDirection}</dd></div>
-      </dl>
-      <section><h3>关系说明</h3><p>{relation.description}</p></section>
-      <section>
-        <h3>连续性备注</h3>
-        {relation.continuityNotes.length > 0 ? <ul>{relation.continuityNotes.map((note) => <li key={note}>{note}</li>)}</ul> : <p className={styles.emptyNote}>暂无连续性备注</p>}
-      </section>
-    </div>
-  );
+function nodeName(nodes: readonly CharacterNode[], nodeId: string) {
+  return nodes.find((node) => node.id === nodeId)?.name ?? "未知角色";
 }
 
 export function RelationshipGraph({
@@ -1272,18 +1344,12 @@ export function RelationshipGraph({
   onSelectNode,
   onSelectRelation,
 }: RelationshipGraphProps) {
-  const isMobile = useIsMobile();
-  const [detailRelationId, setDetailRelationId] = useState<string | null>(null);
   const [suggestionVisible, setSuggestionVisible] = useState(false);
-  const detailRelation = relations.find((item) => item.id === detailRelationId) ?? null;
   const selectedRelation = relations.find((item) => item.id === selectedRelationId) ?? relations[0] ?? null;
 
   function openRelation(relationId: string) {
     onSelectRelation(relationId);
-    setDetailRelationId(relationId);
   }
-
-  const detail = detailRelation ? <RelationDetail nodes={nodes} relation={detailRelation} /> : null;
 
   return (
     <section aria-labelledby="character-relationships-title">
@@ -1291,7 +1357,6 @@ export function RelationshipGraph({
         <div className={styles.relationshipLayout}>
           <figure className={styles.relationshipVisual}>
             <Image alt="展示主要电影角色之间关系、情绪距离和叙事张力的视觉设计板" className={styles.mediaImage} fill sizes="(max-width: 1023px) 100vw, 58vw" src="/assets/character-studio/relation/relationship-board.webp" />
-            <div aria-hidden="true" className={styles.graphLines} />
             <div className={styles.graphNodes}>
               {nodes.map((node) => (
                 <button aria-pressed={node.id === selectedNodeId} className={styles.graphNode} data-node={node.id} key={node.id} onClick={() => onSelectNode(node.id)} type="button">
@@ -1306,7 +1371,7 @@ export function RelationshipGraph({
               {relations.map((relation) => (
                 <li data-selected={relation.id === selectedRelationId || undefined} key={relation.id}>
                   <div><strong>{nodeName(nodes, relation.sourceId)} — {relation.relationType} → {nodeName(nodes, relation.targetId)}</strong><span>{relation.emotionalDirection}</span></div>
-                  <ACSButton aria-pressed={relation.id === selectedRelationId} onClick={() => openRelation(relation.id)} size="small" variant="secondary">查看关系</ACSButton>
+                  <ACSButton aria-pressed={relation.id === selectedRelationId} onClick={() => openRelation(relation.id)} size="small" variant="secondary">选择关系</ACSButton>
                 </li>
               ))}
             </ul>
@@ -1322,11 +1387,6 @@ export function RelationshipGraph({
           </div>
         </div>
       </ACSCard>
-      {isMobile ? (
-        <ACSDrawer description={detailRelation?.emotionalDirection} onClose={() => setDetailRelationId(null)} open={Boolean(detailRelation)} side="bottom" title={detailRelation ? `${nodeName(nodes, detailRelation.sourceId)}与${nodeName(nodes, detailRelation.targetId)}` : "关系详情"}>{detail}</ACSDrawer>
-      ) : (
-        <ACSModal description={detailRelation?.emotionalDirection} onClose={() => setDetailRelationId(null)} open={Boolean(detailRelation)} size="medium" title={detailRelation ? `${nodeName(nodes, detailRelation.sourceId)}与${nodeName(nodes, detailRelation.targetId)}` : "关系详情"}>{detail}</ACSModal>
-      )}
     </section>
   );
 }
@@ -1454,29 +1514,27 @@ export function AICharacterAssistantPanel({
   const statusLabel = status === "thinking" ? "正在分析" : status === "ready" ? "工具已就绪" : status === "error" ? "需要检查" : "等待工作区域";
   const resolvedInsight = insight ?? assistantInsights.IDENTITY;
   const insightRows = [
-    ["ANALYSIS", "分析", resolvedInsight.analysis],
-    ["POTENTIAL CONFLICT", "潜在冲突", resolvedInsight.potentialConflict],
-    ["CANDIDATE", "候选建议", resolvedInsight.candidateSuggestion],
-    ["WORLD ALIGNMENT", "世界匹配", resolvedInsight.worldAlignmentHint],
-    ["CONTINUITY", "连续性提醒", resolvedInsight.continuityWarning],
-    ["NEXT ACTION", "下一步", resolvedInsight.nextAction],
+    ["当前判断", resolvedInsight.analysis],
+    ["需要注意", resolvedInsight.potentialConflict],
+    ["下一步", resolvedInsight.nextAction],
   ] as const;
+  const currentTaskLabel = characterTaskMeta[resolvedInsight.context].title;
 
   return (
     <AIAssistantPanel
       aria-label="角色 AI 制作助理"
-      actions={<ACSButton disabled={status === "thinking"} onClick={onRebuild} size="small" variant="secondary">重新分析</ACSButton>}
+      actions={<ACSButton disabled={status === "thinking"} onClick={onRebuild} size="small" variant="secondary">重新检查</ACSButton>}
       className={styles.assistantPanel}
-      description={`当前工作区域 · ${resolvedInsight.context}`}
+      description={`当前任务 · ${currentTaskLabel}`}
       footer={
         <div className={styles.assistantActionBar}>
-          <ACSButton onClick={onViewConflict} size="small" variant="ghost">查看冲突</ACSButton>
-          <ACSButton onClick={onGenerateCandidate} size="small" variant="secondary">生成候选</ACSButton>
+          <ACSButton onClick={onViewConflict} size="small" variant="ghost">定位需处理项</ACSButton>
+          <ACSButton onClick={onGenerateCandidate} size="small" variant="secondary">生成本地建议</ACSButton>
           <ACSButton onClick={onAdoptSuggestion} size="small" variant="primary">采用建议</ACSButton>
         </div>
       }
       status={statusLabel}
-      title="AI 角色助理 · 镜构小构"
+      title="AI 角色检查"
     >
       {status === "thinking" ? (
         <AIThinkingState compact detail="正在根据当前工作区域重新整理分析、冲突与下一步。" label="正在整理角色预览" />
@@ -1486,12 +1544,12 @@ export function AICharacterAssistantPanel({
         <div className={styles.assistantContent}>
           <p>{summary}</p>
           <div className={styles.assistantInsights}>
-            {insightRows.map(([code, label, value]) => (
-              <section key={code}><span>{code}</span><h3>{label}</h3><p>{value}</p></section>
+            {insightRows.map(([label, value]) => (
+              <section key={label}><h3>{label}</h3><p>{value}</p></section>
             ))}
           </div>
           <ol className={styles.assistantSuggestionList}>
-            {suggestions.map((suggestion, index) => <li key={suggestion}><span>{String(index + 1).padStart(2, "0")}</span><p>{suggestion}</p></li>)}
+            {suggestions.slice(0, 1).map((suggestion) => <li key={suggestion}><p>{suggestion}</p></li>)}
           </ol>
           {actionNote ? <p className={styles.assistantActionNote} role="status">{actionNote}</p> : null}
         </div>
@@ -1511,152 +1569,6 @@ function assistantStatusFor(pageState: CharacterStudioPageState) {
   return "ready" as const;
 }
 
-function RelationshipPrimaryWorkspace({
-  nodes,
-  relation,
-}: {
-  nodes: readonly CharacterNode[];
-  relation: CharacterRelation | undefined;
-}) {
-  const candidates = [
-    "先让旧称呼暴露两人的熟悉感，再延后说明失踪真相。",
-    "用一次未完成的交接强化互信，同时保留双方对风险判断的分歧。",
-  ] as const;
-  const [candidateIndex, setCandidateIndex] = useState(0);
-  const [adopted, setAdopted] = useState(false);
-  const [actionNote, setActionNote] = useState<string | null>(null);
-
-  if (!relation) {
-    return (
-      <div className={styles.relationshipPrimaryEmpty}>
-        <strong>尚未选择关系</strong>
-        <p>从下方完整关系工作区选择一条关系，开始核对人物与连续性。</p>
-        <a href="#relationship-workspace">打开完整关系工作区</a>
-      </div>
-    );
-  }
-
-  const sourceName = nodeName(nodes, relation.sourceId);
-  const targetName = nodeName(nodes, relation.targetId);
-  const candidate = candidates[candidateIndex];
-
-  return (
-    <section className={styles.relationshipPrimary} aria-labelledby="relationship-primary-title">
-      <div className={styles.relationshipPrimaryHeading}>
-        <div>
-          <h2 id="relationship-primary-title">关系设计画布</h2>
-          <span className={styles.workLabel}>RELATIONSHIP DESIGN CANVAS</span>
-        </div>
-        <ACSBadge tone="neutral">当前关系 · LOCAL</ACSBadge>
-      </div>
-
-      <div className={styles.relationshipPrimaryLead}>
-        <div>
-          <span>当前关系</span>
-          <strong>{sourceName} — {relation.relationType} → {targetName}</strong>
-          <p>{relation.description}</p>
-        </div>
-        <dl>
-          <div><dt>关系双方</dt><dd>{sourceName} / {targetName}</dd></div>
-          <div><dt>关系类型</dt><dd>{relation.relationType}</dd></div>
-          <div><dt>情绪方向</dt><dd>{relation.emotionalDirection}</dd></div>
-        </dl>
-      </div>
-
-      <div className={styles.relationshipPrimaryGrid}>
-        <section>
-          <span>连续性核对</span>
-          <h3>当前关系连续性</h3>
-          {relation.continuityNotes.length > 0 ? (
-            <ul>{relation.continuityNotes.map((note) => <li key={note}>{note}</li>)}</ul>
-          ) : (
-            <p className={styles.emptyNote}>暂无连续性备注</p>
-          )}
-          <small>工作提示：优先保持称呼、知情顺序与情绪距离一致。</small>
-        </section>
-        <section className={styles.relationshipCandidate} data-adopted={adopted || undefined}>
-          <div><span>本地关系候选</span><ACSBadge tone={adopted ? "primary" : "ai"}>{adopted ? "已采用（LOCAL）" : "AI 候选"}</ACSBadge></div>
-          <h3>叙事推进建议</h3>
-          <p>{candidate}</p>
-          <small>仅用于当前浏览器中的展示与比较，不写入任何正式项目。</small>
-        </section>
-      </div>
-
-      <div className={styles.relationshipPrimaryActions}>
-        <ACSButton onClick={() => setActionNote(`已聚焦查看 ${sourceName} 与 ${targetName} 的当前关系。`)} size="small" variant="ghost">查看关系</ACSButton>
-        <ACSButton
-          onClick={() => {
-            setCandidateIndex((current) => (current + 1) % candidates.length);
-            setAdopted(false);
-            setActionNote("已生成新的本地关系候选；未发送或保存任何数据。");
-          }}
-          size="small"
-          variant="secondary"
-        >
-          生成本地候选
-        </ACSButton>
-        <ACSButton
-          onClick={() => {
-            setAdopted(true);
-            setActionNote("关系候选已采用到本地当前方向。");
-          }}
-          size="small"
-          variant="primary"
-        >
-          采用候选
-        </ACSButton>
-        <a href="#relationship-workspace">打开完整关系工作区</a>
-      </div>
-      {actionNote ? <p className={styles.relationshipActionNote} role="status">{actionNote}</p> : null}
-    </section>
-  );
-}
-
-function ActiveCanvasSummary({
-  area,
-  character,
-  activeAsset,
-}: {
-  area: Exclude<CharacterWorkspaceArea, "IDENTITY" | "RELATIONSHIP">;
-  character: CharacterPreview;
-  activeAsset: CharacterAssetPreview | undefined;
-}) {
-  const content = {
-    APPEARANCE: {
-      code: "APPEARANCE WORKFLOW",
-      title: activeAsset?.label ?? "外观方向",
-      copy: activeAsset ? `${activeAsset.label}正在作为候选参考参与比较。` : "选择一项视觉参考开始比较。",
-      detail: character.appearance.costumeDirection,
-    },
-    PERSONALITY: {
-      code: "PERSONALITY WORKFLOW",
-      title: "当前规则与候选调整",
-      copy: character.personality.speechStyle,
-      detail: "潜在冲突：不主动解释创伤，与第 2 集可能出现的主动说明倾向需要核对。",
-    },
-    CONTINUITY: {
-      code: "CURRENT STORY STAGE",
-      title: character.state.arcStage,
-      copy: character.state.personalityDelta,
-      detail: character.state.continuityNotes[0],
-    },
-    CONSISTENCY: {
-      code: "IDENTITY REVIEW",
-      title: character.visualConsistency.status === "stale" ? "重新整理一致性预览" : "本地一致性预览",
-      copy: character.visualConsistency.styleLabel,
-      detail: character.visualConsistency.identityRules[0],
-    },
-  }[area];
-
-  return (
-    <div className={styles.activeCanvasSummary}>
-      <span>{content.code}</span><h2>{content.title}</h2><p>{content.copy}</p>
-      <div><strong>当前工作提示</strong><p>{content.detail}</p></div>
-      <small>使用下方对应工作区继续编辑、比较或采用。</small>
-    </div>
-  );
-}
-
 export function CharacterStudioWorkspace({
   context,
   character,
@@ -1669,8 +1581,6 @@ export function CharacterStudioWorkspace({
   onRebuildPreview,
   onConfirmPreview,
 }: CharacterStudioWorkspaceProps) {
-  const [assetViewerOpen, setAssetViewerOpen] = useState(false);
-  const [viewerAssetId, setViewerAssetId] = useState<string | null>(character.visualConsistency.mainAssetId);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(character.nodes.find((node) => node.isPrimary)?.id ?? null);
   const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(character.relationships[0]?.id ?? null);
   const [activeArea, setActiveArea] = useState<CharacterWorkspaceArea>("IDENTITY");
@@ -1700,7 +1610,6 @@ export function CharacterStudioWorkspace({
   }, [activeIdentityField, candidateRevision]);
 
   const selectedAsset = character.appearance.assets.find((asset) => asset.selected) ?? character.appearance.assets[0];
-  const selectedRelation = character.relationships.find((relation) => relation.id === selectedRelationshipId);
   const candidateTaskMatchesCurrentScope = Boolean(
     activeTask
       && activeTask.status === "results"
@@ -1711,11 +1620,6 @@ export function CharacterStudioWorkspace({
   );
   const isStale = pageState === "stale-preview";
   const canContinue = !isStale && pageState !== "empty" && pageState !== "editing" && pageState !== "local-error";
-
-  function openAsset(assetId: string) {
-    setViewerAssetId(assetId);
-    setAssetViewerOpen(true);
-  }
 
   function selectArea(area: CharacterWorkspaceArea) {
     setActiveArea(area);
@@ -1772,6 +1676,13 @@ export function CharacterStudioWorkspace({
     selectArea("APPEARANCE");
   }
 
+  function focusAsset(assetId: string) {
+    const asset = character.appearance.assets.find((item) => item.id === assetId);
+    onSelectAsset(assetId);
+    selectArea(asset?.kind === "main" ? "IDENTITY" : "APPEARANCE");
+    setAssistantActionNote(`${asset?.label ?? "角色参考"}已显示在当前工作区。`);
+  }
+
   function reanalyzeAssistant() {
     if (assistantTimer.current !== null) window.clearTimeout(assistantTimer.current);
     setAssistantThinking(true);
@@ -1792,30 +1703,115 @@ export function CharacterStudioWorkspace({
         selectArea(area);
         setReferenceDrawerOpen(false);
       }}
-      onOpenViewer={openAsset}
+      onOpenViewer={focusAsset}
       onSelectAsset={onSelectAsset}
       statusLabel={context.statusLabel}
     />
   );
   const assistantPanel = (
-    <AICharacterAssistantPanel
-      actionNote={assistantActionNote}
-      insight={assistantInsights[activeArea]}
-      onAdoptSuggestion={() => {
-        if (activeArea === "IDENTITY" && selectedCandidateId) adoptCandidate(selectedCandidateId);
-        else setAssistantActionNote("建议已加入本地工作方向，等待你在对应工作区确认。");
-      }}
-      onGenerateCandidate={activeArea === "IDENTITY" ? generateCandidates : () => setAssistantActionNote("已生成一条本地工作建议；没有连接外部服务。")}
-      onRebuild={reanalyzeAssistant}
-      onViewConflict={() => selectArea(activeArea === "IDENTITY" ? "PERSONALITY" : activeArea)}
-      status={assistantThinking ? "thinking" : assistantStatusFor(pageState)}
-      suggestions={[
-        "先比较当前方向与候选，不直接覆盖当前版本。",
-        "每次采用都会把一致性预览标记为需要重新整理。",
-      ]}
-      summary="镜构小构正在围绕当前工作区域提供分析、冲突、候选与下一步，不作为聊天或正式创作决策。"
-    />
+    <div className={styles.inspectorStack}>
+      <AICharacterAssistantPanel
+        actionNote={assistantActionNote}
+        insight={assistantInsights[activeArea]}
+        onAdoptSuggestion={() => {
+          if (activeArea === "IDENTITY" && selectedCandidateId) adoptCandidate(selectedCandidateId);
+          else setAssistantActionNote("建议已加入本地工作方向，等待你在当前任务中确认。");
+        }}
+        onGenerateCandidate={activeArea === "IDENTITY"
+          ? generateCandidates
+          : () => setAssistantActionNote("已生成一条本地工作建议；没有连接外部服务。")}
+        onRebuild={reanalyzeAssistant}
+        onViewConflict={() => selectArea(activeArea === "IDENTITY" ? "PERSONALITY" : activeArea)}
+        status={assistantThinking ? "thinking" : assistantStatusFor(pageState)}
+        suggestions={["采用任何候选前，先和当前方向并排比较。"]}
+        summary="根据当前任务检查角色设定、潜在冲突和下一步。"
+      />
+      <section aria-labelledby="character-next-step-title" className={styles.inspectorProgression}>
+        <div>
+          <span>NEXT STEP</span>
+          <h2 id="character-next-step-title">进入剧本设计</h2>
+          <p>{isStale ? "当前方向已修改，请先重新整理一致性预览。" : "角色约束已在本地准备，可显式进入独立的剧本工作台。"}</p>
+        </div>
+        <ContinueScriptButton disabled={!canContinue} loading={pageState === "editing"} onContinue={onConfirmPreview} />
+        <small>不会自动写入剧本，也不会创建正式角色版本。</small>
+      </section>
+    </div>
   );
+
+  const activeTaskIndex = areaTabs.findIndex(([area]) => area === activeArea);
+  const activeTaskContent = (() => {
+    switch (activeArea) {
+      case "APPEARANCE":
+        return (
+          <AppearanceBoard
+            activeAssetId={selectedAsset?.id ?? null}
+            adoptedAssetId={adoptedAssetId}
+            onAdoptAsset={adoptAsset}
+            onChange={onUpdate}
+            onOpenViewer={focusAsset}
+            onSelectAsset={(assetId) => {
+              onSelectAsset(assetId);
+              setAssistantActionNote("已选择一个外观参考，尚未采用为当前方向。");
+            }}
+            value={character.appearance}
+          />
+        );
+      case "PERSONALITY":
+        return <PersonalityCard onChange={onUpdate} value={character.personality} />;
+      case "RELATIONSHIP":
+        return (
+          <RelationshipGraph
+            nodes={character.nodes}
+            onSelectNode={(nodeId) => {
+              setSelectedNodeId(nodeId);
+              onSelectCharacterNode(nodeId);
+            }}
+            onSelectRelation={(relationId) => {
+              setSelectedRelationshipId(relationId);
+              onSelectRelationship(relationId);
+            }}
+            relations={character.relationships}
+            selectedNodeId={selectedNodeId}
+            selectedRelationId={selectedRelationshipId}
+          />
+        );
+      case "CONTINUITY":
+        return (
+          <div className={styles.continuityTaskStack}>
+            <CharacterStateCard readOnly state={character.state} />
+            <CharacterContinuityBoundary />
+          </div>
+        );
+      case "CONSISTENCY":
+        return (
+          <VisualConsistencyPanel
+            activeAssetId={selectedAsset?.id ?? null}
+            assets={character.appearance.assets}
+            onAdoptDirection={() => setAssistantActionNote("当前视觉方向已作为本地工作基线。")}
+            onOpenAsset={focusAsset}
+            onRebuild={onRebuildPreview}
+            preview={character.visualConsistency}
+          />
+        );
+      default:
+        return (
+          <IdentityCanvas
+            activeField={activeIdentityField}
+            adoptedCandidateId={adoptedCandidates[activeIdentityField] ?? null}
+            candidateSurface="external"
+            candidates={visibleCandidates}
+            onActiveFieldChange={selectIdentityField}
+            onAdoptCandidate={adoptCandidate}
+            onChange={onUpdate}
+            onGenerateCandidates={generateCandidates}
+            onReturnCurrent={() => setSelectedCandidateId(null)}
+            onSelectCandidate={setSelectedCandidateId}
+            selectedCandidateId={selectedCandidateId}
+            value={character.identity}
+          />
+        );
+    }
+  })();
 
   return (
     <div aria-label={`${context.characterName}角色工作区`} className={styles.workspace}>
@@ -1873,27 +1869,18 @@ export function CharacterStudioWorkspace({
               </button>
             ))}
           </div>
+          <header className={styles.characterTaskHeader}>
+            <div>
+              <span>当前任务 {activeTaskIndex + 1}/6</span>
+              <h2>{characterTaskMeta[activeArea].title}</h2>
+              <p>{characterTaskMeta[activeArea].description}</p>
+            </div>
+            <ACSBadge tone={isStale ? "warning" : "primary"}>
+              {isStale ? "修改待检查" : "本地可编辑"}
+            </ACSBadge>
+          </header>
           <div aria-labelledby={`character-tab-${activeArea.toLowerCase()}`} id={`character-canvas-${activeArea.toLowerCase()}`} role="tabpanel">
-            {activeArea === "IDENTITY" ? (
-              <IdentityCanvas
-                activeField={activeIdentityField}
-                adoptedCandidateId={adoptedCandidates[activeIdentityField] ?? null}
-                candidateSurface="external"
-                candidates={visibleCandidates}
-                onActiveFieldChange={selectIdentityField}
-                onAdoptCandidate={adoptCandidate}
-                onChange={onUpdate}
-                onGenerateCandidates={generateCandidates}
-                onReturnCurrent={() => setSelectedCandidateId(null)}
-                onSelectCandidate={setSelectedCandidateId}
-                selectedCandidateId={selectedCandidateId}
-                value={character.identity}
-              />
-            ) : activeArea === "RELATIONSHIP" ? (
-              <RelationshipPrimaryWorkspace nodes={character.nodes} relation={selectedRelation} />
-            ) : (
-              <ActiveCanvasSummary activeAsset={selectedAsset} area={activeArea} character={character} />
-            )}
+            {activeTaskContent}
           </div>
         </section>
       </WorkspaceLayout>
@@ -1917,208 +1904,7 @@ export function CharacterStudioWorkspace({
       >
         {assistantPanel}
       </InspectorDrawer>
-
-      <div className={styles.secondaryNavigation} aria-label="角色制作次级工作区">
-        <span>继续工作</span>
-        {areaTabs.slice(1).map(([area, label]) => (
-          <a href={`#${area.toLowerCase()}-workspace`} key={area} onClick={() => selectArea(area)}>{label}</a>
-        ))}
-      </div>
-
-      <section className={styles.appearancePersonalityGrid}>
-        <div id="appearance-workspace" tabIndex={-1}>
-          <AppearanceBoard
-            activeAssetId={selectedAsset?.id ?? null}
-            adoptedAssetId={adoptedAssetId}
-            onAdoptAsset={adoptAsset}
-            onChange={onUpdate}
-            onOpenViewer={openAsset}
-            onSelectAsset={(assetId) => { onSelectAsset(assetId); selectArea("APPEARANCE"); }}
-            value={character.appearance}
-          />
-        </div>
-        <div id="personality-workspace" tabIndex={-1}>
-          <PersonalityCard onChange={onUpdate} value={character.personality} />
-        </div>
-      </section>
-
-      <section className={styles.stateRelationshipGrid}>
-        <div id="continuity-workspace" tabIndex={-1}><CharacterStateCard readOnly state={character.state} /></div>
-        <div id="relationship-workspace" tabIndex={-1}>
-          <RelationshipGraph
-            nodes={character.nodes}
-            onSelectNode={(nodeId) => { setSelectedNodeId(nodeId); onSelectCharacterNode(nodeId); selectArea("RELATIONSHIP"); }}
-            onSelectRelation={(relationId) => { setSelectedRelationshipId(relationId); onSelectRelationship(relationId); selectArea("RELATIONSHIP"); }}
-            relations={character.relationships}
-            selectedNodeId={selectedNodeId}
-            selectedRelationId={selectedRelationshipId}
-          />
-        </div>
-      </section>
-
-      <div id="consistency-workspace" tabIndex={-1}>
-        <VisualConsistencyPanel
-          activeAssetId={selectedAsset?.id ?? null}
-          assets={character.appearance.assets}
-          onAdoptDirection={() => setAssistantActionNote("当前视觉方向已作为本地工作基线。")}
-          onOpenAsset={openAsset}
-          onRebuild={onRebuildPreview}
-          preview={character.visualConsistency}
-        />
-      </div>
-
-      <section className={styles.continueSection} aria-labelledby="continue-script-title">
-        <div>
-          <p className={styles.sectionEyebrow}>PRODUCTION PROGRESSION</p>
-          <h2 id="continue-script-title">当前角色约束已在本地准备</h2>
-          <p>{isStale ? "当前方向已调整，请先重新整理本地一致性预览。" : "下一阶段：Script Studio · 可显式打开，当前角色状态不会自动写入剧本。"}</p>
-        </div>
-        <ContinueScriptButton disabled={!canContinue} loading={pageState === "editing"} onContinue={onConfirmPreview} />
-      </section>
-
-      <CharacterAssetViewer activeAssetId={viewerAssetId} assets={character.appearance.assets} onClose={() => setAssetViewerOpen(false)} onSelectAsset={setViewerAssetId} open={assetViewerOpen} />
     </div>
-  );
-}
-
-export function EpisodePlanItemSelector({
-  id,
-  label,
-  options,
-  selectedClientKey,
-  allowOpenEnd = false,
-}: {
-  id: string;
-  label: string;
-  options: readonly EpisodePlanItemOption[];
-  selectedClientKey: string | null;
-  allowOpenEnd?: boolean;
-}) {
-  return (
-    <label className={styles.planItemSelector} htmlFor={id}>
-      <span>{label}</span>
-      <select defaultValue={selectedClientKey ?? ""} id={id}>
-        {allowOpenEnd ? <option value="">未设置 · 开放区间</option> : null}
-        {options.map((option) => (
-          <option key={option.clientKey} value={option.clientKey}>
-            {option.label} · {option.episodePlanItemRef ? "可信 Ref" : "LOCAL"}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function CharacterDomainAlignmentPanel() {
-  const project = useProjectPresentation();
-  const conflicts = findStateIntervalOverlaps(
-    project.characterStudio.stateIntervals,
-    project.storyWorld.planItems,
-  );
-
-  return (
-    <ACSCard className={styles.domainAlignmentPanel} padding="spacious">
-      <div className={styles.domainAlignmentHeading}>
-        <div>
-          <p className={styles.sectionEyebrow}>ACCEPTED CHARACTER SURFACE</p>
-          <h2>结构化阶段与关系边界</h2>
-          <p>区间采用开始项包含、结束项不包含；结束未设置表示开放区间。</p>
-        </div>
-        <div className={styles.alignmentBadges}>
-          <ACSBadge tone="neutral">{project.dataOrigin} · 非权威</ACSBadge>
-          <ACSBadge tone="ai">设计探索区域不计入完成度</ACSBadge>
-        </div>
-      </div>
-
-      <dl className={styles.identityRefs}>
-        <div>
-          <dt>本地 clientKey</dt>
-          <dd>{project.characterStudio.characterClientKey}</dd>
-        </div>
-        <div>
-          <dt>characterRef</dt>
-          <dd>{project.characterStudio.characterRef ?? "未连接"}</dd>
-        </div>
-      </dl>
-
-      <section className={styles.intervalSection} aria-labelledby="character-intervals-title">
-        <div className={styles.sectionHeadingRow}>
-          <h3 id="character-intervals-title">角色状态区间</h3>
-          <ACSBadge tone={conflicts.length ? "warning" : "primary"}>
-            {conflicts.length ? `${conflicts.length} 个区间冲突` : "区间检查通过"}
-          </ACSBadge>
-        </div>
-        <div className={styles.intervalGrid}>
-          {project.characterStudio.stateIntervals.map((interval) => (
-            <article className={styles.intervalCard} data-conflict={conflicts.includes(interval.clientKey) || undefined} key={interval.clientKey}>
-              <div className={styles.intervalTitle}>
-                <strong>{interval.category}</strong>
-                <small>{interval.intervalRef ?? "intervalRef 未连接"}</small>
-              </div>
-              <div className={styles.intervalSelectors}>
-                <EpisodePlanItemSelector
-                  id={`${interval.clientKey}-start`}
-                  label="开始计划项"
-                  options={project.storyWorld.planItems}
-                  selectedClientKey={interval.startPlanItemClientKey}
-                />
-                <EpisodePlanItemSelector
-                  allowOpenEnd
-                  id={`${interval.clientKey}-end`}
-                  label="结束计划项"
-                  options={project.storyWorld.planItems}
-                  selectedClientKey={interval.endPlanItemClientKey}
-                />
-              </div>
-              <p>{interval.annotation}</p>
-              {interval.category === "Location" && !interval.valueRef ? (
-                <p className={styles.intervalWarning}>地点区间缺少可信 valueRef，当前仅为不完整本地草稿。</p>
-              ) : null}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.intervalSection} aria-labelledby="character-relationships-title">
-        <h3 id="character-relationships-title">有时间边界的关系</h3>
-        <div className={styles.relationshipIntervals}>
-          {project.characterStudio.relationships.map((relationship) => (
-            <article key={relationship.clientKey}>
-              <strong>{relationship.sourceLabel} — {relationship.relationType} → {relationship.targetLabel}</strong>
-              <span>{relationship.relationshipRef ?? "relationshipRef 未连接"}</span>
-              <div className={styles.intervalSelectors}>
-                <EpisodePlanItemSelector
-                  id={`${relationship.clientKey}-start`}
-                  label="开始计划项"
-                  options={project.storyWorld.planItems}
-                  selectedClientKey={relationship.startPlanItemClientKey}
-                />
-                <EpisodePlanItemSelector
-                  allowOpenEnd
-                  id={`${relationship.clientKey}-end`}
-                  label="结束计划项"
-                  options={project.storyWorld.planItems}
-                  selectedClientKey={relationship.endPlanItemClientKey}
-                />
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.referenceCollections} aria-label="角色引用集合">
-        {[
-          ["地点引用", project.characterStudio.locationRefs],
-          ["道具引用", project.characterStudio.propRefs],
-          ["时间线事件引用", project.characterStudio.timelineEventRefs],
-        ].map(([label, refs]) => (
-          <div key={label as string}>
-            <strong>{label as string}</strong>
-            <span>{(refs as readonly string[]).length ? (refs as readonly string[]).join("、") : "无可信 Ref · 等待 Story World 目录连接"}</span>
-          </div>
-        ))}
-      </section>
-    </ACSCard>
   );
 }
 
@@ -2217,7 +2003,6 @@ export function CharacterStudioPage() {
           onUpdate={handleUpdate}
           pageState={pageState}
         />
-        <CharacterDomainAlignmentPanel />
       </div>
 
       <ACSModal

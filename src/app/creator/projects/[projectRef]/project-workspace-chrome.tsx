@@ -2,37 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getLocalProjectPresentation } from "@/features/project-data";
 import { PLANNING_NAVIGATION, projectRoute } from "@/lib/project-navigation";
 import styles from "./project-context-bar.module.css";
-
-const EMPTY_CONTEXT = ["项目", "系列", "单集", "阶段", "对象", "版本"] as const;
 
 export function ProjectWorkspaceChrome({ clientKey }: { clientKey: string }) {
   const pathname = usePathname();
   const isPlanning = pathname.includes("/planning/");
+  const project = getLocalProjectPresentation(clientKey);
 
   return (
     <section aria-label="项目上下文" className={styles.contextBar}>
       <div className={styles.inner}>
         <div className={styles.identity}>
           <div className={styles.boundary}>
-            <strong>本地演示</strong>
-            <span>非权威项目数据</span>
+            <strong>本地工作区</strong>
+            <span>未连接正式项目数据</span>
           </div>
           <div className={styles.workspaceKey}>
-            <span>本地工作区键</span>
-            <code>{clientKey}</code>
+            <span>当前项目</span>
+            <strong>{project.display.projectTitle}</strong>
           </div>
         </div>
-
-        <dl className={styles.contextGrid}>
-          {EMPTY_CONTEXT.map((label) => (
-            <div className={styles.contextItem} key={label}>
-              <dt>{label}</dt>
-              <dd>未连接</dd>
-            </div>
-          ))}
-        </dl>
 
         {isPlanning ? (
           <nav aria-label="项目策划导航" className={styles.subnavigation}>

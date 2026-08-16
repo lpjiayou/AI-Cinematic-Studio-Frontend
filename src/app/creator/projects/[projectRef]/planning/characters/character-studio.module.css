@@ -45,13 +45,31 @@
   flex: 1;
   justify-content: center;
   flex-wrap: wrap;
-  gap: var(--acs-space-2);
+  gap: 0;
   color: var(--acs-text-secondary);
   font-size: var(--acs-type-caption-size);
 }
 
-.contextIdentity strong {
+.contextField {
+  display: grid;
+  min-width: 8.5rem;
+  padding-inline: var(--acs-space-5);
+  gap: 0.125rem;
+  border-left: 1px solid var(--acs-border);
+}
+
+.contextField:first-child {
+  border-left: 0;
+}
+
+.contextField small {
+  color: var(--acs-text-muted);
+  font-size: 0.6875rem;
+}
+
+.contextField strong {
   color: var(--acs-text-primary);
+  font-size: var(--acs-type-caption-size);
 }
 
 .contractStatus {
@@ -128,7 +146,7 @@
 .workspace {
   display: grid;
   min-width: 0;
-  gap: var(--acs-space-6);
+  gap: var(--acs-space-4);
 }
 
 .workspaceAccessBar {
@@ -139,8 +157,8 @@
 
 .primaryWorkbench {
   min-width: 0;
-  height: 78dvh;
-  min-height: 44rem;
+  height: 76dvh;
+  min-height: 42rem;
   max-height: 64rem;
   overflow: hidden;
   border: 1px solid var(--acs-border);
@@ -200,7 +218,7 @@
 
 .referenceStage {
   position: relative;
-  min-height: 22rem;
+  min-height: 18rem;
   margin: 0;
   overflow: hidden;
   border-radius: var(--acs-radius-card);
@@ -394,11 +412,16 @@
 
 .workspaceTabs {
   display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 5;
   min-width: 0;
   padding: var(--acs-space-2);
   overflow-x: auto;
   border-bottom: 1px solid var(--acs-border);
+  background: color-mix(in srgb, var(--acs-surface) 97%, transparent);
   gap: var(--acs-space-1);
+  backdrop-filter: blur(14px);
   scrollbar-width: thin;
 }
 
@@ -423,6 +446,44 @@
 .workspaceTabs button[aria-selected="true"] {
   background: var(--acs-primary-soft);
   color: var(--acs-primary);
+}
+
+.characterTaskHeader {
+  display: flex;
+  position: sticky;
+  top: 3.8rem;
+  z-index: 4;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--acs-space-3) var(--acs-space-4);
+  border-bottom: 1px solid var(--acs-border);
+  background: color-mix(in srgb, var(--acs-surface) 96%, transparent);
+  gap: var(--acs-space-4);
+  backdrop-filter: blur(14px);
+}
+
+.characterTaskHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-1);
+}
+
+.characterTaskHeader span,
+.characterTaskHeader p {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.characterTaskHeader h2,
+.characterTaskHeader p {
+  margin: 0;
+}
+
+.characterTaskHeader h2 {
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-title-size);
+  line-height: var(--acs-type-title-line-height);
 }
 
 .identityCanvas {
@@ -832,10 +893,15 @@
 
 .assistantPanel {
   min-width: 0;
-  max-height: calc(100vh - 7rem);
-  overflow: auto;
-  position: sticky;
-  top: calc(var(--acs-header-height) + var(--acs-space-4));
+  max-height: none;
+  overflow: visible;
+  position: static;
+}
+
+.inspectorStack {
+  display: grid;
+  min-width: 0;
+  align-content: start;
 }
 
 .assistantActionBar {
@@ -851,7 +917,7 @@
   gap: var(--acs-space-3);
 }
 
-.assistantInsights > div {
+.assistantInsights > section {
   display: grid;
   padding: var(--acs-space-3);
   border: 1px solid var(--acs-border);
@@ -860,7 +926,8 @@
   gap: var(--acs-space-1);
 }
 
-.assistantInsights strong {
+.assistantInsights h3 {
+  margin: 0;
   color: var(--acs-text-primary);
   font-size: var(--acs-type-caption-size);
 }
@@ -869,6 +936,48 @@
 .assistantSuggestionList,
 .assistantActionNote {
   margin: 0;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.inspectorProgression {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-4);
+  border-top: 1px solid var(--acs-border);
+  background: var(--acs-surface-deep);
+  gap: var(--acs-space-3);
+}
+
+.inspectorProgression > div {
+  display: grid;
+  gap: var(--acs-space-1);
+}
+
+.inspectorProgression span,
+.inspectorProgression small {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.inspectorProgression span {
+  color: var(--acs-primary);
+  font-weight: var(--acs-weight-semibold);
+  letter-spacing: 0.1em;
+}
+
+.inspectorProgression h2,
+.inspectorProgression p {
+  margin: 0;
+}
+
+.inspectorProgression h2 {
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-title-size);
+}
+
+.inspectorProgression p {
   color: var(--acs-text-secondary);
   font-size: var(--acs-type-caption-size);
   line-height: var(--acs-type-caption-line-height);
@@ -1443,6 +1552,86 @@
   line-height: var(--acs-type-body-line-height);
 }
 
+.continuityTaskStack {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-4);
+  gap: var(--acs-space-4);
+}
+
+.continuityBoundary[data-padding="compact"] {
+  padding: var(--acs-space-3);
+}
+
+.continuityBoundaryLead {
+  margin: 0 0 var(--acs-space-3);
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.continuityBoundaryGrid {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.continuityBoundaryGrid article {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  gap: var(--acs-space-2);
+}
+
+.continuityBoundaryGrid article[data-conflict="true"] {
+  border-color: color-mix(in srgb, var(--acs-warning) 58%, var(--acs-border));
+}
+
+.continuityBoundaryGrid article > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--acs-space-2);
+}
+
+.continuityBoundaryGrid p,
+.continuityBoundaryGrid small {
+  margin: 0;
+}
+
+.continuityBoundaryGrid p {
+  color: var(--acs-text-primary);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.continuityBoundaryGrid small {
+  color: var(--acs-text-muted);
+  line-height: var(--acs-type-caption-line-height);
+}
+
+.continuityBoundaryDetails {
+  margin-top: var(--acs-space-3);
+  padding-top: var(--acs-space-3);
+  border-top: 1px solid var(--acs-border);
+  color: var(--acs-text-secondary);
+}
+
+.continuityBoundaryDetails summary {
+  color: var(--acs-text-primary);
+  cursor: pointer;
+  font-weight: var(--acs-weight-semibold);
+}
+
+.continuityBoundaryDetails p {
+  margin: var(--acs-space-2) 0 0;
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+}
+
 .stateWorkspace p {
   margin-top: var(--acs-space-1);
 }
@@ -1472,16 +1661,6 @@
 
 .relationshipVisual .mediaImage {
   object-position: 50% 50%;
-}
-
-.graphLines {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(28deg, transparent 43%, color-mix(in srgb, var(--acs-ai-accent) 72%, transparent) 44%, transparent 45%) 0 0 / 52% 70% no-repeat,
-    linear-gradient(-20deg, transparent 47%, color-mix(in srgb, var(--acs-primary) 68%, transparent) 48%, transparent 49%) 100% 22% / 58% 66% no-repeat;
-  pointer-events: none;
 }
 
 .graphNodes {
@@ -1889,11 +2068,11 @@
   }
 
   .assistantContent {
-    grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .assistantInsights {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .appearanceFields {
@@ -1955,7 +2134,7 @@
   }
 
   .referenceStage {
-    min-height: 21rem;
+    min-height: 18rem;
     grid-row: span 2;
   }
 
@@ -1973,6 +2152,10 @@
   }
 
   .relationshipLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .continuityBoundaryGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2018,9 +2201,10 @@
     justify-content: flex-start;
   }
 
-  .contextIdentity > span:nth-of-type(2),
-  .contextIdentity > span:nth-of-type(3) {
-    display: none;
+  .contextField {
+    min-width: 0;
+    padding-inline: 0 var(--acs-space-4);
+    border-left: 0;
   }
 
   .pageIntro h1 {
@@ -2029,6 +2213,13 @@
 
   .introStatus {
     gap: var(--acs-space-1);
+  }
+
+  .characterTaskHeader {
+    top: 3.8rem;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--acs-space-2);
   }
 
   .workspace {

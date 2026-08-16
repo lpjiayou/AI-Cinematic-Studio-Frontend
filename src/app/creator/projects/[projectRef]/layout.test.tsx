@@ -7,7 +7,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("ProjectContextLayout", () => {
-  it("renders the compact Context-null bar before route content", async () => {
+  it("renders a plain-language local project bar before route content", async () => {
     render(
       await ProjectContextLayout({
         children: <section aria-label="Project route content">Project child</section>,
@@ -16,15 +16,16 @@ describe("ProjectContextLayout", () => {
     );
 
     expect(screen.getByRole("region", { name: "项目上下文" })).toBeInTheDocument();
-    expect(screen.getByText("本地演示")).toBeInTheDocument();
-    expect(screen.getByText("非权威项目数据")).toBeInTheDocument();
-    expect(screen.getAllByText("未连接")).toHaveLength(6);
+    expect(screen.getByText("本地工作区")).toBeInTheDocument();
+    expect(screen.getByText("未连接正式项目数据")).toBeInTheDocument();
+    expect(screen.getByText("当前项目")).toBeInTheDocument();
+    expect(screen.getByText("未来之城")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Project route content" })).toHaveTextContent(
       "Project child",
     );
   });
 
-  it("keeps every project context dimension explicitly empty", async () => {
+  it("does not expose empty technical context dimensions", async () => {
     render(
       await ProjectContextLayout({
         children: <div>Project child</div>,
@@ -32,13 +33,13 @@ describe("ProjectContextLayout", () => {
       }),
     );
 
-    for (const label of ["项目", "系列", "单集", "阶段", "对象", "版本"]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
+    for (const label of ["单集", "阶段", "对象", "版本", "本地工作区键", "future-city"]) {
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
     }
     expect(screen.queryByText(/Ref|示例项目|演示项目/)).not.toBeInTheDocument();
   });
 
-  it("separates the local workspace key from empty authoritative context and links only implemented planning pages", async () => {
+  it("shows the current project name and links only implemented planning pages", async () => {
     render(
       await ProjectContextLayout({
         children: <div>Project child</div>,
@@ -46,8 +47,8 @@ describe("ProjectContextLayout", () => {
       }),
     );
 
-    expect(screen.getByText("本地工作区键")).toBeInTheDocument();
-    expect(screen.getByText("future-city")).toBeInTheDocument();
+    expect(screen.getByText("当前项目")).toBeInTheDocument();
+    expect(screen.getByText("未来之城")).toBeInTheDocument();
     const navigation = screen.getByRole("navigation", { name: "项目策划导航" });
     expect(navigation.querySelectorAll("a")).toHaveLength(2);
     expect(screen.getByRole("link", { name: "故事世界" })).toHaveAttribute(

@@ -10,7 +10,7 @@
   padding: var(--acs-space-2) var(--acs-space-6);
   align-items: center;
   gap: var(--acs-space-4);
-  grid-template-columns: auto minmax(25rem, 1fr) minmax(31rem, 1.35fr);
+  grid-template-columns: minmax(15rem, auto) minmax(31rem, 1fr);
 }
 
 .identity {
@@ -50,45 +50,14 @@
   font-size: 0.6875rem;
 }
 
-.workspaceKey code {
+.workspaceKey strong {
   max-width: 12rem;
   overflow: hidden;
   color: var(--acs-text-secondary);
   font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.contextGrid {
-  display: grid;
-  min-width: 0;
-  margin: 0;
-  align-items: stretch;
-  grid-template-columns: repeat(6, minmax(4.25rem, 1fr));
-}
-
-.contextItem {
-  min-width: 4.5rem;
-  padding-inline: var(--acs-space-3);
-  border-left: 1px solid var(--acs-border);
-}
-
-.contextItem dt,
-.contextItem dd {
-  margin: 0;
-  overflow: hidden;
-  font-size: var(--acs-type-caption-size);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.contextItem dt {
-  color: var(--acs-text-muted);
-}
-
-.contextItem dd {
-  margin-top: 0.125rem;
-  color: var(--acs-text-secondary);
 }
 
 .subnavigation {
@@ -172,10 +141,6 @@
   .inner {
     grid-template-columns: auto 1fr;
   }
-
-  .contextGrid {
-    display: none;
-  }
 }
 
 @media (max-width: 64rem) {
@@ -204,7 +169,7 @@
     justify-content: space-between;
   }
 
-  .workspaceKey code {
+  .workspaceKey strong {
     max-width: 9rem;
   }
 }

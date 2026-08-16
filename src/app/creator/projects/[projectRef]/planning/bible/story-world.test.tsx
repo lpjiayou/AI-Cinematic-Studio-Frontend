@@ -26,7 +26,8 @@ describe("StoryWorldPage", () => {
     document.documentElement.dataset.theme = "dark";
   });
 
-  it("renders the complete cinematic world archive without technical information", () => {
+  it("organizes the complete cinematic world archive into six clear production tasks", async () => {
+    const user = userEvent.setup();
     renderStoryWorldPage();
 
     expect(
@@ -38,37 +39,31 @@ describe("StoryWorldPage", () => {
     expect(screen.getByText("STORY WORLD / IP BIBLE")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "世界概览" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "世界规则" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /历史与时间线/ }));
     expect(screen.getByRole("heading", { name: "世界时间线" })).toBeInTheDocument();
+    expect(
+      screen.getByAltText(
+        "展示电影世界历史演变、文明变化和关键时代节点的视觉规划图",
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /地点与空间/ }));
     expect(screen.getByRole("heading", { name: "世界地图" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /阵营与文化/ }));
     expect(screen.getByRole("heading", { name: "阵营系统" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "文化画布" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "视觉语言" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /视觉语言/ }));
+    expect(screen.getAllByRole("heading", { name: "视觉语言" }).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: /术语、道具与禁忌/ }));
     expect(screen.getByRole("heading", { name: "术语、道具与叙事约束" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "禁止叙事模式" })).toBeInTheDocument();
-    expect(screen.getAllByText(/LOCAL · Ref 未连接/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/本地条目 · 未连接正式数据/).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "AI 世界构建建议" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "进入角色设计" })).toBeEnabled();
-
-    expect(
-      screen.getAllByAltText(
-        "电影世界全景中展示未来城市、时代环境和空间规模的概念视觉",
-      ).length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByAltText(
-        "展示电影世界历史演变、文明变化和关键时代节点的视觉规划图",
-      ).length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByAltText(
-        "展示电影世界中城市区域、特殊地点和空间关系的概念地图",
-      ).length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByAltText(
-        "展示电影世界中不同阵营的视觉符号、文化元素和关系结构的设计板",
-      ).length,
-    ).toBeGreaterThan(0);
 
     expect(
       screen.queryByText(/worldRef|locationRef|factionRef|assetRef|Provider|Queue|GPU|Hash|Database/),
@@ -143,20 +138,24 @@ describe("StoryWorldPage", () => {
     const user = userEvent.setup();
     renderStoryWorldPage();
 
+    await user.click(screen.getByRole("button", { name: /地点与空间/ }));
     const location = screen.getByRole("button", { name: "查看地点：静默区" });
     expect(location).toHaveAttribute("type", "button");
     expect(location).toHaveAttribute("aria-pressed", "false");
     await user.click(location);
-    expect(await screen.findByRole("dialog", { name: "静默区" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "关闭对话框" }));
     expect(location).toHaveAttribute("aria-pressed", "true");
     expect(location).toHaveTextContent("已选择");
+    expect(screen.getByText("静默区 · 受限区域")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "静默区" })).not.toBeInTheDocument();
 
+    await user.click(screen.getByRole("button", { name: /阵营与文化/ }));
     const faction = screen.getByRole("button", { name: "查看阵营：共生联盟" });
     expect(faction).toHaveAttribute("type", "button");
     expect(faction).toHaveAttribute("aria-pressed", "false");
     await user.click(faction);
-    expect(await screen.findByRole("dialog", { name: "共生联盟" })).toBeInTheDocument();
+    expect(faction).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByText("共生联盟").length).toBeGreaterThan(1);
+    expect(screen.queryByRole("dialog", { name: "共生联盟" })).not.toBeInTheDocument();
   });
 
   it("rebuilds only deterministic local presentation suggestions", async () => {
