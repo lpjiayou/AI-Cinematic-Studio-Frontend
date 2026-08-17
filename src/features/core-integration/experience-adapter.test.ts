@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { randomBytes } from "node:crypto";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleCreatorExperienceRequest } from "./experience-adapter";
 
 function coreResponse(payload: unknown, status = 200) {
@@ -6,14 +7,20 @@ function coreResponse(payload: unknown, status = 200) {
 }
 
 describe("Creator Experience Adapter", () => {
+  let runtimeToken: string;
+
+  beforeEach(() => {
+    runtimeToken = randomBytes(32).toString("base64url");
+    vi.stubEnv("CREATOR_CORE_TOKEN", runtimeToken);
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
-  it("keeps the Core origin and workspace scope on the server", async () => {
+  it("keeps the Core origin and credential-owned workspace scope on the server", async () => {
     vi.stubEnv("CREATOR_CORE_BASE_URL", "http://core.test:8765/");
-    vi.stubEnv("CREATOR_WORKSPACE_REF", "workspace-authoritative");
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(coreResponse({ ok: true, projects: [] }));
@@ -29,13 +36,17 @@ describe("Creator Experience Adapter", () => {
     const target = new URL(String(fetchMock.mock.calls[0][0]));
     expect(target.origin).toBe("http://core.test:8765");
     expect(target.pathname).toBe("/creator/api/v1/projects");
-    expect(target.searchParams.get("workspaceRef")).toBe("workspace-authoritative");
+    expect(target.searchParams.has("workspaceRef")).toBe(false);
     expect(target.searchParams.get("status")).toBe("active");
-    expect(JSON.stringify(await response.json())).not.toContain("core.test");
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(headers.get("Authorization")).toBe(`Bearer ${runtimeToken}`);
+    const responseText = JSON.stringify(await response.json());
+    expect(responseText).not.toContain("core.test");
+    expect(responseText).not.toContain(runtimeToken);
   });
 
-  it("injects trusted scope and removes browser scope claims from commands", async () => {
-    vi.stubEnv("CREATOR_WORKSPACE_REF", "workspace-server");
+  it("removes browser scope claims and injects only the server content profile", async () => {
     vi.stubEnv("CREATOR_CONTENT_PROFILE_REF", "profile-server");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       coreResponse({
@@ -66,9 +77,31 @@ describe("Creator Experience Adapter", () => {
       title: "可信项目",
       projectType: "series",
       seriesRef: "series-core",
-      workspaceRef: "workspace-server",
       contentProfileRef: "profile-server",
     });
+    expect(new Headers(init.headers).get("Authorization")).toBe(
+      `Bearer ${runtimeToken}`,
+    );
+  });
+
+  it("fails closed before contacting Core when the server credential is missing", async () => {
+    vi.stubEnv("CREATOR_CORE_TOKEN", "");
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    const response = await handleCreatorExperienceRequest(
+      new Request("http://frontend.test/api/creator/projects"),
+      ["projects"],
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: {
+        code: "adapter_configuration_error",
+        message: "Creator 连接配置无效。",
+      },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("never forwards internal Core paths", async () => {
@@ -142,4 +175,27 @@ describe("Creator Experience Adapter", () => {
       error: { code: "version_conflict", message: "版本已更新。" },
     });
   });
+
+  it.each([
+    [401, "authentication_required", "Creator API authentication is required."],
+    [403, "authority_unavailable", "Required external authority is unavailable."],
+  ] as const)(
+    "preserves Core %i %s without collapsing authentication and authority failures",
+    async (status, code, message) => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        coreResponse({ ok: false, error: { code, message } }, status),
+      );
+
+      const response = await handleCreatorExperienceRequest(
+        new Request("http://frontend.test/api/creator/projects"),
+        ["projects"],
+      );
+
+      expect(response.status).toBe(status);
+      expect(await response.json()).toEqual({
+        ok: false,
+        error: { code, message },
+      });
+    },
+  );
 });

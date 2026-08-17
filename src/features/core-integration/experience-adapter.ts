@@ -129,11 +129,11 @@ export async function handleCreatorExperienceRequest(
       targetUrl.searchParams.append(key, value);
     }
   }
-  if (method === "GET" || method === "DELETE") {
-    if (path !== "capabilities") targetUrl.searchParams.set("workspaceRef", config.workspaceRef);
-  }
 
-  const headers = new Headers({ Accept: "application/json" });
+  const headers = new Headers({
+    Accept: "application/json",
+    Authorization: `Bearer ${config.coreToken}`,
+  });
   let body: string | undefined;
   if (method !== "GET" && method !== "HEAD" && method !== "DELETE") {
     try {
@@ -141,10 +141,7 @@ export async function handleCreatorExperienceRequest(
       delete input.workspaceRef;
       delete input.contentProfileRef;
       delete input.tenantId;
-      const payload: Record<string, unknown> = {
-        ...input,
-        workspaceRef: config.workspaceRef,
-      };
+      const payload: Record<string, unknown> = { ...input };
       if (shouldInjectContentProfile(path, method)) {
         payload.contentProfileRef = config.contentProfileRef;
       }

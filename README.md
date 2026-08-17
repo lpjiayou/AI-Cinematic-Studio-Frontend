@@ -27,7 +27,8 @@ Browser → Frontend Experience Adapter → Creator Public HTTP/API v1
 → Creator Application → V5 → V4 → V3 → Compute/Foundation
 ```
 
-Browser code never receives the Core origin or server-owned workspace scope and never
+Browser code never receives the Core origin, bearer credential, or credential-owned
+workspace scope and never
 calls `/creator/internal/*`. Core owns authoritative references, lifecycle, versions,
 confirmation and persistence. `LOCAL_FIXTURE` pages remain separate, visibly labelled
 non-authoritative demonstrations; they are never used as fallback after a Core error.
@@ -59,6 +60,6 @@ npm run lint
 npm run build
 ```
 
-Copy `.env.example` to `.env.local` when the Core is not using the documented local
-defaults. All three integration variables are server-only; do not create a
+Copy `.env.example` to `.env.local` and supply the same runtime credential registered
+by Core. All three integration variables are server-only; do not create a
 `NEXT_PUBLIC_*` equivalent.

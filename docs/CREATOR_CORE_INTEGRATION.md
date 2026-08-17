@@ -6,17 +6,22 @@ Status: `XR1 frontend mapping`
 
 The browser calls only the same-origin `/api/creator/**` route. The server-only
 Experience Adapter allowlists the corresponding `/creator/api/v1/**` resource,
-injects `workspaceRef` and `contentProfileRef`, applies request-size and timeout
-bounds, and preserves Core product errors. It never forwards a browser-supplied
-workspace, profile or tenant claim.
+adds the server-only bearer credential, applies request-size and timeout bounds, and
+preserves Core product errors. Core resolves `workspaceRef` exclusively from that
+credential. The adapter removes every browser-supplied workspace, profile, or tenant
+claim; it injects only the configured content profile on Series/Project creation.
 
 Configuration:
 
 | Variable | Default | Exposure |
 | --- | --- | --- |
 | `CREATOR_CORE_BASE_URL` | `http://127.0.0.1:8765` | server only |
-| `CREATOR_WORKSPACE_REF` | `workspace-local-creator` | server only |
+| `CREATOR_CORE_TOKEN` | none; required | server only, secret |
 | `CREATOR_CONTENT_PROFILE_REF` | `content-profile-local-creator` | server only |
+
+The token is never returned to the browser, logged, stored in a `NEXT_PUBLIC_*`
+variable, or used as a workspace identifier. Core stores only its SHA-256 digest in
+the runtime credential registry and maps the credential to exactly one workspace.
 
 ## Capability mapping
 
@@ -39,8 +44,11 @@ likewise come only from successful Core responses.
 
 - `connected`: the exact 19-item public capability contract has passed validation.
 - `disconnected`: Core cannot be reached; no fixture fallback is allowed.
+- `authentication_required`: the server credential is missing, invalid, or disabled;
+  this is an HTTP 401 configuration/security failure.
 - `authority_required`: the accepted Core surface exists but required external scope
-  or identity authority is absent.
+  or identity authority is absent; the existing M6 failure remains HTTP 403 and is
+  not merged with authentication failure.
 - `not_open`: no executable route is exposed for that milestone.
 - `LOCAL_FIXTURE`: explicit non-authoritative demonstration selected by the user.
 

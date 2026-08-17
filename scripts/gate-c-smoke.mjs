@@ -3,6 +3,10 @@ const coreOrigin = process.env.CREATOR_CORE_BASE_URL ?? "http://127.0.0.1:8765";
 const expectedWorkspace = process.env.CREATOR_EXPECTED_WORKSPACE_REF ?? "workspace-gate-c";
 const expectedProfile =
   process.env.CREATOR_EXPECTED_CONTENT_PROFILE_REF ?? "content-profile-gate-c";
+const coreToken = process.env.CREATOR_CORE_TOKEN;
+if (!coreToken) {
+  throw new Error("CREATOR_CORE_TOKEN is required for Gate C");
+}
 const frontend = `${frontendOrigin.replace(/\/$/, "")}/api/creator/`;
 const core = `${coreOrigin.replace(/\/$/, "")}/creator/api/v1/`;
 
@@ -19,6 +23,16 @@ async function call(base, path, init = {}) {
     origin: response.headers.get("x-creator-data-origin"),
     body,
   };
+}
+
+async function coreCall(path, init = {}) {
+  return call(core, path, {
+    ...init,
+    headers: {
+      ...(init.headers ?? {}),
+      Authorization: `Bearer ${coreToken}`,
+    },
+  });
 }
 
 function post(body) {
@@ -85,11 +99,11 @@ const m6Gate = await call(
   frontend,
   `series-intelligence-workspaces?projectRef=${encodeURIComponent(projectRef)}&seriesRef=${encodeURIComponent(seriesRef)}`,
 );
-const forgedScope = await call(core, "projects?workspaceRef=forged-browser-workspace");
-const trustedScope = await call(
-  core,
-  `projects?workspaceRef=${encodeURIComponent(expectedWorkspace)}`,
+const forgedScope = await coreCall(
+  "projects?workspaceRef=forged-browser-workspace",
 );
+const trustedScope = await coreCall("projects");
+const unauthenticatedScope = await call(core, "projects");
 
 const states = capabilities.body?.capabilities?.reduce((result, capability) => {
   result[capability.state] = (result[capability.state] ?? 0) + 1;
@@ -136,10 +150,13 @@ const summary = {
     code: m6Gate.body?.error?.code,
   },
   scopeIsolation: {
-    forgedCount: forgedScope.body?.projects?.length,
+    forgedStatus: forgedScope.status,
+    forgedCode: forgedScope.body?.error?.code,
     trustedContainsCreatedProject: trustedScope.body?.projects?.some(
       (item) => item.projectRef === projectRef,
     ),
+    unauthenticatedStatus: unauthenticatedScope.status,
+    unauthenticatedCode: unauthenticatedScope.body?.error?.code,
   },
 };
 
@@ -169,10 +186,13 @@ if (summary.m6Gate.code !== "authority_unavailable") {
   failures.push("M6 authority fail-closed");
 }
 if (
-  summary.scopeIsolation.forgedCount !== 0 ||
-  !summary.scopeIsolation.trustedContainsCreatedProject
+  summary.scopeIsolation.forgedStatus !== 400 ||
+  summary.scopeIsolation.forgedCode !== "client_workspace_scope_forbidden" ||
+  !summary.scopeIsolation.trustedContainsCreatedProject ||
+  summary.scopeIsolation.unauthenticatedStatus !== 401 ||
+  summary.scopeIsolation.unauthenticatedCode !== "authentication_required"
 ) {
-  failures.push("workspace isolation");
+  failures.push("authenticated workspace isolation");
 }
 
 console.log(JSON.stringify({ ok: failures.length === 0, failures, ...summary }, null, 2));
