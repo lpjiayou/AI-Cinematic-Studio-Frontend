@@ -23,7 +23,7 @@
 
 .page {
   display: grid;
-  width: min(100%, 118rem);
+  width: 100%;
   min-width: 0;
   margin: 0 auto;
   padding: var(--acs-space-4) var(--acs-space-6) var(--acs-space-12);
@@ -2042,7 +2042,7 @@
 
 @media (min-width: 1440px) {
   .page {
-    width: min(calc(100% - var(--acs-space-8)), 118rem);
+    width: 100%;
   }
 
   .assistantPanel {
