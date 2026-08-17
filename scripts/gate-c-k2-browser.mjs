@@ -71,6 +71,7 @@ async function captureReflow(page, width, label) {
   const consoleErrors = [];
   const pageErrors = [];
   const failedRequests = [];
+  const expectedAbortedRequests = [];
   const httpErrors = [];
   const mutationRequests = [];
 
@@ -79,7 +80,17 @@ async function captureReflow(page, width, label) {
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("requestfailed", (request) => {
-    failedRequests.push(`${request.method()} ${request.url()} ${request.failure()?.errorText || "failed"}`);
+    const errorText = request.failure()?.errorText || "failed";
+    const requestUrl = request.url();
+    const isExpectedNavigationAbort =
+      request.method() === "GET" &&
+      errorText === "net::ERR_ABORTED" &&
+      new URL(requestUrl).origin === new URL(baseUrl).origin;
+    if (isExpectedNavigationAbort) {
+      expectedAbortedRequests.push(`${request.method()} ${requestUrl} ${errorText}`);
+      return;
+    }
+    failedRequests.push(`${request.method()} ${requestUrl} ${errorText}`);
   });
   page.on("response", (response) => {
     if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
@@ -221,6 +232,7 @@ async function captureReflow(page, width, label) {
       consoleErrors,
       pageErrors,
       failedRequests,
+      expectedAbortedRequests,
       httpErrors,
     };
     fs.writeFileSync(path.join(artifactRoot, "result.json"), JSON.stringify(result, null, 2));
@@ -233,6 +245,7 @@ async function captureReflow(page, width, label) {
       consoleErrors,
       pageErrors,
       failedRequests,
+      expectedAbortedRequests,
       httpErrors,
     };
     fs.writeFileSync(path.join(artifactRoot, "result.json"), JSON.stringify(failure, null, 2));
