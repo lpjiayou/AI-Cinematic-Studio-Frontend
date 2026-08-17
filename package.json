@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:gate-c": "node scripts/gate-c-smoke.mjs",
+    "test:gate-c:k2": "python3 scripts/gate-c-k2-orchestrator.py",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
