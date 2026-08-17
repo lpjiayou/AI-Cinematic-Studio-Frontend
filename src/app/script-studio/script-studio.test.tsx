@@ -33,12 +33,18 @@ describe("ScriptStudioPage", () => {
     setViewport(1920);
   });
 
-  it("renders the selected professional compare workspace without technical leakage", () => {
+  it("opens on a focused scene editor and exposes AI comparison only when requested", async () => {
+    const user = userEvent.setup();
     renderScriptStudio();
 
-    expect(screen.getByRole("heading", { level: 1, name: "剧本制作工作台" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "剧本工作室" })).toBeInTheDocument();
+    expect(screen.getByText("选择场景，直接修改正文；需要时再生成、比较并采用 AI 候选。")).toBeInTheDocument();
     expect(screen.getByLabelText("当前编辑器")).toHaveTextContent("剧本工作台");
     expect(screen.queryByRole("navigation", { name: "客户制作模块导航" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "内景 · 旧车站 · 夜" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "候选内容" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "比较候选" }));
     expect(screen.getByRole("heading", { name: "当前内容" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "候选内容" })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "对象导航器" })).toBeInTheDocument();
@@ -76,7 +82,6 @@ describe("ScriptStudioPage", () => {
     const user = userEvent.setup();
     const view = renderScriptStudio();
 
-    await user.click(screen.getByRole("button", { name: "关闭候选比较" }));
     const dialogue = document.querySelector<HTMLTextAreaElement>("#edit-ui-block-12-04");
     expect(dialogue).not.toBeNull();
 
@@ -106,11 +111,10 @@ describe("ScriptStudioPage", () => {
     expect(window.dispatchEvent(unmountedEvent)).toBe(true);
   });
 
-  it("routes project, episode, and internal navigation intents through the typed dirty guard", async () => {
+  it("routes global and project navigation through the typed dirty guard", async () => {
     const user = userEvent.setup();
     renderScriptStudio();
 
-    await user.click(screen.getByRole("button", { name: "关闭候选比较" }));
     const dialogue = document.querySelector<HTMLTextAreaElement>("#edit-ui-block-12-04")!;
     await user.clear(dialogue);
     await user.type(dialogue, "保留这段本地对白。");
@@ -121,12 +125,12 @@ describe("ScriptStudioPage", () => {
     expect(pushMock).not.toHaveBeenCalled();
     expect(dialogue).toHaveValue("保留这段本地对白。");
 
-    await user.click(screen.getByRole("button", { name: /项目未来之城/ }));
+    await user.click(screen.getByRole("button", { name: "返回项目" }));
     guard = await screen.findByRole("dialog", { name: "尚有未保存的本地修改" });
     await user.click(within(guard).getByRole("button", { name: "保留本地修改并继续编辑" }));
     expect(dialogue).toHaveValue("保留这段本地对白。");
 
-    await user.click(screen.getByRole("button", { name: /剧集第 3 集/ }));
+    await user.click(screen.getByRole("button", { name: "返回项目" }));
     guard = await screen.findByRole("dialog", { name: "尚有未保存的本地修改" });
     await user.click(within(guard).getByRole("button", { name: "取消" }));
     expect(dialogue).toHaveValue("保留这段本地对白。");
@@ -136,7 +140,6 @@ describe("ScriptStudioPage", () => {
     const user = userEvent.setup();
     renderScriptStudio();
 
-    await user.click(screen.getByRole("button", { name: "关闭候选比较" }));
     const dialogue = document.querySelector<HTMLTextAreaElement>("#edit-ui-block-12-04")!;
     await user.clear(dialogue);
     await user.type(dialogue, "新的本地对白。");
@@ -164,22 +167,24 @@ describe("ScriptStudioPage", () => {
     const user = userEvent.setup();
     renderScriptStudio();
 
+    await user.click(screen.getByRole("button", { name: "比较候选" }));
     await user.click(screen.getByRole("button", { name: "采用候选" }));
     expect(screen.getByRole("status")).toHaveTextContent("尚有本地修改");
     expect(screen.queryByRole("heading", { name: "候选内容" })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "版本 / 本地历史" }));
+    await user.click(screen.getByRole("tab", { name: "本地历史" }));
     expect(screen.getByRole("heading", { name: "本地历史" })).toBeInTheDocument();
     expect(screen.getByText("采用候选前")).toBeInTheDocument();
-    expect(screen.getByText("仅保留在本次会话中，不是正式 ScriptVersion。")).toBeInTheDocument();
+    expect(screen.getByText("只保留在本次会话中，不会创建正式剧本版本。")).toBeInTheDocument();
   });
 
   it("guards local-history replacement and restores only a session-scoped snapshot", async () => {
     const user = userEvent.setup();
     renderScriptStudio();
 
+    await user.click(screen.getByRole("button", { name: "比较候选" }));
     await user.click(screen.getByRole("button", { name: "采用候选" }));
-    await user.click(screen.getByRole("tab", { name: "版本 / 本地历史" }));
+    await user.click(screen.getByRole("tab", { name: "本地历史" }));
     await user.click(screen.getByRole("button", { name: "恢复“进入工作区时”" }));
 
     let guard = await screen.findByRole("dialog", { name: "尚有未保存的本地修改" });
@@ -190,14 +195,13 @@ describe("ScriptStudioPage", () => {
     guard = await screen.findByRole("dialog", { name: "尚有未保存的本地修改" });
     await user.click(within(guard).getByRole("button", { name: "放弃修改并继续" }));
     expect(screen.getByRole("status")).toHaveTextContent("本地内容已与进入基线一致");
-    expect(screen.getByText("仅保留在本次会话中，不是正式 ScriptVersion。")).toBeInTheDocument();
+    expect(screen.getByText("只保留在本次会话中，不会创建正式剧本版本。")).toBeInTheDocument();
   });
 
   it("marks superseded local candidate completion stale instead of applying it", async () => {
     const user = userEvent.setup();
     renderScriptStudio();
 
-    await user.click(screen.getByRole("button", { name: "关闭候选比较" }));
     const dialogue = document.querySelector<HTMLTextAreaElement>("#edit-ui-block-12-04")!;
     await user.click(screen.getByRole("button", { name: "生成候选" }));
     await user.clear(dialogue);
@@ -205,7 +209,7 @@ describe("ScriptStudioPage", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: "生成候选" })).not.toHaveAttribute("aria-busy"), { timeout: 1200 });
     expect(screen.getByRole("button", { name: "比较候选" })).toBeDisabled();
-    await user.click(screen.getByRole("tab", { name: /候选 1/ }));
+    await user.click(screen.getByRole("tab", { name: /AI 候选 1/ }));
     expect(screen.getAllByText("已过期").length).toBeGreaterThan(0);
     expect(document.querySelector<HTMLTextAreaElement>("#edit-ui-block-12-04")).toHaveValue("生成期间改变当前内容。");
   });
@@ -225,11 +229,22 @@ describe("ScriptStudioPage", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
+  it("opens the implemented character and story-world owner routes", async () => {
+    const user = userEvent.setup();
+    renderScriptStudio();
+    const inspector = screen.getByRole("complementary", { name: "编辑器检查器" });
+
+    await user.click(within(inspector).getByRole("button", { name: "打开角色工作室" }));
+    await user.click(within(inspector).getByRole("button", { name: "打开故事世界" }));
+
+    expect(pushMock).toHaveBeenNthCalledWith(1, "/creator/projects/future-city/planning/characters");
+    expect(pushMock).toHaveBeenNthCalledWith(2, "/creator/projects/future-city/planning/bible");
+  });
+
   it("rejects an empty selected block and recovers with a deterministic local candidate", async () => {
     const user = userEvent.setup();
     renderScriptStudio();
 
-    await user.click(screen.getByRole("button", { name: "关闭候选比较" }));
     const dialogue = document.querySelector<HTMLTextAreaElement>("#edit-ui-block-12-04")!;
     await user.clear(dialogue);
     await user.click(screen.getByRole("button", { name: "生成候选" }));
@@ -239,7 +254,7 @@ describe("ScriptStudioPage", () => {
     await user.type(dialogue, "这里冷得反常。");
     await user.click(screen.getByRole("button", { name: "生成候选" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "生成候选" })).not.toHaveAttribute("aria-busy"), { timeout: 1200 });
-    await user.click(screen.getByRole("tab", { name: /候选 1/ }));
+    await user.click(screen.getByRole("tab", { name: /AI 候选 1/ }));
     expect(screen.getByText("对白调整候选")).toBeInTheDocument();
     expect(screen.getByText("本地 AI 候选")).toBeInTheDocument();
   });

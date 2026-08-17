@@ -215,39 +215,61 @@
 
 .contextBar {
   z-index: 10;
-  display: flex;
+  display: grid;
   min-width: 0;
-  min-height: 3.25rem;
+  min-height: 4.5rem;
   align-items: center;
-  justify-content: space-between;
+  padding: var(--acs-space-2) var(--acs-space-5);
   border-bottom: 1px solid var(--acs-border);
   background: var(--acs-surface);
+  gap: var(--acs-space-4);
+  grid-template-columns: minmax(22rem, 1fr) auto auto;
+}
+
+.contextTitle {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--acs-space-3);
+}
+
+.contextTitle > div {
+  min-width: 0;
+}
+
+.contextTitle h1,
+.contextTitle p {
+  margin: 0;
+}
+
+.contextTitle h1 {
+  font-size: var(--acs-type-section-size);
+  line-height: var(--acs-type-section-line-height);
+}
+
+.contextTitle p {
+  overflow: hidden;
+  margin-top: 0.125rem;
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .contextSelectors {
   display: flex;
   min-width: 0;
-  height: 100%;
-  align-items: stretch;
-}
-
-.contextSelectors button {
-  display: flex;
-  min-width: 0;
-  min-height: 3.25rem;
   align-items: center;
-  gap: var(--acs-space-2);
-  padding: var(--acs-space-2) var(--acs-space-6);
-  border: 0;
-  border-right: 1px solid var(--acs-border);
-  background: transparent;
-  color: var(--acs-text-primary);
-  cursor: pointer;
-  transition: background-color var(--acs-motion-fast) var(--acs-ease-standard);
+  gap: var(--acs-space-1);
 }
 
-.contextSelectors button:hover {
-  background: var(--acs-surface-hover);
+.contextSelectors > div {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-1) var(--acs-space-3);
+  border-left: 1px solid var(--acs-border);
+  color: var(--acs-text-primary);
+  gap: 0.1rem;
 }
 
 .contextSelectors strong {
@@ -268,7 +290,6 @@
   min-width: 0;
   align-items: center;
   gap: var(--acs-space-5);
-  padding-inline: var(--acs-space-6);
 }
 
 .localState {
@@ -324,6 +345,14 @@
 
 .desktopToolbarActions {
   overflow: hidden;
+}
+
+.toolbarMode {
+  padding-inline: var(--acs-space-2) var(--acs-space-3);
+  border-right: 1px solid var(--acs-border);
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  white-space: nowrap;
 }
 
 .desktopToolbarActions button[data-variant="ghost"] {
@@ -1200,13 +1229,11 @@
     display: none;
   }
 
-  .contextSelectors button {
-    padding-inline: var(--acs-space-4);
+  .contextBar {
+    grid-template-columns: minmax(20rem, 1fr) auto;
   }
 
-  .desktopToolbarActions button:nth-child(7),
-  .desktopToolbarActions button:nth-child(9),
-  .desktopToolbarActions button:nth-child(10) {
+  .contextSelectors {
     display: none;
   }
 }
@@ -1231,14 +1258,6 @@
 
   .responsiveToolbarActions {
     display: flex;
-  }
-
-  .desktopToolbarActions button:nth-child(n + 5) {
-    display: none;
-  }
-
-  .contextSelectors button:nth-child(2) {
-    display: none;
   }
 
   .compareHeader {
@@ -1281,34 +1300,17 @@
   }
 
   .contextBar {
-    min-height: 3rem;
-  }
-
-  .contextSelectors {
-    min-width: 0;
-    flex: 1;
-  }
-
-  .contextSelectors button {
-    min-width: 0;
-    min-height: 3rem;
-    flex: 1;
+    min-height: 3.75rem;
     padding-inline: var(--acs-space-3);
+    gap: var(--acs-space-2);
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .contextSelectors button:nth-child(2) {
+  .contextTitle > button,
+  .contextTitle p {
     display: none;
   }
 
-  .contextLabel {
-    display: none;
-  }
-
-  .contextStatus {
-    padding-inline: var(--acs-space-3);
-  }
-
-  .contextStatus > span:first-child,
   .localState {
     display: none;
   }
@@ -1458,14 +1460,6 @@
 }
 
 @media (max-width: 30rem) {
-  .contextSelectors button:first-child {
-    max-width: 7.5rem;
-  }
-
-  .contextSelectors strong {
-    font-size: var(--acs-type-caption-size);
-  }
-
   .responsiveToolbarActions button span:last-child {
     font-size: 0.6875rem;
   }

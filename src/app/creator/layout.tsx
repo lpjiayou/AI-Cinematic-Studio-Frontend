@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { UnifiedAppHeader } from "@/components";
+import { CreatorIntegrationProvider } from "@/features/core-integration";
 import styles from "./global-shell.module.css";
 
 interface CreatorLayoutProps {
@@ -8,10 +9,12 @@ interface CreatorLayoutProps {
 
 export default function CreatorLayout({ children }: CreatorLayoutProps) {
   return (
-    <div className={styles.shell}>
-      <UnifiedAppHeader mode="auto" />
+    <CreatorIntegrationProvider>
+      <div className={styles.shell}>
+        <UnifiedAppHeader mode="auto" />
 
-      <div className={styles.content}>{children}</div>
-    </div>
+        <div className={styles.content}>{children}</div>
+      </div>
+    </CreatorIntegrationProvider>
   );
 }

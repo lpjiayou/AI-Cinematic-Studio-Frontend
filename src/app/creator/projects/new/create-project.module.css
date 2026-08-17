@@ -46,6 +46,54 @@
   line-height: var(--acs-type-body-line-height);
 }
 
+.workflowSteps {
+  display: grid;
+  margin: 0 0 var(--acs-space-8);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-surface-deep);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+}
+
+.workflowSteps li {
+  display: grid;
+  min-width: 0;
+  padding: var(--acs-space-4);
+  border-right: 1px solid var(--acs-border);
+  gap: var(--acs-space-1);
+  grid-template-columns: auto 1fr;
+}
+
+.workflowSteps li:last-child {
+  border-right: 0;
+}
+
+.workflowSteps li > span {
+  color: var(--acs-primary);
+  font-family: var(--acs-font-mono);
+  font-size: var(--acs-type-caption-size);
+  grid-row: 1 / 3;
+}
+
+.workflowSteps strong {
+  overflow: hidden;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-caption-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflowSteps small {
+  color: var(--acs-text-muted);
+}
+
+.workflowSteps li[data-ready="true"] small {
+  color: var(--acs-success);
+}
+
 .workspaceGrid {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
@@ -191,8 +239,10 @@
   position: absolute;
   top: var(--acs-space-2);
   right: var(--acs-space-2);
-  width: 1.5rem;
+  width: auto;
+  min-width: 2.75rem;
   height: 1.5rem;
+  padding-inline: var(--acs-space-2);
   border-radius: var(--acs-radius-full);
   display: grid;
   place-items: center;
@@ -313,8 +363,17 @@
   line-height: var(--acs-type-body-line-height);
 }
 
-.summaryCard {
+.decisionRegion {
+  display: grid;
   margin-top: var(--acs-space-6);
+  align-items: stretch;
+  gap: var(--acs-space-6);
+  grid-template-columns: minmax(0, 1.5fr) minmax(19rem, 0.5fr);
+}
+
+.summaryCard,
+.readinessCard {
+  min-width: 0;
 }
 
 .summaryGrid {
@@ -348,6 +407,45 @@
   white-space: nowrap;
 }
 
+.readinessCard ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: var(--acs-space-2);
+  list-style: none;
+}
+
+.readinessCard li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--acs-space-4);
+  padding-block: var(--acs-space-2);
+  border-bottom: 1px solid var(--acs-border);
+}
+
+.readinessCard li:last-child {
+  border-bottom: 0;
+}
+
+.readinessCard strong,
+.readinessCard span {
+  font-size: var(--acs-type-caption-size);
+}
+
+.readinessCard strong {
+  color: var(--acs-text-secondary);
+}
+
+.readinessCard span {
+  flex: 0 0 auto;
+  color: var(--acs-text-muted);
+}
+
+.readinessCard li[data-ready="true"] span {
+  color: var(--acs-success);
+}
+
 .ctaRegion {
   max-width: 40rem;
   margin: var(--acs-space-8) auto 0;
@@ -357,6 +455,158 @@
 .createButton {
   min-width: 16rem;
   box-shadow: var(--acs-shadow-soft);
+}
+
+.nextWorkspace {
+  display: grid;
+  margin-top: var(--acs-space-8);
+  padding: var(--acs-space-6);
+  align-items: center;
+  gap: var(--acs-space-6);
+  border: 1px solid var(--acs-primary);
+  border-radius: var(--acs-radius-panel);
+  background: var(--acs-primary-soft);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.nextWorkspace h2 {
+  margin: 0;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-title-size);
+}
+
+.nextWorkspace > div > p:last-child {
+  max-width: 50rem;
+  margin: var(--acs-space-2) 0 0;
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.nextActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+}
+
+.coreCommitPanel {
+  margin-top: var(--acs-space-8);
+  padding: var(--acs-space-6);
+  border: 1px solid var(--acs-primary);
+  border-radius: var(--acs-radius-panel);
+  background: linear-gradient(135deg, var(--acs-primary-soft), var(--acs-surface));
+}
+
+.coreCommitHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-6);
+}
+
+.coreCommitHeading h2 {
+  margin: 0;
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-title-size);
+}
+
+.coreCommitHeading > div > p:last-child {
+  margin: var(--acs-space-2) 0 0;
+  color: var(--acs-text-secondary);
+  line-height: var(--acs-type-body-line-height);
+}
+
+.coreCommitForm {
+  display: grid;
+  margin-top: var(--acs-space-6);
+  gap: var(--acs-space-4);
+  grid-template-columns: minmax(15rem, 2fr) repeat(3, minmax(9rem, 1fr));
+}
+
+.coreCommitForm label {
+  display: grid;
+  gap: var(--acs-space-2);
+}
+
+.coreCommitForm label > span {
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.coreCommitForm input,
+.coreCommitForm select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--acs-space-3);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  outline: 0;
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font: inherit;
+}
+
+.coreCommitForm input:focus-visible,
+.coreCommitForm select:focus-visible {
+  border-color: var(--acs-primary);
+  box-shadow: 0 0 0 3px var(--acs-primary-soft);
+}
+
+.coreCommitForm input:disabled,
+.coreCommitForm select:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.commitSummary,
+.commitActions,
+.commitStatus {
+  grid-column: 1 / -1;
+}
+
+.commitSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-2) var(--acs-space-5);
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.commitActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+}
+
+.commitStatus {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+}
+
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--acs-space-5);
+  border: 1px solid transparent;
+  border-radius: var(--acs-radius-control);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+}
+
+.primaryLink {
+  background: var(--acs-primary);
+  color: var(--acs-on-primary);
+}
+
+.secondaryLink {
+  border-color: var(--acs-border-strong);
+  background: var(--acs-surface);
+  color: var(--acs-text-primary);
 }
 
 .ctaRegion p {
@@ -407,6 +657,16 @@
   .summaryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .decisionRegion,
+  .nextWorkspace,
+  .coreCommitForm {
+    grid-template-columns: 1fr;
+  }
+
+  .coreCommitHeading {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 47.9375rem) {
@@ -423,8 +683,18 @@
 
   .selectorGrid,
   .directionGrid,
-  .summaryGrid {
+  .summaryGrid,
+  .workflowSteps {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workflowSteps li {
+    border-right: 0;
+    border-bottom: 1px solid var(--acs-border);
+  }
+
+  .workflowSteps li:last-child {
+    border-bottom: 0;
   }
 
   .previewCaption {
@@ -439,6 +709,13 @@
   .createButton {
     width: 100%;
     min-width: 0;
+  }
+
+  .nextActions,
+  .nextActions a,
+  .commitActions,
+  .commitActions > * {
+    width: 100%;
   }
 }
 

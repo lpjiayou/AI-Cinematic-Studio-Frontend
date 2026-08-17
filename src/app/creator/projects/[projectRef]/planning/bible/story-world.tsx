@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -8,7 +9,6 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
 } from "react";
 import {
   ACSBadge,
@@ -20,7 +20,8 @@ import {
   AIThinkingState,
 } from "@/components";
 import { useProjectPresentation, type SeriesBibleCatalogItem } from "@/features/project-data";
-import { CustomerLayout } from "@/layouts";
+import { CustomerLayout, WorkspaceLayout } from "@/layouts";
+import { projectRoute } from "@/lib/project-navigation";
 import { useACSTheme } from "@/theme";
 import styles from "./story-world.module.css";
 
@@ -35,6 +36,53 @@ export type StoryWorldPageState =
 export type WorldPreviewStatus = "empty" | "editing" | "ready" | "error";
 
 export type WorldAssetKind = "overview" | "timeline" | "map" | "faction-board";
+
+export type WorldWorkspaceArea =
+  | "OVERVIEW"
+  | "TIMELINE"
+  | "LOCATIONS"
+  | "SOCIETY"
+  | "VISUAL"
+  | "CATALOG";
+
+const worldWorkspaceTasks = [
+  {
+    id: "OVERVIEW" as const,
+    label: "世界前提与规则",
+    shortLabel: "前提与规则",
+    description: "先说明这个世界如何运转，再用少量核心规则约束后续角色与剧情。",
+  },
+  {
+    id: "TIMELINE" as const,
+    label: "历史与时间线",
+    shortLabel: "历史时间线",
+    description: "确定改变世界的关键事件，让故事发生在清晰的历史因果中。",
+  },
+  {
+    id: "LOCATIONS" as const,
+    label: "地点与空间",
+    shortLabel: "地点空间",
+    description: "整理主要地点、空间关系与视觉特征，为场景和镜头提供依据。",
+  },
+  {
+    id: "SOCIETY" as const,
+    label: "阵营与文化",
+    shortLabel: "阵营文化",
+    description: "定义谁在争夺什么，以及普通人在这个世界中如何生活。",
+  },
+  {
+    id: "VISUAL" as const,
+    label: "视觉语言",
+    shortLabel: "视觉语言",
+    description: "把色彩、建筑、服装、光线和摄影统一成可直接使用的创作基线。",
+  },
+  {
+    id: "CATALOG" as const,
+    label: "术语、道具与禁忌",
+    shortLabel: "创作约束",
+    description: "集中查看后续写作必须复用的术语、关键道具和禁止出现的叙事模式。",
+  },
+] as const;
 
 export type WorldContext = {
   worldTitle: string;
@@ -125,7 +173,7 @@ function CatalogList({
             <li key={item.clientKey}>
               <strong>{item.label}</strong>
               <span>{item.description}</span>
-              <small>{item.authoritativeRef ? "可信 Ref 已连接" : "LOCAL · Ref 未连接"}</small>
+              <small>{item.authoritativeRef ? "正式数据已连接" : "本地条目 · 未连接正式数据"}</small>
             </li>
           ))}
         </ul>
@@ -361,6 +409,174 @@ export function StoryWorldPageIntro({
   );
 }
 
+function WorldWorkspaceNavigator({
+  preview,
+  activeArea,
+  onSelect,
+}: {
+  preview: StoryWorldPreview;
+  activeArea: WorldWorkspaceArea;
+  onSelect: (area: WorldWorkspaceArea) => void;
+}) {
+  const project = useProjectPresentation();
+  const catalogCount =
+    project.storyWorld.glossaryTerms.length
+    + project.storyWorld.props.length
+    + project.storyWorld.prohibitedNarrativePatterns.length;
+  const counts: Record<WorldWorkspaceArea, number> = {
+    OVERVIEW: preview.rules.length,
+    TIMELINE: preview.timeline.length,
+    LOCATIONS: preview.locations.length,
+    SOCIETY: preview.factions.length,
+    VISUAL: Object.keys(preview.visualLanguage).length,
+    CATALOG: catalogCount,
+  };
+
+  return (
+    <nav aria-label="世界构建任务导航" className={styles.worldTaskNavigator}>
+      <div className={styles.worldTaskNavigatorHeading}>
+        <span className={styles.sectionEyebrow}>WORLD OBJECTS</span>
+        <strong>世界对象</strong>
+        <small>当前仅显示已接入的本地集合</small>
+      </div>
+      <ul>
+        {worldWorkspaceTasks.map((task, index) => (
+          <li key={task.id}>
+            <button
+              aria-current={activeArea === task.id ? "page" : undefined}
+              onClick={() => onSelect(task.id)}
+              type="button"
+            >
+              <span>
+                <small>{String(index + 1).padStart(2, "0")}</small>
+                {task.label}
+              </span>
+              <strong>{counts[task.id]}</strong>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className={styles.worldNavigatorBoundary}>
+        <strong>本地演示内容</strong>
+        <span>当前内容不会保存到正式项目。</span>
+      </div>
+    </nav>
+  );
+}
+
+function WorldWorkspaceInspector({
+  activeArea,
+  pageState,
+  selectedTimelineEvent,
+  selectedLocation,
+  selectedFaction,
+  canContinue,
+  assistantPending,
+  premiseReady,
+  onRebuild,
+  onContinue,
+}: {
+  activeArea: WorldWorkspaceArea;
+  pageState: StoryWorldPageState;
+  selectedTimelineEvent?: TimelineEventPreview;
+  selectedLocation?: LocationPreview;
+  selectedFaction?: FactionPreview;
+  canContinue: boolean;
+  assistantPending: boolean;
+  premiseReady: boolean;
+  onRebuild: () => void;
+  onContinue: () => void;
+}) {
+  const project = useProjectPresentation();
+  const activeTask = worldWorkspaceTasks.find((task) => task.id === activeArea) ?? worldWorkspaceTasks[0];
+  const catalogCount =
+    project.storyWorld.glossaryTerms.length
+    + project.storyWorld.props.length
+    + project.storyWorld.prohibitedNarrativePatterns.length;
+
+  const selectionDetail = (() => {
+    switch (activeArea) {
+      case "TIMELINE":
+        return selectedTimelineEvent ? (
+          <>
+            <div><dt>选中事件</dt><dd>{selectedTimelineEvent.yearLabel} · {selectedTimelineEvent.title}</dd></div>
+            <div><dt>影响</dt><dd>{selectedTimelineEvent.impactLabel ?? selectedTimelineEvent.description}</dd></div>
+          </>
+        ) : <div><dt>选中事件</dt><dd>请选择一个历史事件</dd></div>;
+      case "LOCATIONS":
+        return selectedLocation ? (
+          <>
+            <div><dt>选中地点</dt><dd>{selectedLocation.name} · {selectedLocation.categoryLabel}</dd></div>
+            <div><dt>用途</dt><dd>{selectedLocation.description}</dd></div>
+          </>
+        ) : <div><dt>选中地点</dt><dd>请选择一个地点</dd></div>;
+      case "SOCIETY":
+        return selectedFaction ? (
+          <>
+            <div><dt>选中阵营</dt><dd>{selectedFaction.name}</dd></div>
+            <div><dt>目标</dt><dd>{selectedFaction.goal}</dd></div>
+            <div><dt>关系</dt><dd>{selectedFaction.relationshipSummary}</dd></div>
+          </>
+        ) : <div><dt>选中阵营</dt><dd>请选择一个阵营</dd></div>;
+      case "VISUAL":
+        return <><div><dt>视觉方向</dt><dd>色彩、建筑、服装、光线、摄影</dd></div><div><dt>用途</dt><dd>角色与场景共同参照</dd></div></>;
+      case "CATALOG":
+        return <><div><dt>本地条目</dt><dd>{catalogCount} 项</dd></div><div><dt>权威引用</dt><dd>尚未连接</dd></div></>;
+      default:
+        return <><div><dt>世界前提</dt><dd>{premiseReady ? "已达到可用长度" : "需要继续补充"}</dd></div><div><dt>核心规则</dt><dd>当前规则基线已载入</dd></div></>;
+    }
+  })();
+
+  return (
+    <aside aria-label="世界工作区检查器" className={styles.worldInspector}>
+      <section className={styles.worldInspectorSection}>
+        <div className={styles.worldInspectorHeading}>
+          <div><span>CURRENT TASK</span><strong>{activeTask.label}</strong></div>
+          <ACSBadge tone="primary">任务 {worldWorkspaceTasks.findIndex((task) => task.id === activeArea) + 1}/6</ACSBadge>
+        </div>
+        <p className={styles.worldTaskPurpose}>{activeTask.description}</p>
+      </section>
+
+      <section className={styles.worldInspectorSection}>
+        <div className={styles.worldInspectorHeading}>
+          <div><span>VALIDATION</span><strong>当前完成条件</strong></div>
+          <ACSBadge tone={canContinue ? "primary" : "warning"}>{canContinue ? "可以推进" : "需要补充"}</ACSBadge>
+        </div>
+        <ul className={styles.worldValidationList}>
+          <li data-ready={premiseReady || undefined}><span>{premiseReady ? "已满足" : "未满足"}</span>世界前提不少于 30 字</li>
+          <li data-ready="true"><span>已满足</span>规则、历史、地点与阵营基线</li>
+          <li data-ready="true"><span>已满足</span>视觉语言五项方向</li>
+          <li data-ready={pageState === "confirmed-preview" || undefined}><span>{pageState === "confirmed-preview" ? "已确认" : "待确认"}</span>本地世界预览确认</li>
+        </ul>
+      </section>
+
+      <section className={styles.worldInspectorSection}>
+        <div className={styles.worldInspectorHeading}><div><span>SELECTION</span><strong>当前任务详情</strong></div></div>
+        <dl className={styles.worldSelectionFacts}>
+          {selectionDetail}
+        </dl>
+      </section>
+
+      <AIWorldAssistantPanel
+        onRebuild={onRebuild}
+        status={assistantPending ? "thinking" : premiseReady ? "ready" : "empty"}
+        summary="世界的核心规则已经能够支撑当前故事，但能源来源、记忆继承方式与外环自治边界仍可进一步明确。"
+        suggestions={[
+          "建议补充城市能源来源，让建筑、交通与生活方式共享同一套视觉依据。",
+          "时间线中的“外环记忆断层”可以进一步说明它如何改变记忆议会与外环居民的关系。",
+          "优先区分三个阵营的材料触感，再统一到冷色城市与暖色人物光的视觉基线。",
+        ]}
+      />
+
+      <div className={styles.worldInspectorAction}>
+        <strong>下一阶段：角色设计</strong>
+        <p>只确认当前页面预览；正式角色与世界设定尚未保存。</p>
+        <ContinueCharacterButton disabled={!canContinue} loading={false} onContinue={onContinue} />
+      </div>
+    </aside>
+  );
+}
+
 export type WorldContextBarProps = {
   context: WorldContext;
 };
@@ -377,11 +593,18 @@ export function WorldContextBar({ context }: WorldContextBarProps) {
     <ACSCard className={styles.contextBar} padding="compact">
       <div className={styles.contextContent}>
         <div className={styles.contextIdentity}>
-          <strong>{context.worldTitle}</strong>
-          <span aria-hidden="true">·</span>
-          <span>{context.projectTypeLabel}</span>
-          <span aria-hidden="true">·</span>
-          <span>{context.stageLabel}</span>
+          <span className={styles.contextField}>
+            <small>当前项目</small>
+            <strong>{context.worldTitle}</strong>
+          </span>
+          <span className={styles.contextField}>
+            <small>影片类型</small>
+            <strong>{context.projectTypeLabel}</strong>
+          </span>
+          <span className={styles.contextField}>
+            <small>当前阶段</small>
+            <strong>{context.stageLabel}</strong>
+          </span>
         </div>
         <ACSBadge dot tone={badgeTone}>{context.statusLabel}</ACSBadge>
       </div>
@@ -715,7 +938,7 @@ export function LocationCard({ location, selected, onSelect }: LocationCardProps
         </span>
         <strong>{location.name}</strong>
         <span>{location.description}</span>
-        <span className={styles.detailAction}>打开地点档案 <span aria-hidden="true">↗</span></span>
+        <span className={styles.detailAction}>选择后在右侧查看详情</span>
       </button>
     </ACSCard>
   );
@@ -809,7 +1032,7 @@ export function FactionCard({ faction, selected, onSelect }: FactionCardProps) {
           {faction.goal}
         </span>
         <span className={styles.factionRelationship}>{faction.relationshipSummary}</span>
-        <span className={styles.detailAction}>打开阵营档案 <span aria-hidden="true">↗</span></span>
+        <span className={styles.detailAction}>选择后在右侧查看详情</span>
       </button>
     </ACSCard>
   );
@@ -907,15 +1130,14 @@ function assetForUrl(url: string) {
 export type VisualLanguagePanelProps = {
   value: VisualLanguagePreview;
   assetUrls: readonly string[];
-  onOpenAsset: (assetUrl: string) => void;
 };
 
 export function VisualLanguagePanel({
   value,
   assetUrls,
-  onOpenAsset,
 }: VisualLanguagePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const selectedAsset = assetForUrl(assetUrls[selectedIndex] ?? assetUrls[0]);
   const directions = [
     ["色彩", value.colorDirection],
     ["建筑", value.architectureDirection],
@@ -973,21 +1195,31 @@ export function VisualLanguagePanel({
               </div>
               <span>{assetUrls.length} / 4</span>
             </div>
+            <figure className={styles.selectedAssetStage}>
+              <Image
+                alt={selectedAsset.alt}
+                className={styles.mediaImage}
+                fill
+                sizes="(max-width: 767px) 100vw, 640px"
+                src={selectedAsset.src}
+              />
+              <figcaption>
+                <strong>{selectedAsset.title}</strong>
+                <span>{selectedAsset.description}</span>
+              </figcaption>
+            </figure>
             <div className={styles.assetGrid} onKeyDown={handleAssetKeyDown}>
               {assetUrls.map((url, index) => {
                 const asset = assetForUrl(url);
                 const selected = index === selectedIndex;
                 return (
                   <button
-                    aria-label={`查看${asset.title}`}
+                    aria-label={`选择视觉参考：${asset.title}`}
                     aria-pressed={selected}
                     className={styles.assetButton}
                     data-asset-index={index}
                     key={url}
-                    onClick={() => {
-                      setSelectedIndex(index);
-                      onOpenAsset(url);
-                    }}
+                    onClick={() => setSelectedIndex(index)}
                     tabIndex={selected ? 0 : -1}
                     type="button"
                   >
@@ -1088,161 +1320,19 @@ export function ContinueCharacterButton({
   );
 }
 
-type DetailContentProps = {
-  eyebrow: string;
-  title: string;
-  children: ReactNode;
-};
-
-function DetailContent({ eyebrow, title, children }: DetailContentProps) {
-  return (
-    <div className={styles.detailContent}>
-      <p className={styles.sectionEyebrow}>{eyebrow}</p>
-      <h3>{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function useSmallViewport() {
-  const [small, setSmall] = useState(false);
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia("(max-width: 767px)");
-    const update = () => setSmall(media.matches);
+    const media = window.matchMedia(query);
+    const update = () => setMatches(media.matches);
     update();
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
-  }, []);
+  }, [query]);
 
-  return small;
-}
-
-type ResponsiveDetailProps = {
-  open: boolean;
-  onClose: () => void;
-  title: ReactNode;
-  description?: ReactNode;
-  children: ReactNode;
-};
-
-function ResponsiveDetail({
-  open,
-  onClose,
-  title,
-  description,
-  children,
-}: ResponsiveDetailProps) {
-  const small = useSmallViewport();
-
-  if (small) {
-    return (
-      <ACSDrawer
-        description={description}
-        onClose={onClose}
-        open={open}
-        side="bottom"
-        size="wide"
-        title={title}
-      >
-        {children}
-      </ACSDrawer>
-    );
-  }
-
-  return (
-    <ACSModal
-      description={description}
-      onClose={onClose}
-      open={open}
-      size="large"
-      title={title}
-    >
-      {children}
-    </ACSModal>
-  );
-}
-
-function WorldAssetViewer({
-  open,
-  assetIndex,
-  onAssetIndexChange,
-  onClose,
-}: {
-  open: boolean;
-  assetIndex: number;
-  onAssetIndexChange: (index: number) => void;
-  onClose: () => void;
-}) {
-  const [zoom, setZoom] = useState(1);
-  const asset = assetMetadata[assetIndex];
-
-  function move(delta: number) {
-    setZoom(1);
-    onAssetIndexChange((assetIndex + delta + assetMetadata.length) % assetMetadata.length);
-  }
-
-  function handleViewerKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      move(-1);
-    }
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      move(1);
-    }
-  }
-
-  return (
-    <ResponsiveDetail
-      description={asset.description}
-      onClose={() => {
-        setZoom(1);
-        onClose();
-      }}
-      open={open}
-      title={asset.title}
-    >
-      <div className={styles.assetViewer} onKeyDown={handleViewerKeyDown}>
-        <div className={styles.viewerStage}>
-          <Image
-            alt={asset.alt}
-            className={styles.viewerImage}
-            fill
-            sizes="(max-width: 767px) 100vw, 900px"
-            src={asset.src}
-            style={{ transform: `scale(${zoom})` }}
-          />
-        </div>
-        <div className={styles.viewerToolbar}>
-          <ACSButton aria-label="上一张世界资产" onClick={() => move(-1)} variant="secondary">← 上一张</ACSButton>
-          <div className={styles.viewerZoom}>
-            <ACSButton
-              aria-label="缩小世界资产"
-              disabled={zoom <= 1}
-              onClick={() => setZoom((value) => Math.max(1, value - 0.25))}
-              size="small"
-              variant="ghost"
-            >
-              −
-            </ACSButton>
-            <span>{Math.round(zoom * 100)}%</span>
-            <ACSButton
-              aria-label="放大世界资产"
-              disabled={zoom >= 1.5}
-              onClick={() => setZoom((value) => Math.min(1.5, value + 0.25))}
-              size="small"
-              variant="ghost"
-            >
-              +
-            </ACSButton>
-          </div>
-          <ACSButton aria-label="下一张世界资产" onClick={() => move(1)} variant="secondary">下一张 →</ACSButton>
-        </div>
-      </div>
-    </ResponsiveDetail>
-  );
+  return matches;
 }
 
 export function StoryWorldPage() {
@@ -1260,14 +1350,15 @@ export function StoryWorldPage() {
   const [selectedTimelineEventId, setSelectedTimelineEventId] = useState(initialTimeline[1].id);
   const [selectedLocationId, setSelectedLocationId] = useState(initialLocations[0].id);
   const [selectedFactionId, setSelectedFactionId] = useState(initialFactions[0].id);
-  const [timelineDetailId, setTimelineDetailId] = useState<string | null>(null);
-  const [locationDetailId, setLocationDetailId] = useState<string | null>(null);
-  const [factionDetailId, setFactionDetailId] = useState<string | null>(null);
-  const [assetViewerOpen, setAssetViewerOpen] = useState(false);
-  const [assetIndex, setAssetIndex] = useState(0);
+  const [activeArea, setActiveArea] = useState<WorldWorkspaceArea>("OVERVIEW");
+  const [localDraftRecorded, setLocalDraftRecorded] = useState(false);
   const [assistantPending, setAssistantPending] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [nextStepOpen, setNextStepOpen] = useState(false);
+  const [navigatorDrawerOpen, setNavigatorDrawerOpen] = useState(false);
+  const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  const navigatorNeedsDrawer = useMediaQuery("(max-width: 767px)");
+  const inspectorNeedsDrawer = useMediaQuery("(max-width: 1152px)");
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -1323,9 +1414,99 @@ export function StoryWorldPage() {
           : "等待设定",
   };
 
-  const selectedTimelineEvent = preview.timeline.find((item) => item.id === timelineDetailId);
-  const selectedLocation = preview.locations.find((item) => item.id === locationDetailId);
-  const selectedFaction = preview.factions.find((item) => item.id === factionDetailId);
+  const activeTimelineEvent = preview.timeline.find((item) => item.id === selectedTimelineEventId);
+  const activeLocation = preview.locations.find((item) => item.id === selectedLocationId);
+  const activeFaction = preview.factions.find((item) => item.id === selectedFactionId);
+  const activeTask = worldWorkspaceTasks.find((task) => task.id === activeArea) ?? worldWorkspaceTasks[0];
+  const activeTaskIndex = worldWorkspaceTasks.findIndex((task) => task.id === activeArea);
+
+  const activeTaskContent = (() => {
+    switch (activeArea) {
+      case "TIMELINE":
+        return (
+          <WorldTimeline
+            events={preview.timeline}
+            onSelect={setSelectedTimelineEventId}
+            selectedEventId={selectedTimelineEventId}
+          />
+        );
+      case "LOCATIONS":
+        return (
+          <WorldMapCanvas
+            locations={preview.locations}
+            mapAlt="展示电影世界中城市区域、特殊地点和空间关系的概念地图"
+            mapAssetUrl={preview.assets.map}
+            onSelectLocation={setSelectedLocationId}
+            selectedLocationId={selectedLocationId}
+          />
+        );
+      case "SOCIETY":
+        return (
+          <div className={styles.societyTaskStack}>
+            <FactionSystem
+              factions={preview.factions}
+              onSelectFaction={setSelectedFactionId}
+              selectedFactionId={selectedFactionId}
+            />
+            <CultureCanvas culture={preview.culture} />
+          </div>
+        );
+      case "VISUAL":
+        return (
+          <VisualLanguagePanel
+            assetUrls={Object.values(preview.assets)}
+            value={preview.visualLanguage}
+          />
+        );
+      case "CATALOG":
+        return <SeriesBibleCatalogPanel />;
+      default:
+        return (
+          <WorldOverviewCanvas
+            onPremiseChange={(value) => {
+              setPremise(value);
+              setConfirmed(false);
+              setLocalDraftRecorded(false);
+              queueLocalRefresh();
+            }}
+            preview={preview}
+            theme={theme}
+          />
+        );
+    }
+  })();
+
+  const workspaceNavigator = (
+    <WorldWorkspaceNavigator
+      activeArea={activeArea}
+      onSelect={(area) => {
+        setActiveArea(area);
+        setNavigatorDrawerOpen(false);
+      }}
+      preview={preview}
+    />
+  );
+  const workspaceInspector = (
+    <WorldWorkspaceInspector
+      activeArea={activeArea}
+      assistantPending={assistantPending}
+      canContinue={canContinue}
+      onContinue={() => {
+        if (!canContinue) return;
+        setConfirmed(true);
+        setNextStepOpen(true);
+      }}
+      onRebuild={() => {
+        setConfirmed(false);
+        queueLocalRefresh();
+      }}
+      pageState={pageState}
+      premiseReady={premise.trim().length >= 30}
+      selectedFaction={activeFaction}
+      selectedLocation={activeLocation}
+      selectedTimelineEvent={activeTimelineEvent}
+    />
+  );
 
   return (
     <CustomerLayout
@@ -1341,96 +1522,62 @@ export function StoryWorldPage() {
           title="建立一个可以持续生长的电影世界"
         />
 
-        <WorldOverviewCanvas
-          onPremiseChange={(value) => {
-            setPremise(value);
-            setConfirmed(false);
-            queueLocalRefresh();
-          }}
-          preview={preview}
-          theme={theme}
-        />
-
-        <div className={styles.historySpaceGrid}>
-          <WorldTimeline
-            events={preview.timeline}
-            onSelect={(eventId) => {
-              setSelectedTimelineEventId(eventId);
-              setTimelineDetailId(eventId);
-            }}
-            selectedEventId={selectedTimelineEventId}
-          />
-          <WorldMapCanvas
-            locations={preview.locations}
-            mapAlt="展示电影世界中城市区域、特殊地点和空间关系的概念地图"
-            mapAssetUrl={preview.assets.map}
-            onSelectLocation={(locationId) => {
-              setSelectedLocationId(locationId);
-              setLocationDetailId(locationId);
-            }}
-            selectedLocationId={selectedLocationId}
-          />
-        </div>
-
-        <div className={styles.societyCultureGrid}>
-          <FactionSystem
-            factions={preview.factions}
-            onSelectFaction={(factionId) => {
-              setSelectedFactionId(factionId);
-              setFactionDetailId(factionId);
-            }}
-            selectedFactionId={selectedFactionId}
-          />
-          <CultureCanvas culture={preview.culture} />
-        </div>
-
-        <VisualLanguagePanel
-          assetUrls={Object.values(preview.assets)}
-          onOpenAsset={(assetUrl) => {
-            const nextIndex = assetMetadata.findIndex((asset) => asset.src === assetUrl);
-            setAssetIndex(nextIndex >= 0 ? nextIndex : 0);
-            setAssetViewerOpen(true);
-          }}
-          value={preview.visualLanguage}
-        />
-
-        <SeriesBibleCatalogPanel />
-
-        <AIWorldAssistantPanel
-          onRebuild={() => {
-            setConfirmed(false);
-            queueLocalRefresh();
-          }}
-          status={assistantPending ? "thinking" : premise.trim().length >= 30 ? "ready" : "empty"}
-          summary="世界的核心规则已经能够支撑当前故事，但能源来源、记忆继承方式与外环自治边界仍可进一步明确。"
-          suggestions={[
-            "建议补充城市能源来源，让建筑、交通与生活方式共享同一套视觉依据。",
-            "时间线中的“外环记忆断层”可以进一步说明它如何改变记忆议会与外环居民的关系。",
-            "角色设计可优先区分三个阵营的材料触感，再统一到冷色城市与暖色人物光的视觉基线。",
-          ]}
-        />
-
-        <div className={styles.continueSection}>
-          <div>
-            <p className={styles.sectionEyebrow}>NEXT CREATIVE STAGE</p>
-            <h2>让角色从这个世界中生长出来</h2>
-            <p>确认当前世界预览后，将规则、文化和视觉语言带入角色设计。</p>
+        {navigatorNeedsDrawer || inspectorNeedsDrawer ? (
+          <div aria-label="故事世界移动工作区入口" className={styles.workspaceAccessBar}>
+            {navigatorNeedsDrawer ? (
+              <ACSButton onClick={() => setNavigatorDrawerOpen(true)} variant="secondary">
+                打开世界对象导航
+              </ACSButton>
+            ) : null}
+            {inspectorNeedsDrawer ? (
+              <ACSButton onClick={() => setInspectorDrawerOpen(true)} variant="secondary">
+                打开检查与下一步
+              </ACSButton>
+            ) : null}
           </div>
-          <ContinueCharacterButton
-            disabled={!canContinue}
-            loading={false}
-            onContinue={() => {
-              if (!canContinue) return;
-              setConfirmed(true);
-              setNextStepOpen(true);
-            }}
-          />
-        </div>
+        ) : null}
+
+        <WorkspaceLayout
+          candidateStripMode="hidden"
+          className={styles.worldProductionWorkspace}
+          contentLabel="故事世界主要任务区"
+          embedded
+          inspector={inspectorNeedsDrawer ? undefined : workspaceInspector}
+          projectNavigator={navigatorNeedsDrawer ? undefined : workspaceNavigator}
+        >
+          <div className={styles.worldTaskCanvas}>
+            <header className={styles.worldTaskHeader}>
+              <div>
+                <span>当前任务 {activeTaskIndex + 1}/6</span>
+                <h2>{activeTask.label}</h2>
+                <p>{activeTask.description}</p>
+              </div>
+              <div className={styles.worldTaskHeaderActions}>
+                <small>{localDraftRecorded ? "已记录在本次会话" : "修改仅保留在当前页面会话"}</small>
+                <ACSButton
+                  onClick={() => setLocalDraftRecorded(true)}
+                  size="small"
+                  variant="secondary"
+                >
+                  保存本地草稿
+                </ACSButton>
+              </div>
+            </header>
+            <div className={styles.activeWorldTask} key={activeArea}>
+              {activeTaskContent}
+            </div>
+          </div>
+        </WorkspaceLayout>
       </div>
 
       <ACSModal
         description="当前世界预览仍属于本地展示状态。"
-        footer={<ACSButton fullWidth onClick={() => setNextStepOpen(false)} variant="primary">留在故事世界</ACSButton>}
+        footer={
+          <div className={styles.confirmedActions}>
+            <Link href={projectRoute(project.clientKey, "planning/characters")}>打开角色工作室</Link>
+            <ACSButton onClick={() => setNextStepOpen(false)} variant="primary">留在故事世界</ACSButton>
+          </div>
+        }
         onClose={() => setNextStepOpen(false)}
         open={nextStepOpen}
         title="世界预览已确认"
@@ -1438,62 +1585,31 @@ export function StoryWorldPage() {
         <div className={styles.confirmedState}>
           <ACSBadge dot tone="primary">本地世界预览已确认</ACSBadge>
           <h3>可以进入角色设计继续完善</h3>
-          <p>角色设计将在后续阶段接入。当前确认不会创建角色实体，也不会持久化 IP Bible。</p>
+          <p>角色工作室已可作为下一页面打开。当前确认不会创建正式角色实体，也不会持久化 IP Bible。</p>
         </div>
       </ACSModal>
 
-      <ResponsiveDetail
-        description={selectedTimelineEvent?.description}
-        onClose={() => setTimelineDetailId(null)}
-        open={Boolean(selectedTimelineEvent)}
-        title={selectedTimelineEvent ? `${selectedTimelineEvent.yearLabel} · ${selectedTimelineEvent.title}` : "历史事件"}
+      <ACSDrawer
+        description="浏览当前本地世界对象与任务区域"
+        onClose={() => setNavigatorDrawerOpen(false)}
+        open={navigatorDrawerOpen}
+        side="left"
+        size="narrow"
+        title="世界对象导航"
       >
-        {selectedTimelineEvent ? (
-          <DetailContent eyebrow="HISTORY EVENT" title={selectedTimelineEvent.title}>
-            <p>{selectedTimelineEvent.description}</p>
-            {selectedTimelineEvent.impactLabel ? <ACSBadge tone="ai">{selectedTimelineEvent.impactLabel}</ACSBadge> : null}
-          </DetailContent>
-        ) : null}
-      </ResponsiveDetail>
+        {workspaceNavigator}
+      </ACSDrawer>
 
-      <ResponsiveDetail
-        description={selectedLocation?.description}
-        onClose={() => setLocationDetailId(null)}
-        open={Boolean(selectedLocation)}
-        title={selectedLocation?.name ?? "地点档案"}
+      <ACSDrawer
+        description="检查完成条件、当前选择和下一步"
+        onClose={() => setInspectorDrawerOpen(false)}
+        open={inspectorDrawerOpen}
+        side="right"
+        size="narrow"
+        title="世界检查与下一步"
       >
-        {selectedLocation ? (
-          <DetailContent eyebrow="LOCATION ARCHIVE" title={selectedLocation.name}>
-            <ACSBadge tone="primary">{selectedLocation.categoryLabel}</ACSBadge>
-            <p>{selectedLocation.description}</p>
-          </DetailContent>
-        ) : null}
-      </ResponsiveDetail>
-
-      <ResponsiveDetail
-        description={selectedFaction?.relationshipSummary}
-        onClose={() => setFactionDetailId(null)}
-        open={Boolean(selectedFaction)}
-        title={selectedFaction?.name ?? "阵营档案"}
-      >
-        {selectedFaction ? (
-          <DetailContent eyebrow="FACTION ARCHIVE" title={selectedFaction.name}>
-            <ACSBadge tone="primary">{selectedFaction.visualMarkerLabel}</ACSBadge>
-            <dl className={styles.detailList}>
-              <div><dt>理念</dt><dd>{selectedFaction.ideology}</dd></div>
-              <div><dt>目标</dt><dd>{selectedFaction.goal}</dd></div>
-              <div><dt>关系</dt><dd>{selectedFaction.relationshipSummary}</dd></div>
-            </dl>
-          </DetailContent>
-        ) : null}
-      </ResponsiveDetail>
-
-      <WorldAssetViewer
-        assetIndex={assetIndex}
-        onAssetIndexChange={setAssetIndex}
-        onClose={() => setAssetViewerOpen(false)}
-        open={assetViewerOpen}
-      />
+        {workspaceInspector}
+      </ACSDrawer>
 
       <div aria-live="polite" className={styles.srOnly}>
         {assistantPending ? "世界构建中" : confirmed ? "本地世界预览已确认" : ""}

@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useMemo,
   useRef,
@@ -14,6 +16,14 @@ import {
   ACSCard,
   AIAssistantPanel,
 } from "@/components";
+import {
+  creatorRequest,
+  CreatorClientError,
+  useCreatorIntegration,
+  type EpisodeEnvelope,
+  type ProjectEnvelope,
+  type SeriesEnvelope,
+} from "@/features/core-integration";
 import { CustomerLayout } from "@/layouts";
 import { useACSTheme } from "@/theme";
 import styles from "./create-project.module.css";
@@ -30,6 +40,8 @@ type SelectorProps = {
   value: string;
   onChange: (value: string) => void;
 };
+
+const minimumIdeaLength = 20;
 
 const projectTypeOptions = [
   {
@@ -207,7 +219,7 @@ function SelectionGroup({
                       src={option.image}
                     />
                     <span className={styles.selectedIndicator} aria-hidden="true">
-                      {selected ? "✓" : ""}
+                      {selected ? "已选" : ""}
                     </span>
                   </span>
                 )}
@@ -239,6 +251,7 @@ export function CreativeIdeaInput({
       </div>
       <textarea
         aria-describedby="creative-idea-description"
+        aria-invalid={Boolean(value.trim()) && value.trim().length < minimumIdeaLength}
         id="creative-idea"
         maxLength={500}
         onChange={(event) => onChange(event.target.value)}
@@ -246,7 +259,7 @@ export function CreativeIdeaInput({
         value={value}
       />
       <p id="creative-idea-description">
-        写下人物、世界或一瞬间的画面，AI 会把它理解为可继续创作的导演方向。
+        至少输入 {minimumIdeaLength} 个字符，说明人物、世界、目标或关键画面。当前内容仅保留在页面状态中。
       </p>
     </div>
   );
@@ -314,7 +327,7 @@ export function CreativeBriefCanvas({
   return (
     <ACSCard
       className={styles.briefCanvas}
-      description="先捕捉创作意图，再让 AI 帮你看见影片的第一种可能。"
+      description="先捕捉创作意图，再检查影片形态、首发场景与视觉基调是否完整。"
       padding="spacious"
       title="创意简报"
     >
@@ -350,8 +363,8 @@ export function PreviewVisual() {
       />
       <div className={styles.previewScrim} aria-hidden="true" />
       <figcaption className={styles.previewCaption}>
-        <ACSBadge tone="ai">AI 创意预览</ACSBadge>
-        <span>第一幕 · 世界与人物初次相遇</span>
+        <ACSBadge tone="neutral">视觉基调示意</ACSBadge>
+        <span>静态参考图 · 非生成结果</span>
       </figcaption>
     </figure>
   );
@@ -381,8 +394,8 @@ export function StoryDirectionCard({ idea }: { idea: string }) {
   return (
     <DirectionCard index="01" title="故事方向">
       {idea.trim()
-        ? "从创意中的关键选择切入，让人物在一次不可逆的行动中推动故事。"
-        : "写下核心创意后，这里会呈现故事的起点、冲突与情绪走向。"}
+        ? "已记录当前核心创意。故事冲突、结构与情绪曲线需要在导演方案阶段继续确认。"
+        : "写下核心创意后，这里会确认输入是否足以进入导演方案阶段。"}
     </DirectionCard>
   );
 }
@@ -392,7 +405,7 @@ export function CharacterDirectionCard({ projectType }: { projectType: string })
 
   return (
     <DirectionCard index="02" title="人物方向">
-      为{type.label}建立一位目标清晰、内心仍有秘密的核心人物，让选择成为情绪支点。
+      当前影片形态为{type.label}。人物目标、关系和连续性规则尚未填写。
     </DirectionCard>
   );
 }
@@ -402,7 +415,7 @@ export function VisualDirectionCard({ visualStyle }: { visualStyle: string }) {
 
   return (
     <DirectionCard index="03" title="视觉方向">
-      以“{style.label}”为基调，{style.description}，保持画面统一而有呼吸感。
+      当前选择“{style.label}”：{style.description}。这只是创作约束，不是已生成的视觉方案。
     </DirectionCard>
   );
 }
@@ -412,7 +425,7 @@ export function ProductionSuggestionCard({ platform }: { platform: string }) {
 
   return (
     <DirectionCard index="04" title="制作建议">
-      面向{platformOption.label}先建立开场、人物特写与环境全景，快速确认影片气质。
+      首发场景选择为{platformOption.label}。时长、画幅和交付规格尚未连接。
     </DirectionCard>
   );
 }
@@ -430,19 +443,20 @@ export function AIUnderstandingPanel({
   visualStyle: string;
   directorReady: boolean;
 }) {
+  const ideaReady = idea.trim().length >= minimumIdeaLength;
   const status = directorReady
-    ? "导演方案预览已就绪"
-    : idea.trim()
-      ? "创意已理解"
-      : "等待创意";
+    ? "本地预览已确认"
+    : ideaReady
+      ? "输入条件已满足"
+      : "等待完整创意";
 
   return (
     <AIAssistantPanel
       className={styles.understandingPanel}
-      description="将你的创意转译为故事、人物、视觉与制作方向。"
-      footer="这是创作方向预览，你可以随时返回左侧继续调整。"
+      description="检查当前输入、选择和仍缺失的制作条件。"
+      footer="这是页面内的结构化预览，未调用生成服务，也未保存为正式项目。"
       status={status}
-      title="AI 创意理解"
+      title="创意方向检查"
     >
       <PreviewVisual />
       <div className={styles.directionGrid}>
@@ -475,10 +489,10 @@ export function CreationSummaryCard({
   return (
     <ACSCard
       className={styles.summaryCard}
-      description="确认这次创作的起点，生成后仍可继续完善。"
+      description="确认这次本地创作预览的输入，后续仍可继续调整。"
       headerAction={
         <ACSBadge dot tone={directorReady ? "success" : "neutral"}>
-          {directorReady ? "导演方案预览已就绪" : "创作准备中"}
+          {directorReady ? "本地预览已确认" : "创作准备中"}
         </ACSBadge>
       }
       title="创作摘要"
@@ -505,33 +519,266 @@ export function CreationSummaryCard({
   );
 }
 
-export function CreateFilmButton({ onCreate }: { onCreate: () => void }) {
+export function CreateFilmButton({
+  disabled,
+  onCreate,
+}: {
+  disabled: boolean;
+  onCreate: () => void;
+}) {
   return (
     <ACSButton
       aria-describedby="create-film-boundary"
       className={styles.createButton}
+      disabled={disabled}
       onClick={onCreate}
       size="large"
-      trailingIcon={<span aria-hidden="true">→</span>}
       variant="primary"
     >
-      开始生成导演方案
+      确认本地导演方案预览
     </ACSButton>
   );
 }
 
-export function CreateProjectPage() {
+type CoreCommitState =
+  | { status: "idle" }
+  | { status: "submitting"; step: "series" | "project" | "episode" }
+  | { status: "partial"; message: string }
+  | { status: "error"; message: string }
+  | { status: "success"; projectRef: string };
+
+function coreProjectType(value: string) {
+  if (value === "series") return "series";
+  if (value === "commercial") return "brand-film";
+  return "standalone";
+}
+
+function CoreProjectCommitPanel({
+  creativePlanRef,
+  idea,
+  platform,
+  projectType,
+}: {
+  creativePlanRef?: string;
+  idea: string;
+  platform: string;
+  projectType: string;
+}) {
+  const router = useRouter();
+  const { state: connection, refresh } = useCreatorIntegration();
+  const [title, setTitle] = useState("");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [durationSec, setDurationSec] = useState(90);
+  const [plannedEpisodeCount, setPlannedEpisodeCount] = useState(
+    projectType === "series" ? 6 : 1,
+  );
+  const [seriesRef, setSeriesRef] = useState<string | null>(null);
+  const [projectRef, setProjectRef] = useState<string | null>(null);
+  const [episodeRef, setEpisodeRef] = useState<string | null>(null);
+  const [commit, setCommit] = useState<CoreCommitState>({ status: "idle" });
+  const connected = connection.status === "connected";
+  const busy = commit.status === "submitting" || commit.status === "success";
+  const valid =
+    title.trim().length > 0 &&
+    Number.isInteger(durationSec) &&
+    durationSec > 0 &&
+    Number.isInteger(plannedEpisodeCount) &&
+    plannedEpisodeCount > 0;
+
+  async function commitProject() {
+    if (!connected || !valid || busy) return;
+    let authoritativeSeriesRef = seriesRef;
+    let authoritativeProjectRef = projectRef;
+    let authoritativeEpisodeRef = episodeRef;
+    try {
+      if (!authoritativeSeriesRef) {
+        setCommit({ status: "submitting", step: "series" });
+        const seriesPayload = await creatorRequest<SeriesEnvelope>("series", {
+          method: "POST",
+          body: {
+            title: title.trim(),
+            description: idea.trim(),
+            plannedEpisodeCount,
+          },
+        });
+        authoritativeSeriesRef = seriesPayload.series.seriesRef;
+        setSeriesRef(authoritativeSeriesRef);
+      }
+
+      if (!authoritativeProjectRef) {
+        setCommit({ status: "submitting", step: "project" });
+        const projectPayload = await creatorRequest<ProjectEnvelope>("projects", {
+          method: "POST",
+          body: {
+            projectType: coreProjectType(projectType),
+            seriesRef: authoritativeSeriesRef,
+            title: title.trim(),
+            description: idea.trim(),
+            targetPlatform: platform,
+            aspectRatio,
+            defaultDurationSec: durationSec,
+            plannedEpisodeCount,
+          },
+        });
+        authoritativeProjectRef = projectPayload.project.projectRef;
+        setProjectRef(authoritativeProjectRef);
+      }
+
+      if (creativePlanRef && !authoritativeEpisodeRef) {
+        setCommit({ status: "submitting", step: "episode" });
+        const episodePayload = await creatorRequest<EpisodeEnvelope>("episodes", {
+          method: "POST",
+          body: {
+            seriesRef: authoritativeSeriesRef,
+            creativePlanRef,
+            episodeNumber: 1,
+            seasonNumber: 1,
+            volumeNumber: 1,
+            title: "第 1 集",
+          },
+        });
+        authoritativeEpisodeRef = episodePayload.episode.episodeRef;
+        setEpisodeRef(authoritativeEpisodeRef);
+      }
+
+      setCommit({ status: "success", projectRef: authoritativeProjectRef });
+      router.push(
+        `/creator/projects/${encodeURIComponent(authoritativeProjectRef)}/${creativePlanRef ? "content/script" : "planning/bible"}`,
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof CreatorClientError
+          ? error.detail.message
+          : "项目提交未完成，请检查 Core 连接后重试。";
+      setCommit(
+        authoritativeSeriesRef
+          ? {
+              status: "partial",
+              message: `${authoritativeProjectRef ? `项目身份已创建（${authoritativeProjectRef}）` : `系列身份已创建（${authoritativeSeriesRef}）`}，后续步骤尚未完成：${message}`,
+            }
+          : { status: "error", message },
+      );
+    }
+  }
+
+  const statusMessage = (() => {
+    if (connection.status === "loading") return "正在核对 Creator Core 连接。";
+    if (connection.status === "disconnected" || connection.status === "error") {
+      return connection.error.message;
+    }
+    if (commit.status === "submitting") {
+      if (commit.step === "series") return "正在创建系列身份…";
+      if (commit.step === "project") return "正在创建项目身份…";
+      return "正在用已确认导演方案建立首集身份…";
+    }
+    if (commit.status === "partial" || commit.status === "error") return commit.message;
+    if (commit.status === "success") return "项目已创建，正在进入项目工作区。";
+    return "连接正常。提交后将获得 Creator Core 返回的真实项目身份。";
+  })();
+
+  return (
+    <section aria-labelledby="core-project-commit-title" className={styles.coreCommitPanel}>
+      <div className={styles.coreCommitHeading}>
+        <div>
+          <p className={styles.eyebrow}>CREATE AUTHORITATIVE PROJECT</p>
+          <h2 id="core-project-commit-title">保存为真实制作项目</h2>
+          <p>先建立系列承载身份，再创建项目；任何一步失败都会保留准确回执并支持续交。</p>
+        </div>
+        <ACSBadge dot tone={connected ? "success" : "neutral"}>
+          {connected ? "Core v1 已连接" : "Core 未连接"}
+        </ACSBadge>
+      </div>
+
+      <form
+        className={styles.coreCommitForm}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void commitProject();
+        }}
+      >
+        <label className={styles.commitTitleField}>
+          <span>项目名称</span>
+          <input
+            autoComplete="off"
+            disabled={Boolean(seriesRef) || busy}
+            maxLength={500}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="例如：记忆之城"
+            required
+            value={title}
+          />
+        </label>
+        <label>
+          <span>画幅</span>
+          <select
+            disabled={Boolean(seriesRef) || busy}
+            onChange={(event) => setAspectRatio(event.target.value)}
+            value={aspectRatio}
+          >
+            <option value="16:9">16:9 横屏</option>
+            <option value="9:16">9:16 竖屏</option>
+            <option value="1:1">1:1 方形</option>
+          </select>
+        </label>
+        <label>
+          <span>单集时长（秒）</span>
+          <input
+            disabled={Boolean(seriesRef) || busy}
+            max={86400}
+            min={1}
+            onChange={(event) => setDurationSec(event.currentTarget.valueAsNumber)}
+            type="number"
+            value={durationSec}
+          />
+        </label>
+        <label>
+          <span>规划集数</span>
+          <input
+            disabled={Boolean(seriesRef) || busy}
+            max={10000}
+            min={1}
+            onChange={(event) => setPlannedEpisodeCount(event.currentTarget.valueAsNumber)}
+            type="number"
+            value={plannedEpisodeCount}
+          />
+        </label>
+
+        <div className={styles.commitSummary}>
+          <span>Core 类型：{coreProjectType(projectType)}</span>
+          <span>发行平台：{platform}</span>
+          <span>{seriesRef ? `已建立系列：${seriesRef}` : "尚未建立权威身份"}</span>
+          {creativePlanRef ? <span>已确认导演方案：{creativePlanRef}</span> : null}
+        </div>
+
+        <div className={styles.commitActions}>
+          <ACSButton disabled={!connected || !valid || busy} size="large" type="submit" variant="primary">
+            {commit.status === "partial" ? "继续创建项目" : "创建并进入项目"}
+          </ACSButton>
+          {!connected ? (
+            <ACSButton onClick={refresh} type="button" variant="secondary">重新连接</ACSButton>
+          ) : null}
+          <Link className={styles.secondaryLink} href="/creator/ai-director">先去完善导演简报</Link>
+        </div>
+        <p aria-live="polite" className={styles.commitStatus} role="status">{statusMessage}</p>
+      </form>
+    </section>
+  );
+}
+
+export function CreateProjectPage({ creativePlanRef }: { creativePlanRef?: string }) {
   const [idea, setIdea] = useState("");
   const [projectType, setProjectType] = useState("sci-fi");
   const [platform, setPlatform] = useState("streaming");
   const [visualStyle, setVisualStyle] = useState("future");
   const [directorReady, setDirectorReady] = useState(false);
+  const ideaReady = idea.trim().length >= minimumIdeaLength;
 
   const presentationState = useMemo(() => {
-    if (directorReady) return "导演方案预览已准备好，你仍可继续调整创意方向。";
-    if (idea.trim()) return "AI 已开始理解你的创意，确认后可生成导演方案预览。";
-    return "写下创意并选择方向，生成属于这部影片的导演方案预览。";
-  }, [directorReady, idea]);
+    if (directorReady) return "本地导演方案预览已确认；它尚未保存为正式项目。";
+    if (ideaReady) return "输入条件已满足，可以确认页面内的导演方案预览。";
+    if (idea.trim()) return `还需至少 ${minimumIdeaLength - idea.trim().length} 个字符才能继续。`;
+    return `写下至少 ${minimumIdeaLength} 个字符的核心创意后才能继续。`;
+  }, [directorReady, idea, ideaReady]);
 
   return (
     <CustomerLayout className={styles.createLayout} contained={false}>
@@ -541,11 +788,26 @@ export function CreateProjectPage() {
             <p className={styles.eyebrow}>CREATE WITH AI</p>
             <h1 id="create-project-title">让一个创意，成为一部电影</h1>
             <p>
-              从故事的第一句话出发，与 AI 一起看见人物、世界与镜头的方向。
+              从故事的第一句话出发，明确人物、世界、发行场景与视觉方向。
             </p>
           </div>
-          <ACSBadge tone="ai">AI 导演协作</ACSBadge>
+          <ACSBadge tone="neutral">本地方案 · 未保存</ACSBadge>
         </section>
+
+        <ol aria-label="本地创意方案流程" className={styles.workflowSteps}>
+          {[
+            ["01", "写下核心创意", idea.trim() ? "进行中" : "待开始"],
+            ["02", "确认影片约束", "已预选"],
+            ["03", "检查导演方向", ideaReady ? "可检查" : "等待创意"],
+            ["04", "选择下一工作区", directorReady ? "可选择" : "等待确认"],
+          ].map(([index, label, status]) => (
+            <li data-ready={status === "可选择" || status === "可检查" || status === "已预选"} key={index}>
+              <span>{index}</span>
+              <strong>{label}</strong>
+              <small>{status}</small>
+            </li>
+          ))}
+        </ol>
 
         <section className={styles.workspaceGrid} aria-label="影片创意工作区">
           <CreativeBriefCanvas
@@ -579,20 +841,49 @@ export function CreateProjectPage() {
           />
         </section>
 
-        <CreationSummaryCard
-          directorReady={directorReady}
-          idea={idea}
-          platform={platform}
-          projectType={projectType}
-          visualStyle={visualStyle}
-        />
+        <section className={styles.decisionRegion} aria-label="创意方案确认区">
+          <CreationSummaryCard
+            directorReady={directorReady}
+            idea={idea}
+            platform={platform}
+            projectType={projectType}
+            visualStyle={visualStyle}
+          />
+          <ACSCard
+            className={styles.readinessCard}
+            description="这些条件只决定本地页面能否继续，不代表项目已经创建或保存。"
+            title="进入下一步前检查"
+          >
+            <ul>
+              <li data-ready={ideaReady}><strong>核心创意不少于 20 个字符</strong><span>{ideaReady ? "已满足" : "待补充"}</span></li>
+              <li data-ready><strong>影片形态、平台和视觉基调</strong><span>已选择</span></li>
+              <li data-ready={directorReady}><strong>本地导演方向预览</strong><span>{directorReady ? "已确认" : "待确认"}</span></li>
+              <li><strong>权威项目身份与保存回执</strong><span>{directorReady ? "下一步创建" : "等待方案"}</span></li>
+            </ul>
+          </ACSCard>
+        </section>
 
-        <section className={styles.ctaRegion} aria-label="生成导演方案">
-          <CreateFilmButton onCreate={() => setDirectorReady(true)} />
+        <section className={styles.ctaRegion} aria-label="确认本地导演方案预览">
+          <CreateFilmButton
+            disabled={!ideaReady}
+            onCreate={() => {
+              if (!ideaReady) return;
+              setDirectorReady(true);
+            }}
+          />
           <p id="create-film-boundary" role="status">
             {presentationState}
           </p>
         </section>
+
+        {directorReady ? (
+          <CoreProjectCommitPanel
+            creativePlanRef={creativePlanRef}
+            idea={idea}
+            platform={platform}
+            projectType={projectType}
+          />
+        ) : null}
       </div>
     </CustomerLayout>
   );

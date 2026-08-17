@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -19,6 +20,15 @@ import {
   AIAssistantPanel,
   AIThinkingState,
 } from "@/components";
+import {
+  creatorRequest,
+  CreatorClientError,
+  useCreatorIntegration,
+  type ConfirmedCreativePlanEnvelope,
+  type CreatorCreativeBrief,
+  type CreatorDirectorPlan,
+  type DirectorCandidateEnvelope,
+} from "@/features/core-integration";
 import { CustomerLayout } from "@/layouts";
 import { useACSTheme } from "@/theme";
 import styles from "./ai-director.module.css";
@@ -70,8 +80,9 @@ export type DirectorContext = {
   statusLabel:
     | "等待输入"
     | "分析预览中"
-    | "导演方案已准备"
-    | "本地预览已确认";
+    | "输入检查已通过"
+    | "Core 候选已生成"
+    | "权威方案已确认";
 };
 
 export type DirectorInputState = {
@@ -200,20 +211,33 @@ const referenceStyleOptions = [
   },
 ] as const satisfies readonly SelectorOption<ReferenceStyleOption>[];
 
+const directorPlatformOptions = [
+  { value: "streaming", label: "流媒体" },
+  { value: "short-video", label: "短视频平台" },
+  { value: "cinema", label: "大银幕" },
+  { value: "brand-release", label: "品牌发布" },
+] as const;
+
 const initialInput: DirectorInputState = {
-  storyIntent:
-    "在冷峻的未来城市中，一个拥有自我意识的机器人寻找创造者遗留的记忆，并在孤独中重新理解人与 AI 建立连接的可能。",
+  storyIntent: "",
   audience: "general",
   tone: "restrained",
   referenceStyle: "hollywood-sci-fi",
   customReference: "",
 };
 
-const localCreativeSummary =
+const exampleCreativeSummary =
   "一位在永夜未来城醒来的仿生人，通过创造者留下的影像寻找自己的来处，也重新理解人与 AI 之间的连接。";
 
 const emptyAnalysisCopy =
-  "补充导演意图后，这里会整理故事、主题、角色和视觉方向。";
+  "补充至少 20 个字符的导演意图后，这里会检查故事、受众、情绪和参考风格是否完整。";
+
+function optionLabel<T extends string>(
+  options: readonly SelectorOption<T>[],
+  value: T | null,
+) {
+  return options.find((option) => option.value === value)?.label ?? "未选择";
+}
 
 function isPlanReady(input: DirectorInputState) {
   return (
@@ -230,24 +254,27 @@ function buildAnalysis(
   status: DirectorAnalysisState["status"],
 ): DirectorAnalysisState {
   const hasIntent = Boolean(input.storyIntent.trim());
+  const audience = optionLabel(audienceOptions, input.audience);
+  const tone = optionLabel(toneOptions, input.tone);
+  const reference = optionLabel(referenceStyleOptions, input.referenceStyle);
 
   return {
     status,
     storyAnalysis: hasIntent
-      ? "一个拥有自我意识的机器人寻找创造者遗留记忆的故事。"
+      ? input.storyIntent.trim()
       : emptyAnalysisCopy,
     themeAnalysis: hasIntent
-      ? "身份、孤独、归属，以及人机关系中的选择。"
-      : "故事主题会从你的导演意图中逐步浮现。",
+      ? `当前情绪选择：${tone}。主题命题仍需在后续生成或人工编辑中明确。`
+      : "主题命题尚未填写。",
     characterDirection: hasIntent
-      ? "主角克制而敏感，情绪变化通过行为、停顿和镜头距离体现。"
-      : "人物目标、内在缺口与情绪表达方式将在这里形成。",
+      ? `目标观众：${audience}。人物目标、关系和表演方式尚未填写。`
+      : "人物目标、关系和表演方式尚未填写。",
     visualLanguage: hasIntent
-      ? "冷色未来城市、暖色人物光、孤独构图、缓慢推进和克制剪辑。"
-      : "画面色彩、构图、光线与镜头节奏将在这里形成。",
+      ? `当前参考风格：${reference}。色彩、构图、光线与镜头规则尚未生成。`
+      : "画面色彩、构图、光线与镜头规则尚未填写。",
     productionStrategy: hasIntent
-      ? "先锁定主角视觉身份，再完成世界规则与关键场景，随后进入剧本和分镜。"
-      : "制作顺序会根据故事与视觉重点形成清晰建议。",
+      ? "当前仅完成本地导演输入检查；项目保存、制作排期和生产任务均未创建。"
+      : "制作顺序将在项目和导演方案接入权威保存能力后确定。",
     visualAssetUrl: "/assets/ai-director/analysis/director-analysis.webp",
   };
 }
@@ -258,6 +285,9 @@ function buildPlan(
   confirmed: boolean,
 ): DirectorPlanPreview {
   const ready = isPlanReady(input) && analysis.status === "ready";
+  const audience = optionLabel(audienceOptions, input.audience);
+  const tone = optionLabel(toneOptions, input.tone);
+  const reference = optionLabel(referenceStyleOptions, input.referenceStyle);
 
   return {
     status: confirmed
@@ -265,29 +295,26 @@ function buildPlan(
       : ready
         ? "ready-preview"
         : "draft-preview",
-    concept:
-      "在永夜未来城，一段被隐藏的记忆让仿生人踏上寻找创造者的旅程，并迫使他重新定义自己的身份与归属。",
+    concept: input.storyIntent.trim() || "等待完整导演意图。",
     structure: [
-      "建立未来城市、缺失记忆与主角的孤独处境",
-      "沿创造者遗留线索进入人机关系的核心冲突",
-      "以一次不可逆的选择确认连接、身份与新的归属",
+      "故事起点与人物目标：尚待确认",
+      "核心冲突与关键转折：尚待确认",
+      "结局选择与情绪落点：尚待确认",
     ],
-    characterDirection:
-      "让主角的克制外表与持续增长的情感需求形成张力，以动作、停顿和视线完成变化。",
-    visualDirection:
-      "冷色城市空间对照暖色人物光，使用孤独构图与缓慢推进，让科技尺度始终服务于情绪。",
+    characterDirection: `目标观众：${audience}。角色目标、缺口、关系和变化弧尚待确认。`,
+    visualDirection: `情绪：${tone}；参考风格：${reference}。具体视觉规则尚待确认。`,
     productionRoadmap: [
-      "锁定主角视觉身份与核心表演方式",
-      "建立世界规则、色彩体系与关键场景",
-      "进入故事世界、剧本与分镜的连续制作",
+      "确认导演简报并建立可信项目身份",
+      "补全角色、世界与视觉规则",
+      "完成剧本、分镜和生产计划后再进入渲染",
     ],
   };
 }
 
 function statusLabelForAnalysis(status: DirectorAnalysisState["status"]) {
-  if (status === "editing") return "正在整理导演判断";
-  if (status === "ready") return "导演分析已准备";
-  if (status === "error") return "导演分析暂时不可用";
+  if (status === "editing") return "正在检查当前输入";
+  if (status === "ready") return "输入完整性检查通过";
+  if (status === "error") return "导演意图不足 20 个字符";
   return "等待导演意图";
 }
 
@@ -317,8 +344,8 @@ export type DirectorContextBarProps = {
 
 export function DirectorContextBar({ context }: DirectorContextBarProps) {
   const badgeTone =
-    context.statusLabel === "本地预览已确认"
-      ? "primary"
+    context.statusLabel === "权威方案已确认"
+      ? "success"
       : context.statusLabel === "等待输入"
         ? "neutral"
         : "ai";
@@ -397,11 +424,11 @@ export function StoryIntentInput({
         </ACSButton>
         <ACSButton
           disabled={disabled}
-          onClick={() => onChange(localCreativeSummary)}
+          onClick={() => onChange(exampleCreativeSummary)}
           size="small"
           variant="ghost"
         >
-          引用本地创意摘要
+          使用示例摘要
         </ACSButton>
         <ACSButton
           disabled={disabled || !value}
@@ -538,7 +565,7 @@ export function DirectorSelector<T extends string>({
                 {option.description && <small>{option.description}</small>}
               </span>
               <span className={styles.selectionIndicator} aria-hidden="true">
-                {selected ? "✓" : ""}
+                {selected ? "已选" : ""}
               </span>
             </button>
           </ACSCard>
@@ -662,7 +689,7 @@ export function CreativeDirectionCanvas({
   return (
     <ACSCard
       className={styles.directionCanvas}
-      description="先明确观众应当感受到什么，再让 AI 将创意整理成导演判断。"
+      description="先明确观众应当感受到什么，再检查导演输入是否完整。"
       padding="spacious"
       title="创作方向"
     >
@@ -842,7 +869,7 @@ export function AIDirectorAnalysisPanel({
         : "empty";
 
   return (
-    <section className={styles.analysisPanel} aria-label="AI 导演分析">
+    <section className={styles.analysisPanel} aria-label="导演输入检查">
       <div className={styles.directorVisualStage}>
         <DirectorRoomVisual
           alt={heroAlt}
@@ -853,10 +880,10 @@ export function AIDirectorAnalysisPanel({
         />
         <div className={styles.visualOverlay}>
           <div>
-            <span className={styles.visualLabel}>AI 导演分析</span>
+            <span className={styles.visualLabel}>DIRECTOR INPUT CHECK</span>
             <p>
               {analysis.status === "ready"
-                ? "故事、人物与视觉判断已汇聚为同一条导演方向。"
+                ? "当前输入已通过页面内完整性检查；未调用生成服务。"
                 : emptyAnalysisCopy}
             </p>
           </div>
@@ -868,17 +895,17 @@ export function AIDirectorAnalysisPanel({
 
       <AIAssistantPanel
         className={styles.assistantPanel}
-        description="从故事意图出发，整理主题、人物、视觉与制作顺序。"
-        status="本地导演判断"
-        title="AI 导演分析"
+        description="结构化回显已填写内容，并明确仍缺失的导演决策。"
+        status="页面本地检查"
+        title="导演输入检查"
         actions={
           <ACSButton
-            disabled={analysis.status === "editing"}
+            disabled={analysis.status === "editing" || analysis.status === "empty"}
             onClick={onReanalyze}
             size="small"
             variant="ghost"
           >
-            重新整理分析
+            重新检查输入
           </ACSButton>
         }
       >
@@ -887,13 +914,13 @@ export function AIDirectorAnalysisPanel({
             <span>DIRECTOR&apos;S NOTE</span>
             <p>
               {analysis.status === "ready"
-                ? "这部影片最有力量的不是未来奇观，而是主角在寻找记忆时逐渐学会选择连接。"
+                ? analysis.storyAnalysis
                 : emptyAnalysisCopy}
             </p>
           </div>
           <figure className={styles.analysisSupportingVisual}>
             <Image
-              alt="AI 辅助导演分析故事结构、角色方向、色彩和镜头语言的电影创意规划画面"
+              alt="导演简报结构、角色方向、色彩和镜头语言的静态规划示意图"
               fill
               loading="eager"
               sizes="(max-width: 1023px) calc(100vw - 96px), (max-width: 1439px) 24vw, 300px"
@@ -904,8 +931,8 @@ export function AIDirectorAnalysisPanel({
         {analysis.status === "editing" ? (
           <AIThinkingState
             compact
-            detail="正在把新的创作选择重新汇入故事、人物和视觉方向。"
-            label="正在整理导演判断"
+            detail="正在重新检查故事意图、观众、情绪和参考风格。"
+            label="正在检查当前输入"
           />
         ) : (
           <p className={styles.analysisStatus} aria-live="polite">
@@ -964,7 +991,7 @@ export function DirectorPlanCard({
   return (
     <ACSCard
       className={styles.directorPlanCard}
-      description="把分析收束为一份可阅读、可判断的导演方案摘要。"
+      description="把当前输入收束为一份可阅读、可继续补充的本地方案摘要。"
       headerAction={<ACSBadge tone="neutral">{previewBadgeLabel}</ACSBadge>}
       padding="spacious"
       title="导演方案"
@@ -1022,10 +1049,9 @@ export function ConfirmDirectorButton({
       loading={loading}
       onClick={onConfirm}
       size="large"
-      trailingIcon={<span aria-hidden="true">→</span>}
       variant="primary"
     >
-      确认导演方案
+      确认本地导演方案
     </ACSButton>
   );
 }
@@ -1037,7 +1063,6 @@ export type DirectorWorkspaceProps = {
   plan: DirectorPlanPreview;
   onInputChange: (payload: DirectorInputChangePayload) => void;
   onReanalyze: () => void;
-  onConfirmPlan: () => void;
 };
 
 export function DirectorWorkspace({
@@ -1047,10 +1072,8 @@ export function DirectorWorkspace({
   plan,
   onInputChange,
   onReanalyze,
-  onConfirmPlan,
 }: DirectorWorkspaceProps) {
   const { theme } = useACSTheme();
-  const confirmDisabled = plan.status === "draft-preview" || analysis.status === "editing";
 
   return (
     <>
@@ -1072,21 +1095,173 @@ export function DirectorWorkspace({
         />
       </section>
       <DirectorPlanCard plan={plan} previewBadgeLabel="本地预览" />
-      <section className={styles.ctaRegion} aria-label="确认导演方案">
-        <ConfirmDirectorButton
-          disabled={confirmDisabled}
-          loading={false}
-          onConfirm={onConfirmPlan}
-        />
-        <p id="director-confirm-boundary">
-          {plan.status === "confirmed-preview"
-            ? "导演方案预览已确认，可以进入故事世界继续完善。"
-            : confirmDisabled
-              ? "完成导演意图与方向选择后，即可确认本地导演方案预览。"
-              : "确认只更新当前页面的本地预览状态，不会创建或保存正式项目。"}
-        </p>
-      </section>
     </>
+  );
+}
+
+type CoreDirectorPhase =
+  | "idle"
+  | "generating"
+  | "candidate"
+  | "confirming"
+  | "confirmed"
+  | "error";
+
+function CoreDirectorExecutionPanel({
+  candidate,
+  character,
+  connected,
+  connectionMessage,
+  confirmedPlanRef,
+  durationSec,
+  localReady,
+  onCharacterChange,
+  onConfirm,
+  onDurationChange,
+  onGenerate,
+  onPlatformChange,
+  onRefresh,
+  phase,
+  platform,
+  statusMessage,
+}: {
+  candidate: CreatorDirectorPlan | null;
+  character: string;
+  connected: boolean;
+  connectionMessage: string;
+  confirmedPlanRef: string | null;
+  durationSec: number;
+  localReady: boolean;
+  onCharacterChange: (value: string) => void;
+  onConfirm: () => void;
+  onDurationChange: (value: number) => void;
+  onGenerate: () => void;
+  onPlatformChange: (value: string) => void;
+  onRefresh: () => void;
+  phase: CoreDirectorPhase;
+  platform: string;
+  statusMessage: string;
+}) {
+  const busy = phase === "generating" || phase === "confirming";
+  const locked = busy || phase === "confirmed";
+
+  return (
+    <section aria-labelledby="core-director-title" className={styles.coreExecution}>
+      <header className={styles.coreExecutionHeader}>
+        <div>
+          <p className={styles.coreEyebrow}>M1 · CREATOR PUBLIC API</p>
+          <h2 id="core-director-title">生成并确认导演候选</h2>
+          <p>Core 先返回候选方案；只有你明确确认后，系统才会创建可供后续模块引用的创意方案身份。</p>
+        </div>
+        <ACSBadge dot tone={connected ? "success" : "neutral"}>
+          {connected ? "Core v1 已连接" : "Core 未连接"}
+        </ACSBadge>
+      </header>
+
+      <div className={styles.executionFields}>
+        <label>
+          <span>目标时长（秒）</span>
+          <input
+            disabled={locked}
+            max={3600}
+            min={1}
+            onChange={(event) => onDurationChange(event.currentTarget.valueAsNumber)}
+            type="number"
+            value={durationSec}
+          />
+        </label>
+        <label>
+          <span>发布平台</span>
+          <select
+            disabled={locked}
+            onChange={(event) => onPlatformChange(event.target.value)}
+            value={platform}
+          >
+            {directorPlatformOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.characterField}>
+          <span>核心角色（可选）</span>
+          <input
+            disabled={locked}
+            maxLength={500}
+            onChange={(event) => onCharacterChange(event.target.value)}
+            placeholder="例如：林澈，一名记忆修复师"
+            value={character}
+          />
+        </label>
+      </div>
+
+      <div className={styles.executionActions}>
+        <ACSButton
+          disabled={!connected || !localReady || busy || phase === "confirmed"}
+          loading={phase === "generating"}
+          onClick={onGenerate}
+          size="large"
+          variant="primary"
+        >
+          {candidate ? "重新生成候选" : "生成 Core 导演候选"}
+        </ACSButton>
+        {!connected ? (
+          <ACSButton onClick={onRefresh} variant="secondary">重新连接</ACSButton>
+        ) : null}
+        <p aria-live="polite" role="status">
+          {connected ? statusMessage : connectionMessage}
+        </p>
+      </div>
+
+      {candidate ? (
+        <section aria-labelledby="core-candidate-title" className={styles.coreCandidate}>
+          <div className={styles.candidateHeading}>
+            <div>
+              <p className={styles.coreEyebrow}>CANDIDATE · HUMAN CONFIRMATION REQUIRED</p>
+              <h3 id="core-candidate-title">{candidate.storyDirection.title}</h3>
+            </div>
+            <ACSBadge tone={phase === "confirmed" ? "success" : "primary"}>
+              {phase === "confirmed" ? "已人工确认" : "待人工确认"}
+            </ACSBadge>
+          </div>
+          <p className={styles.candidateLogline}>{candidate.creativeInterpretation.logline}</p>
+          <div className={styles.candidateGrid}>
+            <article>
+              <span>故事方向</span>
+              <h4>{candidate.creativeInterpretation.coreTheme}</h4>
+              <p>{candidate.storyDirection.synopsis}</p>
+              <ol>{candidate.storyDirection.keyBeats.map((beat) => <li key={beat}>{beat}</li>)}</ol>
+            </article>
+            <article>
+              <span>视觉与连续性</span>
+              <h4>{candidate.visualStyle.atmosphere}</h4>
+              <p>{candidate.visualStyle.lighting} · {candidate.visualStyle.palette}</p>
+              <ul>{candidate.visualStyle.continuityRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+            </article>
+            <article>
+              <span>制作规模</span>
+              <h4>{candidate.productionPlan.shotCount} 个镜头</h4>
+              <p>{candidate.productionPlan.characters.join("、") || "未指定角色"}</p>
+              <ul>{candidate.productionPlan.productionNotes.map((note) => <li key={note}>{note}</li>)}</ul>
+            </article>
+          </div>
+          <footer className={styles.candidateFooter}>
+            <div>
+              <strong>{confirmedPlanRef ? `创意方案身份：${confirmedPlanRef}` : "确认后才会创建创意方案身份"}</strong>
+              <span>候选内容不是项目、资产、审批或发布记录。</span>
+            </div>
+            <ACSButton
+              disabled={phase !== "candidate"}
+              loading={phase === "confirming"}
+              onClick={onConfirm}
+              size="large"
+              variant="primary"
+            >
+              人工确认并保存方案
+            </ACSButton>
+          </footer>
+        </section>
+      ) : null}
+    </section>
   );
 }
 
@@ -1113,9 +1288,18 @@ function updateInput(
 }
 
 export function AIDirectorPage() {
+  const { state: connection, refresh } = useCreatorIntegration();
   const [input, setInput] = useState<DirectorInputState>(initialInput);
   const [analysisPending, setAnalysisPending] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
+  const [durationSec, setDurationSec] = useState(90);
+  const [platform, setPlatform] = useState("streaming");
+  const [character, setCharacter] = useState("");
+  const [corePhase, setCorePhase] = useState<CoreDirectorPhase>("idle");
+  const [coreCandidate, setCoreCandidate] = useState<CreatorDirectorPlan | null>(null);
+  const [coreMessage, setCoreMessage] = useState("完成输入后，由 Core 生成候选导演方案。");
+  const [sourcePlanRef, setSourcePlanRef] = useState<string | null>(null);
+  const [sourcePlanVersion, setSourcePlanVersion] = useState<number | null>(null);
+  const [confirmedPlanRef, setConfirmedPlanRef] = useState<string | null>(null);
   const [nextStepOpen, setNextStepOpen] = useState(false);
   const analysisTimer = useRef<number | null>(null);
 
@@ -1134,50 +1318,146 @@ export function AIDirectorPage() {
     }, 380);
   }, []);
 
+  const clearCoreResult = useCallback(() => {
+    setCorePhase("idle");
+    setCoreCandidate(null);
+    setSourcePlanRef(null);
+    setSourcePlanVersion(null);
+    setConfirmedPlanRef(null);
+    setCoreMessage("输入已变化，请生成新的 Core 候选方案。");
+  }, []);
+
   const handleInputChange = useCallback(
     (payload: DirectorInputChangePayload) => {
       setInput((current) => updateInput(current, payload));
-      setConfirmed(false);
+      clearCoreResult();
       queueLocalAnalysis();
     },
-    [queueLocalAnalysis],
+    [clearCoreResult, queueLocalAnalysis],
   );
 
   const hasIntent = Boolean(input.storyIntent.trim());
   const analysisStatus: DirectorAnalysisState["status"] = !hasIntent
     ? "empty"
-    : analysisPending
-      ? "editing"
-      : "ready";
+    : input.storyIntent.trim().length < 20
+      ? "error"
+      : analysisPending
+        ? "editing"
+        : "ready";
   const analysis = useMemo(
     () => buildAnalysis(input, analysisStatus),
     [analysisStatus, input],
   );
   const plan = useMemo(
-    () => buildPlan(input, analysis, confirmed),
-    [analysis, confirmed, input],
+    () => buildPlan(input, analysis, false),
+    [analysis, input],
   );
 
-  const pageState: AIDirectorPageState = confirmed
+  const brief = useMemo<CreatorCreativeBrief>(() => {
+    const style =
+      input.referenceStyle === "custom"
+        ? input.customReference.trim()
+        : optionLabel(referenceStyleOptions, input.referenceStyle);
+    return {
+      topic: input.storyIntent.trim(),
+      theme: optionLabel(toneOptions, input.tone),
+      audience: optionLabel(audienceOptions, input.audience),
+      duration: `${durationSec}秒`,
+      platform:
+        directorPlatformOptions.find((option) => option.value === platform)?.label ?? platform,
+      style,
+      character: character.trim(),
+    };
+  }, [character, durationSec, input, platform]);
+
+  const executionReady =
+    plan.status === "ready-preview" &&
+    Number.isFinite(durationSec) &&
+    durationSec >= 1 &&
+    durationSec <= 3600;
+
+  async function generateCoreCandidate() {
+    if (connection.status !== "connected" || !executionReady) return;
+    setCorePhase("generating");
+    setCoreCandidate(null);
+    setConfirmedPlanRef(null);
+    setCoreMessage("Core 正在生成候选导演方案；不会在此步骤创建项目或资产。");
+    try {
+      const payload = await creatorRequest<DirectorCandidateEnvelope>("ai-director/candidates", {
+        method: "POST",
+        body: { brief },
+      });
+      setCoreCandidate(payload.plan);
+      setSourcePlanRef(payload.sourcePlanRef);
+      setSourcePlanVersion(payload.sourcePlanVersion);
+      setCorePhase("candidate");
+      setCoreMessage("候选已返回。请审阅后明确确认，系统不会自动采纳。 ");
+    } catch (error: unknown) {
+      const message =
+        error instanceof CreatorClientError
+          ? error.detail.message
+          : "Core 候选生成未完成，请稍后重试。";
+      setCorePhase("error");
+      setCoreMessage(message);
+    }
+  }
+
+  async function confirmCoreCandidate() {
+    if (!coreCandidate || !sourcePlanRef || !sourcePlanVersion || corePhase !== "candidate") return;
+    setCorePhase("confirming");
+    setCoreMessage("正在提交人工确认…");
+    try {
+      const payload = await creatorRequest<ConfirmedCreativePlanEnvelope>(
+        "creative-plans/confirm",
+        {
+          method: "POST",
+          body: {
+            humanConfirmed: true,
+            brief,
+            plan: coreCandidate,
+            sourcePlanRef,
+            sourcePlanVersion,
+          },
+        },
+      );
+      setConfirmedPlanRef(payload.confirmedPlan.creativePlanRef);
+      setCorePhase("confirmed");
+      setCoreMessage("方案已由人工确认，并获得 Creator Core 的权威创意方案身份。");
+      setNextStepOpen(true);
+    } catch (error: unknown) {
+      const message =
+        error instanceof CreatorClientError
+          ? error.detail.message
+          : "方案确认未完成，请保留当前候选并重试。";
+      setCorePhase("candidate");
+      setCoreMessage(message);
+    }
+  }
+
+  const pageState: AIDirectorPageState = confirmedPlanRef
     ? "confirmed-preview"
-    : analysisPending
-      ? "editing"
-      : plan.status === "ready-preview"
-        ? "plan-ready"
-        : hasIntent
-          ? "analysis-ready"
-          : "empty";
+    : analysisStatus === "error"
+      ? "local-error"
+      : analysisPending
+        ? "editing"
+        : plan.status === "ready-preview"
+          ? "plan-ready"
+          : hasIntent
+            ? "analysis-ready"
+            : "empty";
 
   const context: DirectorContext = {
-    projectTitle: "未来之城",
-    projectTypeLabel: "科幻短片",
+    projectTitle: "未命名本地方案",
+    projectTypeLabel: "未保存项目",
     stageLabel: "导演方案",
-    statusLabel: confirmed
-      ? "本地预览已确认"
+    statusLabel: confirmedPlanRef
+      ? "权威方案已确认"
+      : coreCandidate
+        ? "Core 候选已生成"
       : analysisPending
         ? "分析预览中"
         : plan.status === "ready-preview"
-          ? "导演方案已准备"
+          ? "输入检查已通过"
           : "等待输入",
   };
 
@@ -1191,46 +1471,86 @@ export function AIDirectorPage() {
         <DirectorContextBar context={context} />
         <DirectorPageIntro
           eyebrow="AI DIRECTOR STUDIO"
-          subtitle="明确故事意图、目标观众、情绪和参考风格，形成一份可以进入后续制作的导演方案预览。"
-          title="让 AI 导演理解你的电影"
+          subtitle="明确故事意图、目标观众、情绪和参考风格；通过 Core 生成候选，并由你确认后保存为可引用的创意方案。"
+          title="建立可执行的导演简报"
         />
         <DirectorWorkspace
           analysis={analysis}
           context={context}
           input={input}
-          onConfirmPlan={() => {
-            if (plan.status !== "ready-preview") return;
-            setConfirmed(true);
-            setNextStepOpen(true);
-          }}
           onInputChange={handleInputChange}
           onReanalyze={() => {
-            setConfirmed(false);
+            clearCoreResult();
             queueLocalAnalysis();
           }}
           plan={plan}
         />
+        <CoreDirectorExecutionPanel
+          candidate={coreCandidate}
+          character={character}
+          connected={connection.status === "connected"}
+          connectionMessage={
+            connection.status === "loading"
+              ? "正在核对 Creator Core 连接。"
+              : connection.status === "connected"
+                ? "Core 已连接。"
+                : connection.error.message
+          }
+          confirmedPlanRef={confirmedPlanRef}
+          durationSec={durationSec}
+          localReady={executionReady}
+          onCharacterChange={(value) => {
+            setCharacter(value);
+            clearCoreResult();
+          }}
+          onConfirm={() => void confirmCoreCandidate()}
+          onDurationChange={(value) => {
+            setDurationSec(value);
+            clearCoreResult();
+          }}
+          onGenerate={() => void generateCoreCandidate()}
+          onPlatformChange={(value) => {
+            setPlatform(value);
+            clearCoreResult();
+          }}
+          onRefresh={refresh}
+          phase={corePhase}
+          platform={platform}
+          statusMessage={coreMessage}
+        />
       </div>
 
       <ACSModal
-        description="本地导演方案预览"
+        description="Creator Core 人工确认回执"
         footer={
-          <ACSButton fullWidth onClick={() => setNextStepOpen(false)} variant="primary">
-            继续完善导演方案
-          </ACSButton>
+          <div className={styles.nextStepActions}>
+            <Link
+              href={
+                confirmedPlanRef
+                  ? `/creator/projects/new?creativePlanRef=${encodeURIComponent(confirmedPlanRef)}`
+                  : "/creator/projects/new"
+              }
+            >
+              用当前方案创建项目
+            </Link>
+            <Link href="/creator/projects">前往项目中心</Link>
+            <ACSButton onClick={() => setNextStepOpen(false)} variant="primary">
+              留在 AI 导演
+            </ACSButton>
+          </div>
         }
         onClose={() => setNextStepOpen(false)}
         open={nextStepOpen}
-        title="导演方案预览已确认"
+        title="导演方案已保存"
       >
         <div className={styles.nextStepContent}>
-          <ACSBadge tone="primary">本地预览已确认</ACSBadge>
-          <h3>下一站 · 故事世界 / IP Bible</h3>
+          <ACSBadge tone="success">权威方案已确认</ACSBadge>
+          <h3>{confirmedPlanRef ? `创意方案：${confirmedPlanRef}` : "创意方案已确认"}</h3>
           <p>
-            故事世界将在后续阶段接入。当前导演方案预览已安全保留在本地页面状态中。
+            该身份来自 Creator Public API，可作为后续剧集与剧本链路的来源。项目身份仍需在“新建项目”中单独创建，不会由本页隐式生成。
           </p>
           <p className={styles.boundaryNote}>
-            此确认不会创建正式项目、保存制作数据或生成作品身份。
+            此确认只保存导演创意方案，不代表项目、资产、审批、渲染或发布已经完成。
           </p>
         </div>
       </ACSModal>

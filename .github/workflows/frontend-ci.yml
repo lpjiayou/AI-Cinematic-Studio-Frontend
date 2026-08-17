@@ -40,3 +40,71 @@ jobs:
 
       - name: Run typecheck
         run: npm run typecheck
+
+  gate-c-k2-browser:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out Frontend candidate
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      - name: Check out exact Core main baseline
+        uses: actions/checkout@v4
+        with:
+          repository: lpjiayou/AI-Cinematic-Studio
+          ref: 8d9ce52166cec27d2fefaa86548016130babdfff
+          path: core
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deterministic media runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+
+      - name: Install Frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install pinned browser harness
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm install --no-save --package-lock=false playwright@1.62.1
+        working-directory: frontend
+
+      - name: Build production Frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Execute real HTTP and Chromium Gate C
+        env:
+          K2_GATE_CORE_DIR: ${{ github.workspace }}/core
+          K2_GATE_FRONTEND_DIR: ${{ github.workspace }}/frontend
+          K2_GATE_ARTIFACT_ROOT: ${{ github.workspace }}/frontend/artifacts/gate-c-k2
+          K2_GATE_FRONTEND_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          K2_GATE_BROWSER_CHANNEL: chrome
+        run: npm run test:gate-c:k2
+        working-directory: frontend
+
+      - name: Upload Gate C evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k2-g7-gate-c-${{ github.sha }}
+          path: frontend/artifacts/gate-c-k2
+          if-no-files-found: error
+          retention-days: 30

@@ -52,4 +52,42 @@ describe("ACS design-system contract", () => {
       expect(tokens).toContain(tailwindBridge);
     }
   });
+
+  it("keeps every primary page shell fluid on wide production displays", () => {
+    const tokens = readFileSync(resolve(repositoryRoot, "src", "styles", "tokens.css"), "utf8");
+    const fluidShellStyles = [
+      "src/app/landing-page.module.css",
+      "src/app/creator/global-shell.module.css",
+      "src/app/creator/ai-director/ai-director.module.css",
+      "src/app/creator/projects/projects-page.module.css",
+      "src/app/creator/projects/new/create-project.module.css",
+      "src/app/creator/projects/[projectRef]/planning/connected-workspace.module.css",
+      "src/app/creator/projects/[projectRef]/content/script/script-workspace.module.css",
+      "src/app/script-studio/script-studio.module.css",
+    ] as const;
+
+    expect(tokens).toContain("--acs-content-max-width: 100%;");
+
+    for (const stylePath of fluidShellStyles) {
+      const styles = readFileSync(resolve(repositoryRoot, stylePath), "utf8");
+      expect(styles, stylePath).toContain("var(--acs-content-max-width)");
+    }
+
+    for (const stylePath of [
+      "src/app/creator/projects/[projectRef]/planning/bible/story-world.module.css",
+      "src/app/creator/projects/[projectRef]/planning/characters/character-studio.module.css",
+    ]) {
+      const styles = readFileSync(resolve(repositoryRoot, stylePath), "utf8");
+      expect(styles, stylePath).toMatch(/\.page\s*\{[\s\S]*?width:\s*100%;/);
+    }
+
+    const characterStudioStyles = readFileSync(
+      resolve(
+        repositoryRoot,
+        "src/app/creator/projects/[projectRef]/planning/characters/character-studio.module.css",
+      ),
+      "utf8",
+    );
+    expect(characterStudioStyles).not.toContain("118rem");
+  });
 });

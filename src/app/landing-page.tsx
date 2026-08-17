@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ACSBadge, ACSButton, ACSCard, WorkflowMap } from "@/components";
 import { CustomerLayout } from "@/layouts";
 import { LandingThemeToggle } from "./landing-theme-toggle";
@@ -28,34 +29,46 @@ const monitorContext = [
 
 const capabilityItems = [
   {
-    title: "AI Director",
+    eyebrow: "当前可体验",
+    title: "AI 导演",
     description: "从一句创意生成导演方案。",
     value: "让创意、叙事与视觉从第一步就保持一致。",
     scenarios: ["故事方向", "镜头规划", "视觉风格"],
+    href: "/creator/ai-director",
+    action: "体验 AI 导演",
     image: "/assets/acs/landing/hero-cinema-light.webp",
     imageAlt: "导演在未来电影摄影棚中规划角色镜头",
   },
   {
-    title: "Storyboard",
+    eyebrow: "后续制作能力",
+    title: "智能分镜",
     description: "自动将剧本转换为电影分镜。",
     value: "在制作前看见完整节奏，减少反复试错。",
     scenarios: ["景别", "构图", "运镜"],
+    href: null,
+    action: null,
     image: "/assets/acs/landing/work-future-city.webp",
     imageAlt: "未来城市电影场景的宽幅构图",
   },
   {
-    title: "Timeline",
+    eyebrow: "后续制作能力",
+    title: "智能后期",
     description: "AI 辅助完成后期制作。",
     value: "让剪辑、声音与字幕在同一创作节奏中推进。",
     scenarios: ["剪辑", "声音", "字幕"],
+    href: null,
+    action: null,
     image: "/assets/acs/landing/work-evening-lamp.webp",
     imageAlt: "夜晚室内电影场景的灯光与情绪画面",
   },
   {
-    title: "Asset Intelligence",
+    eyebrow: "当前可体验",
+    title: "角色一致性",
     description: "保持角色与资产长期一致。",
     value: "让角色、场景与品牌资产跨镜头保持连贯。",
     scenarios: ["身份锁定", "版本管理", "资产追踪"],
+    href: "/creator/projects/future-city/planning/characters",
+    action: "进入角色工作台",
     image: "/assets/acs/landing/hero-cinema-dark.webp",
     imageAlt: "未来城市片场中的电影角色",
   },
@@ -112,12 +125,21 @@ function ACSHeader() {
 
       <div className={styles.headerActions}>
         <LandingThemeToggle />
-        <ACSButton className={styles.loginButton} size="small" variant="ghost">
-          登录
+        <ACSButton
+          className={styles.loginButton}
+          disabled
+          size="small"
+          title="账号系统尚未开放"
+          variant="ghost"
+        >
+          账号尚未开放
         </ACSButton>
-        <ACSButton className={styles.headerPrimaryButton} size="small">
+        <Link
+          className={`${styles.linkButton} ${styles.linkButtonSmall} ${styles.headerPrimaryButton}`}
+          href="/creator"
+        >
           进入工作区
-        </ACSButton>
+        </Link>
       </div>
     </div>
   );
@@ -201,16 +223,18 @@ function HeroSection() {
             到镜头生成与成片交付。
           </p>
           <div className={styles.heroActions}>
-            <ACSButton className={styles.primaryCTA} size="large">
+            <Link
+              className={`${styles.linkButton} ${styles.linkButtonLarge} ${styles.primaryCTA}`}
+              href="/creator/projects/new"
+            >
               开始创作
-            </ACSButton>
-            <ACSButton
-              className={styles.secondaryCTA}
-              size="large"
-              variant="secondary"
+            </Link>
+            <a
+              className={`${styles.linkButton} ${styles.linkButtonLarge} ${styles.linkButtonSecondary} ${styles.secondaryCTA}`}
+              href="#works"
             >
               观看案例
-            </ACSButton>
+            </a>
           </div>
         </div>
         <CinemaPreview />
@@ -252,7 +276,6 @@ function FeatureShowcase() {
         {capabilityItems.map((item, index) => (
           <ACSCard
             className={styles.featureCard}
-            interactive
             key={item.title}
             padding="compact"
           >
@@ -268,6 +291,7 @@ function FeatureShowcase() {
               </span>
             </div>
             <div className={styles.featureBody}>
+              <span className={styles.capabilityEyebrow}>{item.eyebrow}</span>
               <h3>{item.title}</h3>
               <p>{item.description}</p>
               <p className={styles.featureValue}>{item.value}</p>
@@ -276,6 +300,13 @@ function FeatureShowcase() {
                   <li key={scenario}>{scenario}</li>
                 ))}
               </ul>
+              {item.href && item.action ? (
+                <Link className={styles.capabilityLink} href={item.href}>
+                  {item.action}
+                </Link>
+              ) : (
+                <span className={styles.capabilityUnavailable}>暂未开放操作入口</span>
+              )}
             </div>
           </ACSCard>
         ))}
@@ -298,7 +329,6 @@ function WorkGallery() {
         {workItems.map((item) => (
           <ACSCard
             className={styles.workCard}
-            interactive
             key={item.title}
             padding="compact"
           >
@@ -330,9 +360,12 @@ function CTASection() {
         <h2>让企业拥有完整的 AI 影视制作团队。</h2>
         <span>从创意策划到成片交付，让专业制作能力成为可持续的企业资产。</span>
       </div>
-      <ACSButton className={styles.primaryCTA} size="large">
+      <Link
+        className={`${styles.linkButton} ${styles.linkButtonLarge} ${styles.primaryCTA}`}
+        href="/creator"
+      >
         进入 AI Cinematic Studio
-      </ACSButton>
+      </Link>
     </section>
   );
 }

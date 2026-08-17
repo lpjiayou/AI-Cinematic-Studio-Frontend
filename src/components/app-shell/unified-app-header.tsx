@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, type MouseEvent as ReactMouseEvent } from "react";
 import { PRIMARY_NAVIGATION } from "@/lib/navigation";
 import { PROJECT_NAVIGATION, projectRoute } from "@/lib/project-navigation";
+import { useCreatorIntegration } from "@/features/core-integration";
 import { useACSTheme } from "@/theme";
 import styles from "./unified-app-header.module.css";
 
@@ -37,13 +38,17 @@ function GlobalNavigation({ pathname }: { pathname: string }) {
             {item.available ? (
               <Link
                 aria-current={isCurrentGlobalDestination(pathname, item.href) ? "page" : undefined}
+                aria-label={item.label}
                 href={item.href}
               >
-                {item.label}
+                <span className={styles.navigationLabel}>{item.label}</span>
+                <span className={styles.navigationDescription}>{item.description}</span>
               </Link>
             ) : (
-              <span aria-disabled="true" title="尚未开放">
-                {item.label}
+              <span aria-disabled="true" title={item.unavailableReason}>
+                <span className={styles.navigationLabel}>{item.label}</span>
+                <span className={styles.navigationDescription}>{item.description}</span>
+                <span className={styles.navigationAvailability}>尚未开放</span>
               </span>
             )}
           </li>
@@ -64,12 +69,15 @@ function ProjectNavigation({ clientKey, pathname }: { clientKey: string; pathnam
           return (
             <li key={item.segment}>
               {item.available ? (
-                <Link aria-current={current ? "page" : undefined} href={href}>
-                  {item.label}
+                <Link aria-current={current ? "page" : undefined} aria-label={item.label} href={href}>
+                  <span className={styles.navigationLabel}>{item.label}</span>
+                  <span className={styles.navigationDescription}>{item.description}</span>
                 </Link>
               ) : (
                 <span aria-disabled="true" title={item.unavailableReason ?? "尚未开放"}>
-                  {item.label}
+                  <span className={styles.navigationLabel}>{item.label}</span>
+                  <span className={styles.navigationDescription}>{item.description}</span>
+                  <span className={styles.navigationAvailability}>尚未开放</span>
                 </span>
               )}
             </li>
@@ -89,8 +97,19 @@ export function UnifiedAppHeader({
   const clientKey = projectClientKeyFromPath(pathname);
   const resolvedMode: AppHeaderMode = mode === "auto" ? (clientKey ? "project" : "global") : mode;
   const { theme, toggleTheme } = useACSTheme();
+  const { state: coreState } = useCreatorIntegration();
   const [utilityMessage, setUtilityMessage] = useState<string | null>(null);
   const brandHref = "/creator";
+  const capabilitySummary =
+    coreState.status === "connected"
+      ? coreState.capabilities.reduce(
+          (summary, capability) => {
+            summary[capability.state] += 1;
+            return summary;
+          },
+          { available: 0, authority_required: 0, not_open: 0 },
+        )
+      : null;
 
   function handleNavigate(event: ReactMouseEvent<HTMLAnchorElement>, href: string) {
     onNavigate?.(event, href);
@@ -134,39 +153,50 @@ export function UnifiedAppHeader({
           <div className={styles.utilities} aria-label="应用工具">
             <button
               aria-label="搜索"
-              onClick={() => setUtilityMessage("全局搜索将在可信项目数据接入后开放。")}
+              onClick={() => setUtilityMessage("全局搜索尚未开放；当前不会返回本地伪造结果。")}
               type="button"
             >
-              <span aria-hidden="true">⌕</span>
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-search.svg" width={18} />
             </button>
             <button
               aria-label={`切换至${theme === "dark" ? "浅色" : "深色"}模式`}
               onClick={toggleTheme}
               type="button"
             >
-              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+              <Image
+                alt=""
+                height={18}
+                src={theme === "dark" ? "/assets/workspace-home/icons/utility-theme-light.svg" : "/assets/workspace-home/icons/utility-theme-dark.svg"}
+                width={18}
+              />
             </button>
             <button
               aria-label="通知"
-              onClick={() => setUtilityMessage("当前没有新的本地演示通知。")}
+              onClick={() => setUtilityMessage("通知服务尚未接入，当前不显示推断通知。")}
               type="button"
             >
-              <span aria-hidden="true">◌</span>
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-notification.svg" width={18} />
             </button>
             <button
               aria-label="帮助"
-              onClick={() => setUtilityMessage("当前页面使用本地演示数据，不会提交生产内容。")}
+              onClick={() =>
+                setUtilityMessage(
+                  coreState.status === "connected"
+                    ? "Creator Public API 已连接；页面会分别标注 Core 数据、权限阻断与 LOCAL_FIXTURE。"
+                    : "Creator Core 未连接；权威数据不会由 LOCAL_FIXTURE 自动替代。",
+                )
+              }
               type="button"
             >
-              <span aria-hidden="true">?</span>
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-help.svg" width={18} />
             </button>
             <button
               aria-label="用户菜单"
               className={styles.avatar}
-              onClick={() => setUtilityMessage("本地演示用户未连接正式账户上下文。")}
+              onClick={() => setUtilityMessage("账户、团队与配额身份尚未接入；工作区范围由服务端配置注入。")}
               type="button"
             >
-              演
+              <Image alt="" height={18} src="/assets/workspace-home/icons/utility-menu.svg" width={18} />
             </button>
           </div>
         </div>
@@ -176,14 +206,29 @@ export function UnifiedAppHeader({
       </header>
 
       {resolvedMode === "global" ? (
-        <aside aria-label="本地呈现边界" className={styles.presentationBoundary}>
+        <aside
+          aria-label="Creator 数据连接"
+          className={styles.presentationBoundary}
+          data-status={coreState.status}
+        >
           <div>
-            <strong>本地演示</strong>
-            <span>当前界面使用本地演示内容，不代表已连接正式项目、生产状态或资产记录。</span>
+            <strong>
+              {coreState.status === "connected"
+                ? "Core 已连接"
+                : coreState.status === "loading"
+                  ? "正在连接 Core"
+                  : "Core 未连接"}
+            </strong>
+            <span>
+              {coreState.status === "connected"
+                ? `${capabilitySummary?.available ?? 0} 项公共接口已开放，${capabilitySummary?.authority_required ?? 0} 项等待外部权限，${capabilitySummary?.not_open ?? 0} 项尚未开放。`
+                : coreState.status === "loading"
+                  ? "正在核对公共 API 与 M1–M19 能力合同。"
+                  : "权威数据不会被本地演示替代；可在项目中心单独打开明确标注的 LOCAL_FIXTURE。"}
+            </span>
           </div>
         </aside>
       ) : null}
     </>
   );
 }
-

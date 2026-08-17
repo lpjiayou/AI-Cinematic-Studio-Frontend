@@ -24,8 +24,8 @@ describe("CreatorLayout", () => {
     expect(
       screen.getByRole("region", { name: "Creator route content" }),
     ).toHaveTextContent("Creator child");
-    expect(screen.getByRole("complementary", { name: "本地呈现边界" })).toHaveTextContent(
-      /不代表已连接正式项目、生产状态或资产记录/,
+    expect(screen.getByRole("complementary", { name: "Creator 数据连接" })).toHaveTextContent(
+      /正在核对公共 API 与 M1–M19 能力合同/,
     );
   });
 
@@ -61,9 +61,12 @@ describe("CreatorLayout", () => {
 
     for (const label of ["资产库", "创作中心", "作品"]) {
       const item = within(navigation).getByText(label);
-      expect(item).toHaveAttribute("aria-disabled", "true");
+      expect(item.closest("span[aria-disabled='true']")).not.toBeNull();
       expect(item.closest("a")).toBeNull();
       expect(item.closest("button")).toBeNull();
     }
+
+    expect(within(navigation).getByText("任务入口与能力边界")).toBeInTheDocument();
+    expect(within(navigation).getAllByText("尚未开放")).toHaveLength(3);
   });
 });

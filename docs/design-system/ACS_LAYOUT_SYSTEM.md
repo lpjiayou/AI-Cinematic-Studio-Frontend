@@ -41,10 +41,12 @@ The shells manage geometry only. They do not own routes, navigation state, proje
 | Collapsed sidebar | `--acs-sidebar-collapsed-width` | `72px` |
 | Header / top bar | `--acs-header-height` | `72px` |
 | Project navigator | `--acs-project-nav-width` | `220px` |
-| Object navigator | `--acs-object-nav-width` | `210px` |
-| Inspector | `--acs-inspector-width` | `340px` |
+| Object navigator | `--acs-object-nav-width` | `15rem` |
+| Inspector | `--acs-inspector-width` | `22.5rem` |
+| Workspace/editor top bar minimum | `--acs-topbar-min-height` | `3.5rem` |
+| Candidate results minimum | `--acs-candidate-strip-results-min-height` | `7.5rem` |
 | Bottom drawer maximum | `--acs-bottom-drawer-height` | `280px` |
-| Customer content maximum | `--acs-content-max-width` | `1440px` |
+| Application content maximum | `--acs-content-max-width` | `100%` |
 
 Feature code must not copy these values. Use the layout shell or the token.
 
@@ -60,7 +62,10 @@ Purpose: simple customer-facing shell without product navigation behavior.
 | `announcement` | Optional full-width announcement |
 | `contained` | Constrains content to the ACS maximum width; defaults to `true` |
 
-The main region grows to fill the viewport. Announcement, header, and footer are presentational slots supplied by the consumer.
+The main region grows to fill the viewport. The `100%` application content token is
+intentional: 2K/4K displays and browser zoom must keep a fluid production canvas.
+Readable prose sets its own local measure. Announcement, header, and footer are
+presentational slots supplied by the consumer.
 
 ## 4. WorkspaceLayout
 
@@ -79,7 +84,9 @@ Purpose: primary application workbench shell.
 | `bottomDrawerOpen` | Shows supplied drawer; defaults to `false` |
 | `contentLabel` | Accessible main-region label; defaults to `工作区内容` |
 
-The consumer owns open and collapsed state. The layout does not add toggle buttons or navigation logic.
+The consumer owns open and collapsed state. The layout does not add toggle buttons or
+navigation logic. Supplied top bars use a minimum height and may grow when explanatory
+or validation content wraps; they are not clipped to a fixed row.
 
 ## 5. EditorLayout
 
@@ -98,7 +105,9 @@ Purpose: dense professional editing framework inside a workspace.
 | `bottomDrawerOpen` | Shows supplied drawer; defaults to `false` |
 | `canvasLabel` | Accessible main-region label; defaults to `编辑器画布` |
 
-The editor canvas uses the media-stage token. Navigation and inspector regions use deep surfaces. Toolbars and action bars use standard surfaces.
+The editor canvas uses the media-stage token. Navigation and inspector regions use
+deep surfaces. Toolbars and action bars use standard surfaces. Candidate result areas
+use a minimum height rather than a fixed height so comparison content can grow.
 
 ## 6. Responsive behavior
 
@@ -122,6 +131,8 @@ The editor canvas uses the media-stage token. Navigation and inspector regions u
 - Consumers remain responsible for accessible controls that expose navigation or inspector content as overlays.
 
 Responsive CSS changes presentation only. It does not change application state or imply that a region's data is unavailable.
+Regions hidden at a breakpoint must be unmounted from the fixed grid or exposed through
+an accessible overlay; invisible fixed-width tracks must not reserve empty space.
 
 ## 7. Composition patterns
 

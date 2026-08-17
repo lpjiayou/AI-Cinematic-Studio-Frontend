@@ -82,20 +82,6 @@ const iconSources = {
 
 type ScriptStudioIconName = keyof typeof iconSources;
 type IconStyle = CSSProperties & { "--script-studio-icon": string };
-type GuidedMessage = { title: string; description: string };
-
-const toolbarActions = [
-  { label: "视图", icon: "template" },
-  { label: "格式", icon: "edit" },
-  { label: "插入", icon: "add" },
-  { label: "动作", icon: "director" },
-  { label: "对白", icon: "script" },
-  { label: "镜头", icon: "storyboard" },
-  { label: "场景", icon: "template" },
-  { label: "查找", icon: "search" },
-  { label: "标记", icon: "insights" },
-  { label: "批注", icon: "notification" },
-] as const satisfies ReadonlyArray<{ label: string; icon: ScriptStudioIconName }>;
 
 const candidateKinds = [
   { value: "rewrite", label: "改写" },
@@ -163,30 +149,36 @@ function ScriptStudioHeader({
 
 function ScriptContextBar({
   dirty,
-  onSwitch,
+  onBackToProject,
 }: {
   dirty: boolean;
-  onSwitch: (intent: "project-switch" | "episode-switch", label: string) => void;
+  onBackToProject: () => void;
 }) {
   return (
     <section className={styles.contextBar} aria-label="剧本制作上下文">
-      <h1 className={styles.visuallyHidden}>剧本制作工作台</h1>
+      <div className={styles.contextTitle}>
+        <ACSButton onClick={onBackToProject} size="small" variant="ghost">返回项目</ACSButton>
+        <div>
+          <h1>剧本工作室</h1>
+          <p>选择场景，直接修改正文；需要时再生成、比较并采用 AI 候选。</p>
+        </div>
+      </div>
       <div className={styles.contextSelectors}>
-        <button onClick={() => onSwitch("project-switch", scriptWorkspaceContext.projectTitle)} type="button">
+        <div>
           <span className={styles.contextLabel}>项目</span>
           <strong>{scriptWorkspaceContext.projectTitle}</strong>
-        </button>
-        <button onClick={() => onSwitch("project-switch", scriptWorkspaceContext.seriesTitle)} type="button">
+        </div>
+        <div>
           <span className={styles.contextLabel}>系列</span>
           <strong>{scriptWorkspaceContext.seriesTitle}</strong>
-        </button>
-        <button onClick={() => onSwitch("episode-switch", scriptWorkspaceContext.episodeLabel)} type="button">
+        </div>
+        <div>
           <span className={styles.contextLabel}>剧集</span>
           <strong>{scriptWorkspaceContext.episodeLabel}</strong>
-        </button>
+        </div>
       </div>
       <div className={styles.contextStatus}>
-        <ACSBadge tone="primary">{scriptWorkspaceContext.stageLabel}</ACSBadge>
+        <ACSBadge tone="primary">正文编辑</ACSBadge>
         <span className={styles.localState} data-dirty={dirty || undefined}>
           <span aria-hidden="true" />
           {dirty ? "尚有本地修改" : "本地草稿"}
@@ -202,16 +194,18 @@ function ScriptToolbar({
   onOpenCompare,
   onOpenNavigator,
   onOpenInspector,
-  onOpenBottomDrawer,
-  onGuide,
+  onOpenCandidates,
+  onOpenHistory,
+  onOpenFindings,
 }: {
   compact: boolean;
   candidateReady: boolean;
   onOpenCompare: () => void;
   onOpenNavigator: () => void;
   onOpenInspector: () => void;
-  onOpenBottomDrawer: () => void;
-  onGuide: (message: GuidedMessage) => void;
+  onOpenCandidates: () => void;
+  onOpenHistory: () => void;
+  onOpenFindings: () => void;
 }) {
   return (
     <div className={styles.toolbar} role="toolbar" aria-label="剧本编辑工具栏">
@@ -222,27 +216,14 @@ function ScriptToolbar({
         <ACSButton aria-label="打开剧本检查器" leadingIcon={<ScriptStudioIcon name="insights" />} onClick={onOpenInspector} size="small" variant="ghost">
           检查器
         </ACSButton>
-        <ACSButton aria-label="打开候选与本地历史" leadingIcon={<ScriptStudioIcon name="script" />} onClick={onOpenBottomDrawer} size="small" variant="ghost">
-          版本/候选
+        <ACSButton aria-label="打开 AI 候选" leadingIcon={<ScriptStudioIcon name="director" />} onClick={onOpenCandidates} size="small" variant="ghost">
+          AI 候选
         </ACSButton>
       </div> : <div className={styles.desktopToolbarActions}>
-        {toolbarActions.map((action) => (
-          <ACSButton
-            key={action.label}
-            leadingIcon={<ScriptStudioIcon name={action.icon} />}
-            onClick={() => {
-              if (action.label === "查找") {
-                onGuide({ title: "查找剧本内容", description: "当前场景已准备好，可在后续迭代加入页内查找定位。" });
-              } else {
-                onGuide({ title: action.label, description: `${action.label}工具会在保持当前剧本和选择状态的前提下工作。` });
-              }
-            }}
-            size="small"
-            variant="ghost"
-          >
-            {action.label}
-          </ACSButton>
-        ))}
+        <span className={styles.toolbarMode}>当前任务 · 正文编辑</span>
+        <ACSButton leadingIcon={<ScriptStudioIcon name="director" />} onClick={onOpenCandidates} size="small" variant="ghost">AI 候选</ACSButton>
+        <ACSButton leadingIcon={<ScriptStudioIcon name="script" />} onClick={onOpenHistory} size="small" variant="ghost">本地历史</ACSButton>
+        <ACSButton leadingIcon={<ScriptStudioIcon name="insights" />} onClick={onOpenFindings} size="small" variant="ghost">叙事检查</ACSButton>
       </div>}
       <div className={styles.toolbarTrailing}>
         <ACSButton disabled={!candidateReady} onClick={onOpenCompare} size="small" variant="secondary">
@@ -640,6 +621,8 @@ function ScriptInspector({
   onLocateFinding: (finding: NarrativeFindingPreview) => void;
   onNextAction: () => void;
 }) {
+  const blockCount = scene?.blocks.length ?? 0;
+
   return (
     <div className={styles.inspector}>
       <section className={styles.inspectorSection}>
@@ -650,15 +633,15 @@ function ScriptInspector({
         <dl className={styles.workspaceFacts}>
           <div><dt>场景</dt><dd>{scene?.ordinal ?? "—"} · {scene?.slugline ?? "未选择"}</dd></div>
           <div><dt>章节</dt><dd>{scene?.actLabel ?? "—"}</dd></div>
-          <div><dt>页数（预计）</dt><dd>2 3/8</dd></div>
-          <div><dt>最近修改</dt><dd>{dirty ? "本地 · 刚刚" : "本地 · 今天 10:32"}</dd></div>
+          <div><dt>内容块</dt><dd>{blockCount} 个</dd></div>
+          <div><dt>草稿状态</dt><dd>{dirty ? "当前会话有修改" : "与进入时一致"}</dd></div>
         </dl>
       </section>
 
       <section className={styles.inspectorSection}>
         <div className={styles.inspectorHeading}>
           <h2>人物一致性</h2>
-          <ACSButton onClick={() => onOpenOwner("M6")} size="small" variant="ghost">查看</ACSButton>
+          <ACSButton onClick={() => onOpenOwner("M6")} size="small" variant="ghost">打开角色工作室</ACSButton>
         </div>
         <strong className={styles.constraintLead}>林澈 · 对白规则：短句、低声、少修饰</strong>
         <ul className={styles.constraintList}>
@@ -672,13 +655,13 @@ function ScriptInspector({
       <section className={styles.inspectorSection}>
         <div className={styles.inspectorHeading}>
           <h2>世界规则</h2>
-          <ACSButton onClick={() => onOpenOwner("M6")} size="small" variant="ghost">查看</ACSButton>
+          <ACSButton onClick={() => onOpenOwner("M5")} size="small" variant="ghost">打开故事世界</ACSButton>
         </div>
         <ul className={styles.worldRules}>
-          <li>年份：2047</li>
-          <li>城市：临港城（雨季常态）</li>
-          <li>科技：低调实用，旧城区无全息广告</li>
-          <li>社会：信息受控，地下网络活跃</li>
+          <li>时代：2148 年，记忆信用系统运行</li>
+          <li>城市：未来之城，城区按记忆信用分层</li>
+          <li>代价：记忆交换会削弱与之关联的情绪</li>
+          <li>约束：人工智能不能直接改写人类核心记忆</li>
         </ul>
       </section>
 
@@ -773,7 +756,7 @@ function LocalHistoryPanel({
       <div className={styles.drawerSectionHeading}>
         <div>
           <h3 id="local-history-title">本地历史</h3>
-          <p>仅保留在本次会话中，不是正式 ScriptVersion。</p>
+          <p>只保留在本次会话中，不会创建正式剧本版本。</p>
         </div>
         <ACSBadge tone="neutral">会话内</ACSBadge>
       </div>
@@ -864,8 +847,8 @@ function BottomDrawerContent({
 }
 
 const bottomTabs: ReadonlyArray<{ id: ScriptBottomDrawerTab; label: string }> = [
-  { id: "candidates", label: "候选" },
-  { id: "local-history", label: "版本 / 本地历史" },
+  { id: "candidates", label: "AI 候选" },
+  { id: "local-history", label: "本地历史" },
   { id: "findings", label: "叙事发现" },
 ];
 
@@ -984,20 +967,6 @@ function UnsavedGuard({
   );
 }
 
-function GuideModal({ message, onClose }: { message: GuidedMessage | null; onClose: () => void }) {
-  return (
-    <ACSModal
-      footer={<ACSButton onClick={onClose}>返回剧本工作台</ACSButton>}
-      onClose={onClose}
-      open={Boolean(message)}
-      size="small"
-      title={message?.title ?? "制作提示"}
-    >
-      <p className={styles.guideBody}>{message?.description}</p>
-    </ACSModal>
-  );
-}
-
 export function ScriptStudioPage() {
   const router = useRouter();
   const viewportWidth = useViewportWidth();
@@ -1013,12 +982,11 @@ export function ScriptStudioPage() {
   const [candidates, setCandidates] = useState<ScriptRewriteCandidate[]>([{ ...initialCandidate, replacements: initialCandidate.replacements.map((item) => ({ ...item })) }]);
   const [candidateState, setCandidateState] = useState<ScriptCandidateOperationState>("candidate-ready");
   const [candidateKind, setCandidateKind] = useState<ScriptCandidateKind>("dialogue");
-  const [compare, setCompare] = useState<ScriptCompareState>({ status: "compare-open", candidateId: initialCandidate.candidateId });
+  const [compare, setCompare] = useState<ScriptCompareState>({ status: "compare-closed" });
   const [recovery, setRecovery] = useState<ScriptRecoveryState>({ status: "none" });
   const [freshness] = useState<ScriptFreshnessState>("current");
   const [localHistory, setLocalHistory] = useState<ScriptLocalSnapshot[]>(() => initialLocalHistory.map((snapshot) => ({ ...snapshot, scenes: cloneScenes(snapshot.scenes) })));
   const [pendingAction, setPendingAction] = useState<PendingUnsavedAction | null>(null);
-  const [guidedMessage, setGuidedMessage] = useState<GuidedMessage | null>(null);
   const [navigatorDrawerOpen, setNavigatorDrawerOpen] = useState(false);
   const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
   const [bottomDrawerOpen, setBottomDrawerOpen] = useState(false);
@@ -1252,20 +1220,18 @@ export function ScriptStudioPage() {
     router.push(href);
   }
 
-  function handleSwitch(intent: "project-switch" | "episode-switch", label: string) {
-    if (dirty) {
-      setPendingAction({ intent, label });
-      return;
-    }
-    setGuidedMessage({ title: `切换${intent === "project-switch" ? "项目" : "剧集"}`, description: `${label}是当前演示上下文；不会在前端创建或改写正式身份。` });
-  }
-
   function handleOpenOwner(owner: UpstreamConstraintOwner) {
+    const href = owner === "M6"
+      ? "/creator/projects/future-city/planning/characters"
+      : owner === "M5"
+        ? "/creator/projects/future-city/planning/bible"
+        : "/creator/ai-director";
+
     if (dirty) {
-      setPendingAction({ intent: "route-navigation", href: owner === "M6" ? "/character-studio" : "/director" });
+      setPendingAction({ intent: "route-navigation", href });
       return;
     }
-    router.push(owner === "M6" ? "/character-studio" : "/director");
+    router.push(href);
   }
 
   function handleStoryboardProgression() {
@@ -1315,8 +1281,6 @@ export function ScriptStudioPage() {
       });
     } else if (action.intent === "route-navigation" || action.intent === "back-navigation") {
       router.push(action.href);
-    } else if (action.intent === "project-switch" || action.intent === "episode-switch") {
-      setGuidedMessage({ title: action.intent === "project-switch" ? "切换项目" : "切换剧集", description: `${action.label}仍是本地演示上下文；当前切换不会创建新的正式身份。` });
     }
   }
 
@@ -1368,7 +1332,7 @@ export function ScriptStudioPage() {
   return (
     <div className={styles.pageShell} data-candidate-state={pageState.candidate} data-dirty={dirty || undefined}>
       <ScriptStudioHeader dirty={dirty} onNavigate={handleNavigate} />
-      <ScriptContextBar dirty={dirty} onSwitch={handleSwitch} />
+      <ScriptContextBar dirty={dirty} onBackToProject={() => handleNavigate("route-navigation", "/creator/projects")} />
       <EditorLayout
         actionBar={
           <ProductionActionBar
@@ -1395,9 +1359,10 @@ export function ScriptStudioPage() {
           <ScriptToolbar
             compact={!showFixedNavigator}
             candidateReady={Boolean(selectedCandidate && selectedCandidate.status !== "stale")}
-            onGuide={setGuidedMessage}
-            onOpenBottomDrawer={() => handleBottomTab("candidates")}
+            onOpenCandidates={() => handleBottomTab("candidates")}
             onOpenCompare={() => handleOpenCompare()}
+            onOpenFindings={() => handleBottomTab("findings")}
+            onOpenHistory={() => handleBottomTab("local-history")}
             onOpenInspector={() => setInspectorDrawerOpen(true)}
             onOpenNavigator={() => setNavigatorDrawerOpen(true)}
           />
@@ -1450,7 +1415,7 @@ export function ScriptStudioPage() {
       <ACSDrawer
         open={!useInlineBottomDrawer && bottomDrawerOpen}
         onClose={() => setBottomDrawerOpen(false)}
-        title={bottomDrawerTab === "candidates" ? "候选" : bottomDrawerTab === "local-history" ? "版本 / 本地历史" : "叙事发现"}
+        title={bottomDrawerTab === "candidates" ? "AI 候选" : bottomDrawerTab === "local-history" ? "本地历史" : "叙事发现"}
         side="bottom"
         size="wide"
       >
@@ -1458,7 +1423,6 @@ export function ScriptStudioPage() {
       </ACSDrawer>
 
       <UnsavedGuard onResolve={handleResolveGuard} pendingAction={pendingAction} />
-      <GuideModal message={guidedMessage} onClose={() => setGuidedMessage(null)} />
     </div>
   );
 }

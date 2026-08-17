@@ -6,6 +6,15 @@ export const metadata: Metadata = {
   description: "从一个创意开始构建 AI 影片导演方案。",
 };
 
-export default function CreatePage() {
-  return <CreateProjectPage />;
+export default async function CreatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ creativePlanRef?: string | string[] }>;
+}) {
+  const { creativePlanRef } = await searchParams;
+  return (
+    <CreateProjectPage
+      creativePlanRef={typeof creativePlanRef === "string" ? creativePlanRef : undefined}
+    />
+  );
 }

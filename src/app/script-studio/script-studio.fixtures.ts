@@ -188,8 +188,8 @@ export const upstreamConstraints: readonly UpstreamConstraintItem[] = [
   {
     owner: "M6",
     category: "world",
-    title: "临港城 · 雨季常态",
-    summary: "2047 年的低调实用科技；旧城区不出现全息广告。",
+    title: "未来之城 · 记忆信用时代",
+    summary: "2148 年的城市按记忆信用分层；记忆交换必须付出情绪代价。",
   },
   {
     owner: "M5",

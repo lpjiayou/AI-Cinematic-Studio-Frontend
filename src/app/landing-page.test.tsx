@@ -48,7 +48,24 @@ describe("CustomerLandingPage", () => {
     expect(
       screen.getByRole("heading", { name: "让企业拥有完整的 AI 影视制作团队。" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "进入 AI Cinematic Studio" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "开始创作" })).toHaveAttribute(
+      "href",
+      "/creator/projects/new",
+    );
+    expect(screen.getByRole("link", { name: "进入工作区" })).toHaveAttribute(
+      "href",
+      "/creator",
+    );
+    expect(screen.getByRole("link", { name: "观看案例" })).toHaveAttribute("href", "#works");
+    expect(screen.getByRole("link", { name: "体验 AI 导演" })).toHaveAttribute(
+      "href",
+      "/creator/ai-director",
+    );
+    expect(screen.getByRole("link", { name: "进入 AI Cinematic Studio" })).toHaveAttribute(
+      "href",
+      "/creator",
+    );
+    expect(screen.getByRole("button", { name: "账号尚未开放" })).toBeDisabled();
   });
 
   it("switches and persists the ACS theme", async () => {

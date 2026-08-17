@@ -1,72 +1,58 @@
-# Script Studio Direction 03 Design QA
+# AI Cinematic Studio Frontend Redesign QA
 
-## Comparison target
+## Scope
 
-- Source handoff: `C:\Users\15966\Downloads\Script_Studio_UI_Direction_03_Handoff.zip`
-- Source visual truth: `D:\Codex使用\AI-Cinematic-Studio-Frontend\artifacts\script-studio\acceptance-evidence\00-direction-03-visual-target.png`
-- Source SHA-256: `cd735d5a24016125294176ba9fd289a5d2af7eb2087d5ecd7f969bd16ff24dd7`
-- Normalized source evidence: `D:\Codex使用\AI-Cinematic-Studio-Frontend\artifacts\script-studio\source-direction-03-normalized-1487x1033.jpg`
-- Production implementation evidence: `D:\Codex使用\AI-Cinematic-Studio-Frontend\artifacts\script-studio\acceptance-evidence\01-production-light-desktop-compare.png`
-- Route: `http://localhost:3000/script-studio`
-- State: Light theme, Scene 12 selected, Current/Candidate compare open, clean local buffer.
+- Landing page and public entry points
+- Creator home and Project Center continuity
+- Project workspace global and planning navigation
+- Story World production workspace
+- Character Studio production workspace
+- Script Studio editing workflow
 
-## Viewport and normalization
+## Visual comparison
 
-- Original source: 1487 x 1058 px at 1x density.
-- Browser viewport: 1487 x 1058 CSS px.
-- The in-app browser's visible-content capture is 1487 x 1033 px. The source comparison copy is therefore cropped by 25 px at the bottom to 1487 x 1033 px without scaling or stretching.
-- The normalized source and current production implementation were inspected together at identical pixel dimensions.
+The user-marked screenshots were compared directly beside the current browser-rendered implementation at the same desktop state.
 
-## Production-mode proof
+- Story World: removed the technical workspace-key strip and long all-in-one canvas; introduced six explicit world-building tasks, one active task canvas, and a task-aware inspector.
+- Character Studio: replaced the product-introduction-style long page with a focused three-column workbench, six task tabs, inline reference use, and a compact AI production assistant.
+- Script Studio: replaced the comparison-first entry state and oversized toolbar with a direct scene editor, four purposeful actions, scene navigation, and a concise continuity inspector.
+- Landing page: preserved the accepted cinematic visual direction while converting the primary CTAs and available capability entries into real links. Unavailable capabilities are explicitly labeled instead of appearing clickable.
 
-- The page was served by `next start -p 3000` after a successful optimized production build.
-- Browser inspection found zero `nextjs-portal`, development badge, or development toast elements.
-- Production Light/Dark captures contain no Next.js development-mode `N` marker.
-- Browser console errors and warnings: none.
-- Exactly one `main` landmark; document-level horizontal overflow: none.
+No remaining P0/P1 visual issue was found in the compared desktop states. Layout, hierarchy, spacing, crop, borders, typography, and task emphasis are consistent with the existing ACS design system.
 
-## Full-view comparison evidence
+## Navigation and interaction verification
 
-The production implementation preserves the selected Direction 03 hierarchy: customer header, project/series/episode context, compact editor toolbar, chapter/scene Navigator, Current/Candidate comparison, read-only Inspector, auxiliary rail, and production action bar. The comparison remains the visual center.
+- Live browser route verified: landing `开始创作` opens the new-project page.
+- Landing `进入工作区`, bottom product CTA, AI Director, and Character Studio entries use real routes.
+- Global Creator navigation remains frozen as 首页 / AI导演 / 项目 / 资产库 / 创作中心 / 作品.
+- Project navigation remains frozen as 概览 / 策划 / 内容 / 制作 / 后期 / 交付, with unimplemented destinations explicitly marked unavailable.
+- Story World task switching, location/faction inline selection, local draft state, AI refresh, next-stage confirmation, and mobile drawers are covered by interaction tests.
+- Character task switching, inline relationship/reference selection, local candidate/adoption flow, next-stage handoff, and responsive drawers are covered by interaction tests.
+- Script scene selection, direct editing, dirty-state protection, candidate generation/comparison/adoption, local history, owner links, and responsive drawers are covered by interaction tests.
+- Image/reference selections in Story World and Character Studio no longer open unexplained asset popups in the rebuilt core flows.
 
-The implementation intentionally uses taller accessible scene targets and explicit non-color change labels. These differ from incidental source pixels while satisfying the handoff's 44 px target and non-color-only status requirements. No actionable P0, P1, or P2 fidelity mismatch remains.
+## Data boundary
 
-## Required fidelity surfaces
+- Demonstration content is consistently labeled as local and non-authoritative.
+- No fabricated provider, database, authoritative project reference, or formal version is presented.
+- Local edits and candidates remain session-local and do not imply production persistence.
+- Future M8+ production capabilities remain visible only as unavailable product stages.
 
-- Fonts and typography: existing ACS Chinese/system stack, compact UI labels, screenplay body hierarchy, and readable dialogue alignment.
-- Spacing and layout rhythm: Navigator, Compare, and Inspector proportions follow the selected three-region composition; persistent controls remain reachable.
-- Colors and tokens: Light and Dark use ACS semantic tokens with teal reserved for active, focus, selected, and primary production actions.
-- Image quality and assets: official local brand mark and existing local icon family; no remote asset or placeholder image.
-- Copy and content: Current, Candidate, Compare, Adopt, Restore, local history, dirty buffer, and Storyboard progression remain customer-facing and Presentation-only.
-- Accessibility: one `main`, named regions, visible focus, 44 px targets, non-color change labels, drawer/modal focus management, and exact three-action unsaved Guard.
+## Responsive and accessibility
 
-## Responsive and interaction evidence
-
-- Desktop Light Compare: `artifacts/script-studio/acceptance-evidence/01-production-light-desktop-compare.png`
-- Desktop Dark Compare: `artifacts/script-studio/acceptance-evidence/02-production-dark-desktop-compare.png`
-- Mobile Light Navigator Drawer: `artifacts/script-studio/acceptance-evidence/03-production-mobile-light-navigator-drawer.png`
-- Mobile Dark Inspector Drawer: `artifacts/script-studio/acceptance-evidence/04-production-mobile-dark-inspector-drawer.png`
-- Mobile Light dirty-state Guard: `artifacts/script-studio/acceptance-evidence/05-production-mobile-light-unsaved-guard.png`
-
-The Guard visibly provides exactly:
-
-1. `保留本地修改并继续编辑`
-2. `放弃修改并继续`
-3. `取消`
-
-The safe retain action receives initial focus. Cancelling closes the dialog while preserving the dirty local buffer.
+- Desktop workspaces use Navigator / Canvas / Inspector hierarchy.
+- Narrow layouts expose Navigator and Inspector through named drawers.
+- Core controls have accessible roles and names; tabs expose selected state; selected cards and scene rows are not color-only.
+- Disabled and unavailable destinations are labeled rather than silently failing.
+- Browser inspection found no application-origin console error or warning; unrelated browser-extension metadata errors were excluded.
 
 ## Quality gates
 
-- `npm test`: passed, 12 files / 63 tests.
-- `npm run lint`: passed.
-- `npm run typecheck`: passed.
-- `npm run build`: passed; `/script-studio` statically prerendered.
-- `git diff --check`: passed.
-- Staged files: 0.
-
-## Findings
-
-No actionable P0, P1, or P2 finding remains. The remaining visible differences are accessibility-preserving adjustments required by the accepted handoff rather than design drift.
+- `git diff --check`: passed
+- TypeScript (`tsc --noEmit`): passed
+- ESLint: passed
+- Vitest: 20 files / 96 tests passed
+- Next.js optimized production build: passed
+- Routes generated successfully for landing, Creator, AI Director, projects, Story World, Character Studio, new project, and Script Studio
 
 final result: passed
