@@ -28,6 +28,9 @@ describe("Creator route contract", () => {
       "src/app/creator/projects/new/page.tsx",
       "src/app/creator/projects/[projectRef]/planning/bible/page.tsx",
       "src/app/creator/projects/[projectRef]/planning/characters/page.tsx",
+      "src/app/creator/projects/[projectRef]/production/page.tsx",
+      "src/app/creator/projects/[projectRef]/post/page.tsx",
+      "src/app/creator/projects/[projectRef]/delivery/page.tsx",
     ];
     const legacyRouteFiles = [
       "src/app/workspace/page.tsx",
@@ -45,7 +48,7 @@ describe("Creator route contract", () => {
     }
   });
 
-  it("keeps deferred destinations absent and Script Studio unmigrated", () => {
+  it("keeps global deferred destinations absent while exposing only the bounded project production routes", () => {
     for (const path of [
       "src/app/creator/create/page.tsx",
       "src/app/creator/assets/page.tsx",

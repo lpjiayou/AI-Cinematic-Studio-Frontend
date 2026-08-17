@@ -36,7 +36,7 @@ describe("UnifiedAppHeader", () => {
     const navigation = screen.getByRole("navigation", { name: "项目工作区导航" });
     expect(within(navigation).getAllByRole("listitem")).toHaveLength(6);
     expect(within(navigation).getAllByText(/概览|策划|内容|制作|后期|交付/)).toHaveLength(6);
-    expect(within(navigation).getAllByRole("link")).toHaveLength(2);
+    expect(within(navigation).getAllByRole("link")).toHaveLength(5);
     expect(within(navigation).getByRole("link", { name: "策划" })).toHaveAttribute(
       "href",
       "/creator/projects/future-city/planning/bible",
@@ -45,6 +45,19 @@ describe("UnifiedAppHeader", () => {
       "href",
       "/creator/projects/future-city/content/script",
     );
+    expect(within(navigation).getByRole("link", { name: "制作" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/production",
+    );
+    expect(within(navigation).getByRole("link", { name: "后期" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/post",
+    );
+    expect(within(navigation).getByRole("link", { name: "交付" })).toHaveAttribute(
+      "href",
+      "/creator/projects/future-city/delivery",
+    );
+    expect(within(navigation).queryByRole("link", { name: "概览" })).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Creator 全局导航" })).not.toBeInTheDocument();
     expect(screen.queryByRole("complementary", { name: "Creator 数据连接" })).not.toBeInTheDocument();
   });

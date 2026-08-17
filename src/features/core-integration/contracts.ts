@@ -319,6 +319,257 @@ export type SeriesIntelligenceWorkspaceEnvelope = {
   };
 };
 
+export type EpisodeProductionState =
+  | "ROOTS_READY"
+  | "AUTHORITY_READY"
+  | "SCRIPT_VALIDATED"
+  | "SHOTS_COMPILED"
+  | "ASSETS_READY"
+  | "MEDIA_READY"
+  | "PREVIEW_READY"
+  | "QC_READY"
+  | "APPROVAL_READY"
+  | "MASTER_READY";
+
+export type CreatorEpisodeProductionRun = {
+  schemaVersion: string;
+  productionRunRef: string;
+  contentProfileRef: string;
+  projectRef: string;
+  seriesRef: string;
+  episodeRef: string;
+  seriesPlanRef: string;
+  seriesPlanVersionRef: string;
+  episodePlanItemRef: string;
+  scriptRef: string;
+  scriptVersionRef: string;
+  manifest: {
+    expectedShotCount?: number;
+    executionMode?: string;
+    output?: {
+      width?: number;
+      height?: number;
+      frameRate?: number;
+      totalFrames?: number;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  upstreamSnapshot: Record<string, unknown>;
+  upstreamDigest: string;
+  payloadDigest: string;
+  state: EpisodeProductionState;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+  idempotentReplay: boolean;
+  completedGates?: string[];
+};
+
+export type EpisodeProductionRunsEnvelope = {
+  ok: true;
+  runs: CreatorEpisodeProductionRun[];
+};
+
+export type CreatorCreativeShotVersion = {
+  creativeShotRef: string;
+  creativeShotVersionRef: string;
+  scriptSceneRef: string;
+  globalOrder: number;
+  sceneOrder: number;
+  durationFrames: number;
+  frameRate: number;
+  cameraInstruction: {
+    shotSize?: string;
+    movement?: string;
+    angle?: string;
+    lensMm?: number;
+    intent?: string;
+    [key: string]: unknown;
+  };
+  action?: string;
+  requiredCharacterIdentityLocks: Array<{
+    scriptCharacterName?: string;
+    characterRef: string;
+    identityLockVersionRef: string;
+    referenceVersionRef: string;
+    [key: string]: unknown;
+  }>;
+  payloadDigest: string;
+  [key: string]: unknown;
+};
+
+export type ShotGraphBundleEnvelope = {
+  ok: true;
+  state: EpisodeProductionState;
+  consistencyValidation: Record<string, unknown>;
+  storyboardVersion: {
+    storyboardVersionRef: string;
+    scenes?: Array<Record<string, unknown>>;
+    payloadDigest: string;
+    [key: string]: unknown;
+  };
+  creativeShotVersions: CreatorCreativeShotVersion[];
+  executableShotGraph: {
+    executableShotGraphVersionRef: string;
+    shots: Array<Record<string, unknown>>;
+    edges: Array<Record<string, unknown>>;
+    output: {
+      width?: number;
+      height?: number;
+      frameRate?: number;
+      totalFrames?: number;
+      [key: string]: unknown;
+    };
+    payloadDigest: string;
+    publicationAllowed: false;
+    [key: string]: unknown;
+  };
+};
+
+export type AssetPlanBundleEnvelope = {
+  ok: true;
+  state: EpisodeProductionState;
+  assetResolutionManifest: {
+    summary?: {
+      requirements?: number;
+      resolvedAuthority?: number;
+      generationRequested?: number;
+      blocked?: number;
+      generationRequests?: number;
+      [key: string]: unknown;
+    };
+    payloadDigest: string;
+    publicationAllowed: false;
+    [key: string]: unknown;
+  };
+  assetRequirements: Array<Record<string, unknown>>;
+  generationRequests: Array<Record<string, unknown>>;
+};
+
+export type MediaBundleEnvelope = {
+  ok: true;
+  state: EpisodeProductionState;
+  mediaManifest: {
+    summary?: {
+      requested?: number;
+      verifiedResults?: number;
+      registeredAssets?: number;
+      videoAssets?: number;
+      audioAssets?: number;
+      failed?: number;
+      [key: string]: unknown;
+    };
+    payloadDigest: string;
+    provenance: string;
+    gpuUsed: false;
+    publicationAllowed: false;
+    [key: string]: unknown;
+  };
+  generationResults: Array<Record<string, unknown>>;
+  assetVersions: Array<Record<string, unknown>>;
+  jobs: Array<{
+    jobRef: string;
+    mediaKind: string;
+    state: string;
+    gpuUsed: boolean | null;
+    provenance: string | null;
+    [key: string]: unknown;
+  }>;
+};
+
+export type QcCheck = {
+  checkId: string;
+  status: "PASSED" | "FAILED";
+  evidence?: string;
+  [key: string]: unknown;
+};
+
+export type DeliveryBundleEnvelope = {
+  ok: true;
+  state: EpisodeProductionState;
+  productionRunRef: string;
+  timelineVersion?: {
+    timelineVersionRef: string;
+    items: Array<Record<string, unknown>>;
+    output: Record<string, unknown>;
+    payloadDigest: string;
+    [key: string]: unknown;
+  };
+  previewCandidate?: {
+    previewCandidateVersionRef: string;
+    mediaType: string;
+    byteSize: number;
+    sha256: string;
+    provenance: string;
+    approvalStatus: string;
+    gpuUsed: false;
+    publicationAllowed: false;
+    payloadDigest: string;
+    [key: string]: unknown;
+  };
+  qcReport?: {
+    qcReportRef: string;
+    result: "PASS" | "FAIL";
+    checks: QcCheck[];
+    machineVerified: boolean;
+    approvalStatus: string;
+    publicationAllowed: false;
+    payloadDigest: string;
+    [key: string]: unknown;
+  };
+  approvalDecisions?: Array<{
+    kind: EpisodeApprovalKind;
+    decision: "ACCEPT";
+    approvalRef: string;
+    actorRef: string;
+    authorityType: string;
+    payloadDigest: string;
+    [key: string]: unknown;
+  }>;
+  episodeMaster?: {
+    episodeMasterVersionRef: string;
+    state: "IMMUTABLE_MASTER";
+    mediaType: string;
+    byteSize: number;
+    sha256: string;
+    provenance: string;
+    gpuUsed: false;
+    publicationAllowed: false;
+    payloadDigest: string;
+    [key: string]: unknown;
+  };
+  exportArtifact?: {
+    exportArtifactRef: string;
+    fileName: string;
+    mediaType: string;
+    byteSize: number;
+    sha256: string;
+    state: "PLAYABLE_LOCAL_EVIDENCE";
+    downloadAllowed: boolean;
+    publicationAllowed: false;
+    payloadDigest: string;
+    [key: string]: unknown;
+  };
+};
+
+export type EpisodeApprovalKind =
+  | "CREATIVE_DIRECTION"
+  | "IDENTITY_CONTINUITY"
+  | "TECHNICAL_QC"
+  | "FINAL_MASTER";
+
+export type PreviewMutationEnvelope = DeliveryBundleEnvelope & {
+  idempotentReplay: boolean;
+};
+
+export type FinalizeMutationEnvelope = DeliveryBundleEnvelope & {
+  approvalDecisions: NonNullable<DeliveryBundleEnvelope["approvalDecisions"]>;
+  episodeMaster: NonNullable<DeliveryBundleEnvelope["episodeMaster"]>;
+  exportArtifact: NonNullable<DeliveryBundleEnvelope["exportArtifact"]>;
+  idempotentReplay: boolean;
+};
+
 export type CoreConnectionState =
   | { status: "loading" }
   | { status: "connected"; capabilities: CreatorCapability[] }

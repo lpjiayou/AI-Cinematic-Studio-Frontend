@@ -33,10 +33,13 @@ describe("PROJECT_NAVIGATION", () => {
     ]);
   });
 
-  it("links only the planning and Core-backed content routes", () => {
+  it("links planning, content, and the bounded K2 single-episode workspace routes", () => {
     expect(PROJECT_NAVIGATION.filter((item) => item.available).map((item) => item.segment)).toEqual([
       "planning",
       "content",
+      "production",
+      "post",
+      "delivery",
     ]);
   });
 });

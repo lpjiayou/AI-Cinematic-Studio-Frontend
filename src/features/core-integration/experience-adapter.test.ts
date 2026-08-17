@@ -176,6 +176,65 @@ describe("Creator Experience Adapter", () => {
     });
   });
 
+  it("allows only the bounded K2 production routes and keeps scope server-owned", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      coreResponse({ ok: true, state: "QC_READY" }, 201),
+    );
+    const response = await handleCreatorExperienceRequest(
+      new Request("http://frontend.test/api/creator/episode-production-runs/run-1/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idempotencyKey: "preview-run-1",
+          workspaceRef: "forged-workspace",
+          productionRunRef: "forged-run",
+        }),
+      }),
+      ["episode-production-runs", "run-1", "preview"],
+    );
+
+    expect(response.status).toBe(201);
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(init.body))).toEqual({
+      idempotencyKey: "preview-run-1",
+    });
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      "/episode-production-runs/run-1/preview",
+    );
+
+    const rejected = await handleCreatorExperienceRequest(
+      new Request("http://frontend.test/api/creator/episode-production-runs/run-1/internal"),
+      ["episode-production-runs", "run-1", "internal"],
+    );
+    expect(rejected.status).toBe(404);
+  });
+
+  it("streams authenticated preview and export bytes without exposing credentials", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(new Uint8Array([0, 1, 2, 3]), {
+        status: 200,
+        headers: {
+          "Content-Type": "video/mp4",
+          "Content-Length": "4",
+          "Content-Disposition": 'inline; filename="preview.mp4"',
+        },
+      }),
+    );
+    const response = await handleCreatorExperienceRequest(
+      new Request("http://frontend.test/api/creator/episode-production-runs/run-1/preview/content"),
+      ["episode-production-runs", "run-1", "preview", "content"],
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("video/mp4");
+    expect(response.headers.get("content-disposition")).toContain("inline");
+    expect(response.headers.get("x-creator-data-origin")).toBe("CORE");
+    expect(Array.from(new Uint8Array(await response.arrayBuffer()))).toEqual([0, 1, 2, 3]);
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(new Headers(init.headers).get("Authorization")).toBe(`Bearer ${runtimeToken}`);
+    expect(JSON.stringify([...response.headers])).not.toContain(runtimeToken);
+  });
+
   it.each([
     [401, "authentication_required", "Creator API authentication is required."],
     [403, "authority_unavailable", "Required external authority is unavailable."],

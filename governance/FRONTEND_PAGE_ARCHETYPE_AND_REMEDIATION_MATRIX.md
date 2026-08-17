@@ -23,6 +23,10 @@ activity, save state, compute state, or production capability are fabricated.
 | `/creator/ai-director` | Structured decision workspace | Form a director brief and plan preview | Page-local preview state | Remove fictional active-project identity and unsupported AI claims |
 | `/creator/projects/[projectRef]/planning/bible` | Knowledge workspace | Build and validate story-world knowledge | Accepted presentation model plus disclosed fixtures | Implemented under production workspace contract |
 | `/creator/projects/[projectRef]/planning/characters` | Visual identity workspace | Edit identity and inspect candidate directions | Accepted presentation model plus disclosed fixtures | Implemented under production workspace contract |
+| `/creator/projects/[projectRef]/content/script` | Text editing workspace | Generate, revise and confirm authoritative episode scripts | Creator Public API M2 + M3 | Implemented through the Experience Adapter |
+| `/creator/projects/[projectRef]/production` | K2 single-episode production workspace | Inspect executable shots and advance verified asset/media tasks | Authenticated K2 G1–G5 public projections | Implemented under `K2_G7_CONNECTED_PRODUCTION_WORKSPACE_CONTRACT.md` |
+| `/creator/projects/[projectRef]/post` | K2 preview and approval workspace | Play preview, inspect machine QC and submit external approvals | Authenticated K2 G6 public projection | Implemented; missing authority fails closed |
+| `/creator/projects/[projectRef]/delivery` | K2 delivery workspace | Play and download immutable local-evidence master | Authenticated K2 G6 export projection | Implemented; publication remains disabled |
 | `/script-studio` | Text editor workspace | Edit scenes and compare rewrites | Local service and fixtures | Existing editor archetype retained; visual audit remains |
 
 Unavailable navigation destinations remain disabled. They must not be represented by

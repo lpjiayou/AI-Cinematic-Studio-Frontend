@@ -33,6 +33,7 @@ const exactMethods = new Map<string, ReadonlySet<string>>([
   ["series-intelligence/character-candidates", new Set(["POST"])],
   ["series-intelligence/character-confirmations", new Set(["POST"])],
   ["series-intelligence/baseline-activations", new Set(["POST"])],
+  ["episode-production-runs", new Set(["GET", "POST"])],
 ]);
 
 const detailResources = new Map<string, ReadonlySet<string>>([
@@ -58,6 +59,37 @@ function normalizePath(path: string[]) {
 function isAllowed(path: string, method: string) {
   const exact = exactMethods.get(path);
   if (exact) return exact.has(method);
+  const parts = path.split("/");
+  if (parts[0] === "episode-production-runs") {
+    if (parts.length === 2) return method === "GET";
+    if (parts.length === 3) {
+      const resource = parts[2];
+      if (resource === "delivery") return method === "GET";
+      return new Set([
+        "authority-identity",
+        "shot-graph",
+        "assets",
+        "media",
+        "preview",
+        "finalize",
+      ]).has(resource) && (method === "GET" || method === "POST");
+    }
+    if (
+      parts.length === 4 &&
+      parts[2] === "preview" &&
+      parts[3] === "content"
+    ) {
+      return method === "GET";
+    }
+    if (
+      parts.length === 5 &&
+      parts[2] === "exports" &&
+      parts[4] === "content"
+    ) {
+      return method === "GET";
+    }
+    return false;
+  }
   const [resource, ref, ...rest] = path.split("/");
   if (!ref || rest.length) return false;
   return detailResources.get(resource)?.has(method) ?? false;
@@ -68,6 +100,13 @@ function shouldInjectContentProfile(path: string, method: string) {
 }
 
 function timeoutFor(path: string) {
+  if (
+    path.startsWith("episode-production-runs/") &&
+    ["/media", "/preview", "/finalize"].some((suffix) => path.endsWith(suffix))
+  ) {
+    return 300_000;
+  }
+  if (path.endsWith("/content")) return 120_000;
   return path.includes("generate") || path.includes("candidates") ? 90_000 : 12_000;
 }
 
@@ -130,8 +169,9 @@ export async function handleCreatorExperienceRequest(
     }
   }
 
+  const contentRequest = path.endsWith("/content");
   const headers = new Headers({
-    Accept: "application/json",
+    Accept: contentRequest ? "video/mp4" : "application/json",
     Authorization: `Bearer ${config.coreToken}`,
   });
   let body: string | undefined;
@@ -141,6 +181,9 @@ export async function handleCreatorExperienceRequest(
       delete input.workspaceRef;
       delete input.contentProfileRef;
       delete input.tenantId;
+      if (path.startsWith("episode-production-runs/")) {
+        delete input.productionRunRef;
+      }
       const payload: Record<string, unknown> = { ...input };
       if (shouldInjectContentProfile(path, method)) {
         payload.contentProfileRef = config.contentProfileRef;
@@ -169,6 +212,27 @@ export async function handleCreatorExperienceRequest(
       return errorResponse(504, "core_timeout", "Core 处理超时，请稍后重试。")
     }
     return errorResponse(503, "core_disconnected", "当前无法连接 Creator Core。")
+  }
+
+  const responseContentType = response.headers.get("content-type") ?? "";
+  if (response.ok && !responseContentType.toLowerCase().includes("application/json")) {
+    if (!contentRequest || !responseContentType.toLowerCase().startsWith("video/")) {
+      return errorResponse(502, "invalid_core_response", "Core 返回了无法识别的响应。")
+    }
+    const outgoingHeaders = new Headers({
+      "Cache-Control": "private, no-store",
+      "Content-Type": responseContentType,
+      "X-Content-Type-Options": "nosniff",
+      "X-Creator-Data-Origin": "CORE",
+    });
+    for (const name of ["content-length", "content-disposition"]) {
+      const value = response.headers.get(name);
+      if (value) outgoingHeaders.set(name, value);
+    }
+    return new Response(response.body, {
+      status: response.status,
+      headers: outgoingHeaders,
+    });
   }
 
   let payload: unknown;
