@@ -52,11 +52,11 @@ jobs:
         with:
           path: frontend
 
-      - name: Check out exact Core candidate
+      - name: Check out exact Core main baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: ec9a4ac30382e1dceab3b82661fde927c35216cf
+          ref: 8d9ce52166cec27d2fefaa86548016130babdfff
           path: core
 
       - name: Set up Python
