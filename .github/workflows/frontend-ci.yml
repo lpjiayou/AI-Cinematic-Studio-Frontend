@@ -95,6 +95,7 @@ jobs:
           K2_GATE_CORE_DIR: ${{ github.workspace }}/core
           K2_GATE_FRONTEND_DIR: ${{ github.workspace }}/frontend
           K2_GATE_ARTIFACT_ROOT: ${{ github.workspace }}/frontend/artifacts/gate-c-k2
+          K2_GATE_FRONTEND_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           K2_GATE_BROWSER_CHANNEL: chrome
         run: npm run test:gate-c:k2
         working-directory: frontend

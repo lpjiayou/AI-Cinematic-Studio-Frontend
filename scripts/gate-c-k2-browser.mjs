@@ -21,7 +21,7 @@ async function layoutEvidence(page, stage, { requireFluidWorkspace = true } = {}
     const root = document.documentElement;
     const body = document.body;
     const main = document.querySelector("main");
-    const workspace = main?.querySelector("div[class*='workspace']");
+    const workspace = main?.querySelector(":scope > div[class*='workspace']");
     const mainRect = main?.getBoundingClientRect();
     const workspaceRect = workspace?.getBoundingClientRect();
     return {
@@ -206,6 +206,7 @@ async function captureReflow(page, width, label) {
       browser: await browser.version(),
       runtime: {
         coreCommit: process.env.K2_GATE_CORE_SHA ?? null,
+        frontendCandidateCommit: process.env.K2_GATE_FRONTEND_CANDIDATE_SHA ?? null,
         frontendCommit: process.env.K2_GATE_FRONTEND_SHA ?? null,
         frontendOrigin: baseUrl,
         browserChannel: browserChannel ?? "playwright-chromium",

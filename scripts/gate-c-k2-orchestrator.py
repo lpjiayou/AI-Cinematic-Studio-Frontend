@@ -59,6 +59,7 @@ def main():
         "coreCommit": core_sha,
         "coreTree": git_value(CORE, "rev-parse", "HEAD^{tree}"),
         "coreDirty": bool(git_value(CORE, "status", "--porcelain")),
+        "frontendCandidateCommit": os.environ.get("K2_GATE_FRONTEND_CANDIDATE_SHA", frontend_sha),
         "frontendCommit": frontend_sha,
         "frontendTree": git_value(FRONTEND, "rev-parse", "HEAD^{tree}"),
         "frontendDirty": bool(git_value(FRONTEND, "status", "--porcelain")),
@@ -134,6 +135,7 @@ def main():
                 "K2_GATE_PROJECT_REF": "project-k2-1",
                 "K2_GATE_ARTIFACT_ROOT": str(ARTIFACT_ROOT),
                 "K2_GATE_CORE_SHA": core_sha,
+                "K2_GATE_FRONTEND_CANDIDATE_SHA": runtime["frontendCandidateCommit"],
                 "K2_GATE_FRONTEND_SHA": frontend_sha,
             }
         )
