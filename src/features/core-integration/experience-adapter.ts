@@ -64,7 +64,9 @@ function isAllowed(path: string, method: string) {
     if (parts.length === 2) return method === "GET";
     if (parts.length === 3) {
       const resource = parts[2];
-      if (resource === "delivery") return method === "GET";
+      if (resource === "delivery" || resource === "production-readiness") {
+        return method === "GET";
+      }
       return new Set([
         "authority-identity",
         "shot-graph",

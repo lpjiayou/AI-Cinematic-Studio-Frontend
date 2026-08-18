@@ -209,6 +209,59 @@ describe("Creator Experience Adapter", () => {
     expect(rejected.status).toBe(404);
   });
 
+  it("exposes production readiness as read-only browser state", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      coreResponse({
+        ok: true,
+        policyBundle: null,
+        readiness: {
+          state: "BLOCKED_POLICY",
+          policyRecorded: false,
+          rightsState: "MISSING",
+          providerPolicyState: "MISSING",
+          persistenceClass: "LOCAL_SQLITE_EVIDENCE",
+          blockers: ["production_policy_missing"],
+          publicationAllowed: false,
+        },
+      }),
+    );
+
+    const getResponse = await handleCreatorExperienceRequest(
+      new Request(
+        "http://frontend.test/api/creator/episode-production-runs/run-1/production-readiness?workspaceRef=forged",
+      ),
+      ["episode-production-runs", "run-1", "production-readiness"],
+    );
+    expect(getResponse.status).toBe(200);
+    const getTarget = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(getTarget.pathname).toBe(
+      "/creator/api/v1/episode-production-runs/run-1/production-readiness",
+    );
+    expect(getTarget.searchParams.has("workspaceRef")).toBe(false);
+
+    const postResponse = await handleCreatorExperienceRequest(
+      new Request(
+        "http://frontend.test/api/creator/episode-production-runs/run-1/production-readiness",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productionRunRef: "forged-run",
+            workspaceRef: "forged-workspace",
+            idempotencyKey: "policy-run-1",
+            actorRef: "actor-authority",
+            productionPolicy: {},
+            rightsManifest: {},
+            providerExecutionPolicy: {},
+          }),
+        },
+      ),
+      ["episode-production-runs", "run-1", "production-readiness"],
+    );
+    expect(postResponse.status).toBe(404);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("streams authenticated preview and export bytes without exposing credentials", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(new Uint8Array([0, 1, 2, 3]), {

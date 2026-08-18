@@ -284,6 +284,14 @@
   color: var(--acs-warning);
 }
 
+.capabilityGrid article[data-state="local_evidence_only"] small {
+  color: var(--acs-info);
+}
+
+.capabilityGrid article[data-state="production_policy_required"] small {
+  color: var(--acs-warning);
+}
+
 .connectionCard,
 .pathCard {
   min-width: 0;

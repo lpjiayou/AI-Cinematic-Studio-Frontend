@@ -46,8 +46,10 @@ describe("WorkspaceHomePage", () => {
   it("keeps unverified production stages informative and non-interactive", () => {
     renderWorkspace();
 
-    expect(screen.getByText("M7–M19 后续制作与商业化")).toBeInTheDocument();
+    expect(screen.getByText("M7–M9 镜头图与资产解析")).toBeInTheDocument();
+    expect(screen.getByText("M10–M15 媒体生产、合成与交付")).toBeInTheDocument();
+    expect(screen.getByText("M16–M19 批量生产与商业化")).toBeInTheDocument();
     expect(screen.getAllByText("待核对").length).toBeGreaterThan(0);
-    expect(screen.queryByRole("link", { name: /M7–M19/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /M7–M19|M10–M15|M16–M19/ })).not.toBeInTheDocument();
   });
 });

@@ -107,7 +107,13 @@ export function UnifiedAppHeader({
             summary[capability.state] += 1;
             return summary;
           },
-          { available: 0, authority_required: 0, not_open: 0 },
+          {
+            available: 0,
+            local_evidence_only: 0,
+            production_policy_required: 0,
+            authority_required: 0,
+            not_open: 0,
+          },
         )
       : null;
 
@@ -221,7 +227,7 @@ export function UnifiedAppHeader({
             </strong>
             <span>
               {coreState.status === "connected"
-                ? `${capabilitySummary?.available ?? 0} 项公共接口已开放，${capabilitySummary?.authority_required ?? 0} 项等待外部权限，${capabilitySummary?.not_open ?? 0} 项尚未开放。`
+                ? `${capabilitySummary?.available ?? 0} 项已开放，${capabilitySummary?.local_evidence_only ?? 0} 项仅有本地证据，${capabilitySummary?.production_policy_required ?? 0} 项等待生产策略或外部执行，${capabilitySummary?.authority_required ?? 0} 项等待外部权限，${capabilitySummary?.not_open ?? 0} 项尚未开放。`
                 : coreState.status === "loading"
                   ? "正在核对公共 API 与 M1–M19 能力合同。"
                   : "权威数据不会被本地演示替代；可在项目中心单独打开明确标注的 LOCAL_FIXTURE。"}
