@@ -165,6 +165,8 @@ function ConnectionPanel() {
 
 function capabilityLabel(state: CapabilityState) {
   if (state === "available") return "已映射";
+  if (state === "local_evidence_only") return "仅本地证据";
+  if (state === "production_policy_required") return "需生产策略/外部能力";
   if (state === "authority_required") return "需外部权限";
   return "尚未开放";
 }
@@ -206,14 +208,22 @@ function ProductionPath() {
     if (!connected) return null;
     const items = state.capabilities.slice(start - 1, end);
     if (items.some((item) => item.state === "not_open")) return "not_open";
+    if (items.some((item) => item.state === "production_policy_required")) {
+      return "production_policy_required";
+    }
     if (items.some((item) => item.state === "authority_required")) return "authority_required";
+    if (items.some((item) => item.state === "local_evidence_only")) {
+      return "local_evidence_only";
+    }
     return "available";
   };
   const steps = [
     { label: "M1 导演候选与人工确认", capabilityState: groupedState(1, 1) },
     { label: "M2–M5 项目、分集、剧本与系列规划", capabilityState: groupedState(2, 5) },
     { label: "M6 世界与角色智能", capabilityState: groupedState(6, 6) },
-    { label: "M7–M19 后续制作与商业化", capabilityState: groupedState(7, 19) },
+    { label: "M7–M9 镜头图与资产解析", capabilityState: groupedState(7, 9) },
+    { label: "M10–M15 媒体生产、合成与交付", capabilityState: groupedState(10, 15) },
+    { label: "M16–M19 批量生产与商业化", capabilityState: groupedState(16, 19) },
   ] as const;
   return (
     <ACSCard
@@ -230,7 +240,8 @@ function ProductionPath() {
               tone={
                 step.capabilityState === "available"
                   ? "success"
-                  : step.capabilityState === "authority_required"
+                  : step.capabilityState === "authority_required" ||
+                      step.capabilityState === "production_policy_required"
                     ? "primary"
                     : "neutral"
               }

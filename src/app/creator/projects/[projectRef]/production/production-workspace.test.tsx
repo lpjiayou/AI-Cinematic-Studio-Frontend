@@ -113,6 +113,26 @@ const mediaBundle = {
   jobs: [],
 } as const;
 
+const productionReadiness = {
+  ok: true,
+  policyBundle: null,
+  readiness: {
+    state: "BLOCKED_POLICY",
+    policyRecorded: false,
+    rightsState: "MISSING",
+    providerPolicyState: "MISSING",
+    persistenceClass: "LOCAL_SQLITE_EVIDENCE",
+    rootPayloadDigest: "8".repeat(64),
+    blockers: [
+      "identity_reference_rights_not_approved",
+      "production_policy_missing",
+      "live_provider_evidence_missing",
+      "publication_authority_missing",
+    ],
+    publicationAllowed: false,
+  },
+} as const;
+
 function deliveryBundle(state: "QC_READY" | "MASTER_READY" = "QC_READY") {
   return {
     ok: true,
@@ -180,6 +200,7 @@ function deliveryBundle(state: "QC_READY" | "MASTER_READY" = "QC_READY") {
 function installBundleMocks(activeRun: { state: string }) {
   coreMocks.request.mockImplementation(async (path: string, init?: { method?: string }) => {
     if (path === "episode-production-runs") return { ok: true, runs: [activeRun] };
+    if (path.endsWith("/production-readiness")) return productionReadiness;
     if (path.endsWith("/shot-graph")) return shotBundle;
     if (path.endsWith("/assets")) return assetBundle;
     if (path.endsWith("/media")) return mediaBundle;
@@ -209,6 +230,8 @@ describe("ConnectedProductionWorkspace", () => {
     expect(screen.getByText("SHOT 01")).toBeInTheDocument();
     expect(screen.getByText("镜头动作 2")).toBeInTheDocument();
     expect(screen.getByText("禁止发布")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "尚未具备可发布生产条件" })).toBeInTheDocument();
+    expect(screen.getByText("角色参考尚未取得可发布版权授权")).toBeInTheDocument();
     expect(coreMocks.request).toHaveBeenCalledWith(
       expect.stringContaining("episode-production-run-1/shot-graph"),
       expect.objectContaining({ signal: expect.any(AbortSignal) }),

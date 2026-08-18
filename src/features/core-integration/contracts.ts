@@ -1,5 +1,7 @@
 export type CapabilityState =
   | "available"
+  | "local_evidence_only"
+  | "production_policy_required"
   | "authority_required"
   | "not_open";
 
@@ -476,6 +478,25 @@ export type MediaBundleEnvelope = {
     provenance: string | null;
     [key: string]: unknown;
   }>;
+};
+
+export type ProductionReadinessState =
+  | "BLOCKED_POLICY"
+  | "BLOCKED_EXTERNAL_EVIDENCE";
+
+export type ProductionReadinessEnvelope = {
+  ok: true;
+  policyBundle: Record<string, unknown> | null;
+  readiness: {
+    state: ProductionReadinessState;
+    policyRecorded: boolean;
+    rightsState: string;
+    providerPolicyState: string;
+    persistenceClass: string;
+    rootPayloadDigest?: string;
+    blockers: string[];
+    publicationAllowed: false;
+  };
 };
 
 export type QcCheck = {

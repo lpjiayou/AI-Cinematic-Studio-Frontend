@@ -14,8 +14,17 @@ function capabilityPayload() {
     capabilities: CREATOR_CAPABILITY_CATALOG.map(([id, name], index) => ({
       id,
       name,
-      state: index < 5 ? "available" : index === 5 ? "authority_required" : "not_open",
-      publicResources: index < 6 ? [`resource-${id}`] : [],
+      state:
+        index < 5
+          ? "available"
+          : index === 5
+            ? "authority_required"
+            : index < 9
+              ? "local_evidence_only"
+              : index < 15
+                ? "production_policy_required"
+                : "not_open",
+      publicResources: index < 15 ? [`resource-${id}`] : [],
       requirements: [],
     })),
   };

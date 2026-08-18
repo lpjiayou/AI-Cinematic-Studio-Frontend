@@ -42,7 +42,13 @@ function isValidCapabilities(value: unknown): value is CreatorCapabilitiesEnvelo
     ([id, name], index) =>
       envelope.capabilities?.[index]?.id === id &&
       envelope.capabilities[index]?.name === name &&
-      ["available", "authority_required", "not_open"].includes(
+      [
+        "available",
+        "local_evidence_only",
+        "production_policy_required",
+        "authority_required",
+        "not_open",
+      ].includes(
         envelope.capabilities[index]?.state ?? "",
       ) &&
       Array.isArray(envelope.capabilities[index]?.publicResources) &&

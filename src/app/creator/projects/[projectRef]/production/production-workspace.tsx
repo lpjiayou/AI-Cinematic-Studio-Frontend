@@ -16,6 +16,7 @@ import {
   type FinalizeMutationEnvelope,
   type MediaBundleEnvelope,
   type PreviewMutationEnvelope,
+  type ProductionReadinessEnvelope,
   type ShotGraphBundleEnvelope,
 } from "@/features/core-integration";
 import { LOCAL_PROJECT_CLIENT_KEYS } from "@/features/project-data";
@@ -48,6 +49,20 @@ const STATE_LABELS: Record<EpisodeProductionState, string> = {
   QC_READY: "机器质检已通过",
   APPROVAL_READY: "审批证据已就绪",
   MASTER_READY: "单集母版已就绪",
+};
+
+const PRODUCTION_BLOCKER_LABELS: Record<string, string> = {
+  identity_lock_missing: "缺少当前角色身份锁",
+  identity_reference_rights_not_approved: "角色参考尚未取得可发布版权授权",
+  rights_evidence_authority_missing: "尚未连接可核验版权证据的权威来源",
+  provider_policy_authority_missing: "尚未连接已批准的供应商、凭据与条款权威",
+  production_policy_missing: "缺少冻结的成片规格、预算与投放范围",
+  rights_manifest_missing: "缺少覆盖全部冻结输入的版权清单",
+  provider_execution_policy_missing: "缺少图像、视频与音频供应商执行策略",
+  live_provider_evidence_missing: "缺少真实供应商执行证据",
+  production_runtime_evidence_missing: "缺少生产运行时、对象存储与 GPU 证明",
+  human_approvals_missing: "缺少创作、连续性、技术与母版人工审批",
+  publication_authority_missing: "缺少独立发布授权",
 };
 
 const STAGES: Array<{
@@ -542,6 +557,7 @@ function DeliveryWorkspace({ delivery, run }: { delivery: DeliveryBundleEnvelope
 
 function NextAction({
   run,
+  readiness,
   stage,
   busy,
   onResolveAssets,
@@ -549,6 +565,7 @@ function NextAction({
   onPreview,
 }: {
   run: CreatorEpisodeProductionRun;
+  readiness: ProductionReadinessEnvelope["readiness"] | null;
   stage: ProductionWorkspaceStage;
   busy: boolean;
   onResolveAssets: () => void;
@@ -602,6 +619,30 @@ function NextAction({
         {action}
       </section>
       <section>
+        <p>PRODUCTION READINESS</p>
+        <h3>
+          {readiness?.publicationAllowed
+            ? "已具备发布资格"
+            : readiness?.policyRecorded
+              ? "策略已登记，仍缺生产证据"
+              : "尚未具备可发布生产条件"}
+        </h3>
+        {readiness ? (
+          <>
+            <ACSBadge tone={readiness.policyRecorded ? "primary" : "neutral"}>
+              {readiness.state}
+            </ACSBadge>
+            <ul>
+              {readiness.blockers.map((blocker) => (
+                <li key={blocker}>{PRODUCTION_BLOCKER_LABELS[blocker] ?? blocker}</li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <span>正在读取 Core 的生产就绪事实。</span>
+        )}
+      </section>
+      <section>
         <p>TRUTH BOUNDARY</p>
         <ul>
           <li>工作区范围由服务端凭据注入</li>
@@ -636,6 +677,7 @@ export function ConnectedProductionWorkspace({
     assetPlan: AssetPlanBundleEnvelope | null;
     media: MediaBundleEnvelope | null;
     delivery: DeliveryBundleEnvelope | null;
+    readiness: ProductionReadinessEnvelope | null;
   } | null>(null);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -657,6 +699,7 @@ export function ConnectedProductionWorkspace({
   const assetPlan = currentBundles?.assetPlan ?? null;
   const media = currentBundles?.media ?? null;
   const delivery = currentBundles?.delivery ?? null;
+  const readiness = currentBundles?.readiness?.readiness ?? null;
   const loadingBundles = Boolean(selectedRun && !currentBundles);
 
   useEffect(() => {
@@ -700,6 +743,10 @@ export function ConnectedProductionWorkspace({
         let nextAssetPlan: AssetPlanBundleEnvelope | null = null;
         let nextMedia: MediaBundleEnvelope | null = null;
         let nextDelivery: DeliveryBundleEnvelope | null = null;
+        const nextReadiness = await creatorRequest<ProductionReadinessEnvelope>(
+          `${base}/production-readiness`,
+          { signal: controller.signal },
+        );
         if (hasReached(selectedRun.state, "SHOTS_COMPILED")) {
           nextShotGraph = await creatorRequest<ShotGraphBundleEnvelope>(`${base}/shot-graph`, { signal: controller.signal });
         }
@@ -718,6 +765,7 @@ export function ConnectedProductionWorkspace({
           assetPlan: nextAssetPlan,
           media: nextMedia,
           delivery: nextDelivery,
+          readiness: nextReadiness,
         });
         setPageError(null);
       } catch (error: unknown) {
@@ -728,6 +776,7 @@ export function ConnectedProductionWorkspace({
             assetPlan: null,
             media: null,
             delivery: null,
+            readiness: null,
           });
           setPageError(errorDetail(error));
         }
@@ -865,7 +914,7 @@ export function ConnectedProductionWorkspace({
         <div>
           <p>K2 GOLDEN EPISODE · CONNECTED WORKSPACE</p>
           <h1>把一集从已确认剧本推进到可播放母版</h1>
-          <span>当前界面只读取和推进这个 Core 项目的真实单集链路；所有状态、版本、摘要与权限均以服务端事实为准。</span>
+          <span>当前界面只读取和推进这个 Core 项目的同一条单集链路。可播放本地证据与可发布成片是两种状态；生产策略、版权、供应商、运行时和审批均以服务端事实为准。</span>
         </div>
         <div className={styles.headerStatus}>
           <ACSBadge dot tone={statusTone(selectedRun.state)}>{STATE_LABELS[selectedRun.state]}</ACSBadge>
@@ -913,6 +962,7 @@ export function ConnectedProductionWorkspace({
           onExecuteMedia={() => void execute("media", "媒体任务已执行并通过证据校验。")}
           onPreview={() => void execute("preview", "预览已合成，机器质检已完成。")}
           onResolveAssets={() => void execute("assets", "资产需求与生成请求已建立。")}
+          readiness={readiness}
           run={selectedRun}
           stage={initialStage}
         />
