@@ -558,6 +558,8 @@ function DeliveryWorkspace({ delivery, run }: { delivery: DeliveryBundleEnvelope
 function NextAction({
   run,
   readiness,
+  readinessAvailable,
+  readinessLoading,
   stage,
   busy,
   onResolveAssets,
@@ -566,6 +568,8 @@ function NextAction({
 }: {
   run: CreatorEpisodeProductionRun;
   readiness: ProductionReadinessEnvelope["readiness"] | null;
+  readinessAvailable: boolean;
+  readinessLoading: boolean;
   stage: ProductionWorkspaceStage;
   busy: boolean;
   onResolveAssets: () => void;
@@ -639,7 +643,13 @@ function NextAction({
             </ul>
           </>
         ) : (
-          <span>正在读取 Core 的生产就绪事实。</span>
+          <span>
+            {readinessAvailable
+              ? readinessLoading
+                ? "正在读取 Core 的生产就绪事实。"
+                : "Core 已公开生产就绪事实，但当前未返回可用投影；发布保持禁止。"
+              : "当前 Core 基线未公开生产就绪事实；发布保持禁止。"}
+          </span>
         )}
       </section>
       <section>
@@ -701,6 +711,13 @@ export function ConnectedProductionWorkspace({
   const delivery = currentBundles?.delivery ?? null;
   const readiness = currentBundles?.readiness?.readiness ?? null;
   const loadingBundles = Boolean(selectedRun && !currentBundles);
+  const productionReadinessAvailable =
+    connection.status === "connected" &&
+    connection.capabilities.some((capability) =>
+      capability.publicResources.includes(
+        "episode-production-runs/production-readiness",
+      ),
+    );
 
   useEffect(() => {
     if (localProject || connection.status !== "connected") {
@@ -743,10 +760,13 @@ export function ConnectedProductionWorkspace({
         let nextAssetPlan: AssetPlanBundleEnvelope | null = null;
         let nextMedia: MediaBundleEnvelope | null = null;
         let nextDelivery: DeliveryBundleEnvelope | null = null;
-        const nextReadiness = await creatorRequest<ProductionReadinessEnvelope>(
-          `${base}/production-readiness`,
-          { signal: controller.signal },
-        );
+        let nextReadiness: ProductionReadinessEnvelope | null = null;
+        if (productionReadinessAvailable) {
+          nextReadiness = await creatorRequest<ProductionReadinessEnvelope>(
+            `${base}/production-readiness`,
+            { signal: controller.signal },
+          );
+        }
         if (hasReached(selectedRun.state, "SHOTS_COMPILED")) {
           nextShotGraph = await creatorRequest<ShotGraphBundleEnvelope>(`${base}/shot-graph`, { signal: controller.signal });
         }
@@ -783,7 +803,7 @@ export function ConnectedProductionWorkspace({
       }
     })();
     return () => controller.abort();
-  }, [revision, selectedRun]);
+  }, [productionReadinessAvailable, revision, selectedRun]);
 
   function reloadRuns() {
     setLoadingRuns(true);
@@ -963,6 +983,8 @@ export function ConnectedProductionWorkspace({
           onPreview={() => void execute("preview", "预览已合成，机器质检已完成。")}
           onResolveAssets={() => void execute("assets", "资产需求与生成请求已建立。")}
           readiness={readiness}
+          readinessAvailable={productionReadinessAvailable}
+          readinessLoading={loadingBundles}
           run={selectedRun}
           stage={initialStage}
         />

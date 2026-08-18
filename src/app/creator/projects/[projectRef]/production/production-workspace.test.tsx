@@ -3,7 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ConnectedProductionWorkspace } from "./production-workspace";
 
-const coreMocks = vi.hoisted(() => ({ request: vi.fn(), refresh: vi.fn() }));
+const coreMocks = vi.hoisted(() => ({
+  request: vi.fn(),
+  refresh: vi.fn(),
+  capabilities: vi.fn(),
+}));
 
 vi.mock("@/features/core-integration", async () => {
   const actual = await vi.importActual<typeof import("@/features/core-integration")>(
@@ -13,7 +17,7 @@ vi.mock("@/features/core-integration", async () => {
     ...actual,
     creatorRequest: coreMocks.request,
     useCreatorIntegration: () => ({
-      state: { status: "connected", capabilities: [] },
+      state: { status: "connected", capabilities: coreMocks.capabilities() },
       refresh: coreMocks.refresh,
     }),
   };
@@ -219,6 +223,33 @@ describe("ConnectedProductionWorkspace", () => {
   beforeEach(() => {
     coreMocks.request.mockReset();
     coreMocks.refresh.mockReset();
+    coreMocks.capabilities.mockReset();
+    coreMocks.capabilities.mockReturnValue([
+      {
+        id: "M10",
+        name: "Image Studio",
+        state: "production_policy_required",
+        publicResources: ["episode-production-runs/production-readiness"],
+        requirements: ["M9"],
+      },
+    ]);
+  });
+
+  it("keeps the accepted Core baseline usable when readiness is not advertised", async () => {
+    coreMocks.capabilities.mockReturnValue([]);
+    installBundleMocks(run);
+    render(<ConnectedProductionWorkspace initialStage="shots" projectRef="project-core-1" />);
+
+    expect(await screen.findByRole("heading", { name: "可执行镜头图" })).toBeInTheDocument();
+    expect(
+      screen.getByText("当前 Core 基线未公开生产就绪事实；发布保持禁止。"),
+    ).toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path]) =>
+          typeof path === "string" && path.endsWith("/production-readiness"),
+      ),
+    ).toBe(false);
   });
 
   it("renders the Core-backed executable shot graph at full project scope", async () => {
