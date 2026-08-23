@@ -209,6 +209,126 @@ describe("Creator Experience Adapter", () => {
     expect(rejected.status).toBe(404);
   });
 
+  it("exposes the four-axis state projection as GET-only", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      coreResponse({
+        ok: true,
+        schemaVersion: "v5.k2-production-state-projection.v1",
+        productionRunRef: "run-1",
+        state: "REAL_VIDEO_PLAN_READY",
+      }),
+    );
+
+    const response = await handleCreatorExperienceRequest(
+      new Request("http://frontend.test/api/creator/episode-production-runs/run-1/state-projection"),
+      ["episode-production-runs", "run-1", "state-projection"],
+    );
+    expect(response.status).toBe(200);
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      "/creator/api/v1/episode-production-runs/run-1/state-projection",
+    );
+
+    const rejected = await handleCreatorExperienceRequest(
+      new Request("http://frontend.test/api/creator/episode-production-runs/run-1/state-projection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idempotencyKey: "must-not-forward" }),
+      }),
+      ["episode-production-runs", "run-1", "state-projection"],
+    );
+    expect(rejected.status).toBe(404);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes through the bounded real-video review resources without browser scope claims", async () => {
+    const resources = [
+      "real-video-candidates",
+      "semantic-visual-qc",
+      "media-selection",
+      "real-video-admission",
+    ] as const;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (_input, init) => coreResponse(
+        { ok: true, state: "REAL_VIDEO_PLAN_READY" },
+        init?.method === "POST" ? 201 : 200,
+      ),
+    );
+
+    for (const resource of resources) {
+      const path = ["episode-production-runs", "run-1", resource];
+      const getResponse = await handleCreatorExperienceRequest(
+        new Request(`http://frontend.test/api/creator/${path.join("/")}`),
+        path,
+      );
+      expect(getResponse.status).toBe(200);
+
+      const postResponse = await handleCreatorExperienceRequest(
+        new Request(`http://frontend.test/api/creator/${path.join("/")}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idempotencyKey: `${resource}-v1`,
+            productionRunRef: "forged-run",
+            workspaceRef: "forged-workspace",
+          }),
+        }),
+        path,
+      );
+      expect(postResponse.status).toBe(201);
+    }
+
+    expect(fetchMock).toHaveBeenCalledTimes(8);
+    for (const [, init] of fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")) {
+      expect(JSON.parse(String(init?.body))).toEqual({
+        idempotencyKey: expect.any(String),
+      });
+    }
+  });
+
+  it("passes through the unified real-image resources without browser scope claims", async () => {
+    const resources = [
+      "real-image-candidates",
+      "real-image-admission",
+      "real-image-successor-admission",
+    ] as const;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (_input, init) => coreResponse(
+        { ok: true, state: "REAL_IMAGE_PLAN_READY" },
+        init?.method === "POST" ? 201 : 200,
+      ),
+    );
+
+    for (const resource of resources) {
+      const path = ["episode-production-runs", "run-1", resource];
+      const getResponse = await handleCreatorExperienceRequest(
+        new Request(`http://frontend.test/api/creator/${path.join("/")}`),
+        path,
+      );
+      expect(getResponse.status).toBe(200);
+
+      const postResponse = await handleCreatorExperienceRequest(
+        new Request(`http://frontend.test/api/creator/${path.join("/")}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idempotencyKey: `${resource}-v1`,
+            productionRunRef: "forged-run",
+            workspaceRef: "forged-workspace",
+          }),
+        }),
+        path,
+      );
+      expect(postResponse.status).toBe(201);
+    }
+
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    for (const [, init] of fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")) {
+      expect(JSON.parse(String(init?.body))).toEqual({
+        idempotencyKey: expect.any(String),
+      });
+    }
+  });
+
   it("exposes production readiness as read-only browser state", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       coreResponse({

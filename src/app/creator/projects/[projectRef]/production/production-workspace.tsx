@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ACSBadge, ACSButton } from "@/components";
 import {
   CreatorClientError,
+  EPISODE_PRODUCTION_STATES,
   creatorRequest,
+  getK2ProductionStateProjection,
   useCreatorIntegration,
   type AssetPlanBundleEnvelope,
   type CreatorEpisodeProductionRun,
@@ -14,6 +16,7 @@ import {
   type EpisodeProductionRunsEnvelope,
   type EpisodeProductionState,
   type FinalizeMutationEnvelope,
+  type K2ProductionStateProjectionEnvelope,
   type MediaBundleEnvelope,
   type PreviewMutationEnvelope,
   type ProductionReadinessEnvelope,
@@ -25,18 +28,7 @@ import styles from "./production-workspace.module.css";
 
 export type ProductionWorkspaceStage = "shots" | "assets" | "review" | "delivery";
 
-const STATE_ORDER: EpisodeProductionState[] = [
-  "ROOTS_READY",
-  "AUTHORITY_READY",
-  "SCRIPT_VALIDATED",
-  "SHOTS_COMPILED",
-  "ASSETS_READY",
-  "MEDIA_READY",
-  "PREVIEW_READY",
-  "QC_READY",
-  "APPROVAL_READY",
-  "MASTER_READY",
-];
+const STATE_ORDER: EpisodeProductionState[] = [...EPISODE_PRODUCTION_STATES];
 
 const STATE_LABELS: Record<EpisodeProductionState, string> = {
   ROOTS_READY: "单集根已锁定",
@@ -47,6 +39,10 @@ const STATE_LABELS: Record<EpisodeProductionState, string> = {
   MEDIA_READY: "媒体证据已就绪",
   PREVIEW_READY: "预览已合成",
   QC_READY: "机器质检已通过",
+  REAL_IMAGE_PLAN_READY: "真实图像计划已就绪",
+  REAL_IMAGE_READY: "真实图像版本已准入",
+  REAL_VIDEO_PLAN_READY: "真实视频计划已就绪",
+  REAL_VIDEO_READY: "真实视频版本已准入",
   APPROVAL_READY: "审批证据已就绪",
   MASTER_READY: "单集母版已就绪",
 };
@@ -444,6 +440,7 @@ function ReviewWorkspace({
   }
   const preview = delivery?.previewCandidate;
   const qc = delivery?.qcReport;
+  const canFinalize = run.state === "QC_READY" || run.state === "APPROVAL_READY";
   const previewUrl = `/api/creator/episode-production-runs/${encodeURIComponent(run.productionRunRef)}/preview/content`;
   return (
     <section className={styles.canvasSection} aria-labelledby="review-workspace-title">
@@ -476,7 +473,7 @@ function ReviewWorkspace({
           </ul>
         </div>
       </div>
-      {run.state !== "MASTER_READY" ? (
+      {canFinalize ? (
         <section className={styles.approvalSection} aria-labelledby="approval-title">
           <header>
             <div><p>EXTERNAL APPROVALS</p><h3 id="approval-title">四项独立人工审批</h3></div>
@@ -557,6 +554,8 @@ function DeliveryWorkspace({ delivery, run }: { delivery: DeliveryBundleEnvelope
 
 function NextAction({
   run,
+  stateProjection,
+  stateProjectionError,
   readiness,
   readinessAvailable,
   readinessLoading,
@@ -567,6 +566,8 @@ function NextAction({
   onPreview,
 }: {
   run: CreatorEpisodeProductionRun;
+  stateProjection: K2ProductionStateProjectionEnvelope | null;
+  stateProjectionError: { code: string; message: string } | null;
   readiness: ProductionReadinessEnvelope["readiness"] | null;
   readinessAvailable: boolean;
   readinessLoading: boolean;
@@ -599,6 +600,18 @@ function NextAction({
     title = "生成预览并质检";
     description = "合成时间线、生成预览并运行六项确定性机器检查。";
     action = <ACSButton loading={busy} onClick={onPreview} size="small">生成预览</ACSButton>;
+  } else if (run.state === "REAL_IMAGE_PLAN_READY") {
+    title = "等待真实图像选择与准入";
+    description = "只读查看候选链；当前界面不会替用户生成选择或授权证据。";
+  } else if (run.state === "REAL_IMAGE_READY") {
+    title = "等待真实视频计划";
+    description = "真实图像 AssetVersion 已准入，下一步由受权威约束的 Core 命令建立视频计划。";
+  } else if (run.state === "REAL_VIDEO_PLAN_READY") {
+    title = "核对视频候选、视觉质检与选择";
+    description = "候选、QC、人工选择和准入是独立事实；V4 任务成功不会推进 V5 生产状态。";
+  } else if (run.state === "REAL_VIDEO_READY") {
+    title = "真实视频版本已准入";
+    description = "已选择候选被登记为不可变 AssetVersion；发布资格仍由服务端事实决定。";
   } else if (run.state === "QC_READY" || run.state === "APPROVAL_READY") {
     title = "等待四项人工审批";
     description = "先在预览页看片，再填写来自外部审批权威的四组引用。";
@@ -615,6 +628,35 @@ function NextAction({
         <p>CURRENT STATE</p>
         <h2>{STATE_LABELS[run.state]}</h2>
         <ACSBadge dot tone={statusTone(run.state)}>{run.state}</ACSBadge>
+      </section>
+      <section aria-labelledby="k2-control-plane-title">
+        <p>CONTROL PLANE</p>
+        <h3 id="k2-control-plane-title">V5 / V4 四轴状态投影</h3>
+        {stateProjection ? (
+          <>
+            <ul aria-label="K2 四轴状态投影">
+              <li>根状态 · {stateProjection.rootState.state}</li>
+              <li>生产状态 · {stateProjection.productionState}</li>
+              <li>V4 运行时 · {stateProjection.runtimeState.state}</li>
+              <li>语义视觉 QC · {stateProjection.visualQcState.state}</li>
+            </ul>
+            <span>候选链 · {stateProjection.candidateLifecycle?.candidates.length ?? 0} 个候选</span>
+            <span>
+              活动修订 · {stateProjection.activeRevision.revisionRef ?? stateProjection.activeRevision.state}
+            </span>
+            <ACSBadge tone={stateProjection.invariants.runtimeDoesNotAdvanceProduction ? "success" : "danger"}>
+              {stateProjection.invariants.runtimeDoesNotAdvanceProduction
+                ? "运行时不可推进生产状态"
+                : "状态边界异常"}
+            </ACSBadge>
+          </>
+        ) : (
+          <span>
+            {stateProjectionError
+              ? `${stateProjectionError.message}（${stateProjectionError.code}）`
+              : "当前 Core 未返回四轴状态投影；界面不会把运行时任务状态当作生产状态。"}
+          </span>
+        )}
       </section>
       <section>
         <p>NEXT ACTION</p>
@@ -688,6 +730,8 @@ export function ConnectedProductionWorkspace({
     media: MediaBundleEnvelope | null;
     delivery: DeliveryBundleEnvelope | null;
     readiness: ProductionReadinessEnvelope | null;
+    stateProjection: K2ProductionStateProjectionEnvelope | null;
+    stateProjectionError: { code: string; message: string } | null;
   } | null>(null);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -710,6 +754,8 @@ export function ConnectedProductionWorkspace({
   const media = currentBundles?.media ?? null;
   const delivery = currentBundles?.delivery ?? null;
   const readiness = currentBundles?.readiness?.readiness ?? null;
+  const stateProjection = currentBundles?.stateProjection ?? null;
+  const stateProjectionError = currentBundles?.stateProjectionError ?? null;
   const loadingBundles = Boolean(selectedRun && !currentBundles);
   const productionReadinessAvailable =
     connection.status === "connected" &&
@@ -761,6 +807,16 @@ export function ConnectedProductionWorkspace({
         let nextMedia: MediaBundleEnvelope | null = null;
         let nextDelivery: DeliveryBundleEnvelope | null = null;
         let nextReadiness: ProductionReadinessEnvelope | null = null;
+        let nextStateProjection: K2ProductionStateProjectionEnvelope | null = null;
+        let nextStateProjectionError: { code: string; message: string } | null = null;
+        try {
+          nextStateProjection = await getK2ProductionStateProjection(
+            selectedRun.productionRunRef,
+            { signal: controller.signal },
+          );
+        } catch (error: unknown) {
+          nextStateProjectionError = errorDetail(error);
+        }
         if (productionReadinessAvailable) {
           nextReadiness = await creatorRequest<ProductionReadinessEnvelope>(
             `${base}/production-readiness`,
@@ -786,6 +842,8 @@ export function ConnectedProductionWorkspace({
           media: nextMedia,
           delivery: nextDelivery,
           readiness: nextReadiness,
+          stateProjection: nextStateProjection,
+          stateProjectionError: nextStateProjectionError,
         });
         setPageError(null);
       } catch (error: unknown) {
@@ -797,6 +855,8 @@ export function ConnectedProductionWorkspace({
             media: null,
             delivery: null,
             readiness: null,
+            stateProjection: null,
+            stateProjectionError: null,
           });
           setPageError(errorDetail(error));
         }
@@ -987,6 +1047,8 @@ export function ConnectedProductionWorkspace({
           readinessLoading={loadingBundles}
           run={selectedRun}
           stage={initialStage}
+          stateProjection={stateProjection}
+          stateProjectionError={stateProjectionError}
         />
       </div>
     </main>

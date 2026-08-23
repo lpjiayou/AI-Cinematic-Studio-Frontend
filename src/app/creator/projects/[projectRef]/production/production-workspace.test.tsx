@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ConnectedProductionWorkspace } from "./production-workspace";
 
 const coreMocks = vi.hoisted(() => ({
   request: vi.fn(),
+  stateProjection: vi.fn(),
   refresh: vi.fn(),
   capabilities: vi.fn(),
 }));
@@ -16,6 +17,7 @@ vi.mock("@/features/core-integration", async () => {
   return {
     ...actual,
     creatorRequest: coreMocks.request,
+    getK2ProductionStateProjection: coreMocks.stateProjection,
     useCreatorIntegration: () => ({
       state: { status: "connected", capabilities: coreMocks.capabilities() },
       refresh: coreMocks.refresh,
@@ -137,6 +139,42 @@ const productionReadiness = {
   },
 } as const;
 
+const stateProjection = {
+  ok: true,
+  schemaVersion: "v5.k2-production-state-projection.v1",
+  productionRunRef: run.productionRunRef,
+  state: "REAL_VIDEO_PLAN_READY",
+  productionState: "REAL_VIDEO_PLAN_READY",
+  rootState: { state: "ROOTS_READY", authority: "V5_ROOT_DATABASE" },
+  productionProjection: {
+    state: "REAL_VIDEO_PLAN_READY",
+    authority: "V5_EVIDENCE_TRANSITIONS",
+  },
+  runtimeState: {
+    state: "ATTENTION_REQUIRED",
+    authority: "V4_RUNTIME_NON_CANONICAL",
+    jobCount: 4,
+  },
+  visualQcState: {
+    state: "NOT_STARTED",
+    authority: "V5_CANONICAL_APPEND_ONLY",
+    decisionCount: 0,
+  },
+  activeRevision: {
+    state: "ACTIVE",
+    revisionRef: "real-video-plan-v1",
+    authority: "V5_CANONICAL_APPEND_ONLY",
+  },
+  candidateLifecycle: {
+    candidates: [{ candidateRef: "candidate-1" }, { candidateRef: "candidate-2" }],
+  },
+  invariants: {
+    runtimeDoesNotAdvanceProduction: true,
+    assetVersionAuthority: "V5_CANONICAL_EVIDENCE_ONLY",
+  },
+  publicationAllowed: false,
+} as const;
+
 function deliveryBundle(state: "QC_READY" | "MASTER_READY" = "QC_READY") {
   return {
     ok: true,
@@ -222,6 +260,7 @@ function installBundleMocks(activeRun: { state: string }) {
 describe("ConnectedProductionWorkspace", () => {
   beforeEach(() => {
     coreMocks.request.mockReset();
+    coreMocks.stateProjection.mockReset();
     coreMocks.refresh.mockReset();
     coreMocks.capabilities.mockReset();
     coreMocks.capabilities.mockReturnValue([
@@ -233,6 +272,7 @@ describe("ConnectedProductionWorkspace", () => {
         requirements: ["M9"],
       },
     ]);
+    coreMocks.stateProjection.mockResolvedValue(stateProjection);
   });
 
   it("keeps the accepted Core baseline usable when readiness is not advertised", async () => {
@@ -265,6 +305,26 @@ describe("ConnectedProductionWorkspace", () => {
     expect(screen.getByText("角色参考尚未取得可发布版权授权")).toBeInTheDocument();
     expect(coreMocks.request).toHaveBeenCalledWith(
       expect.stringContaining("episode-production-run-1/shot-graph"),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it("keeps V5 production, V4 runtime, and visual QC as separate read-only axes", async () => {
+    const realVideoRun = { ...run, state: "REAL_VIDEO_PLAN_READY" as const };
+    installBundleMocks(realVideoRun);
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    const axes = await screen.findByRole("list", { name: "K2 四轴状态投影" });
+    expect(within(axes).getByText("根状态 · ROOTS_READY")).toBeInTheDocument();
+    expect(within(axes).getByText("生产状态 · REAL_VIDEO_PLAN_READY")).toBeInTheDocument();
+    expect(within(axes).getByText("V4 运行时 · ATTENTION_REQUIRED")).toBeInTheDocument();
+    expect(within(axes).getByText("语义视觉 QC · NOT_STARTED")).toBeInTheDocument();
+    expect(screen.getByText("候选链 · 2 个候选")).toBeInTheDocument();
+    expect(screen.getByText("运行时不可推进生产状态")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "核对视频候选、视觉质检与选择" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "验证审批并生成不可变母版" })).not.toBeInTheDocument();
+    expect(coreMocks.stateProjection).toHaveBeenCalledWith(
+      run.productionRunRef,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });

@@ -64,8 +64,25 @@ function isAllowed(path: string, method: string) {
     if (parts.length === 2) return method === "GET";
     if (parts.length === 3) {
       const resource = parts[2];
-      if (resource === "delivery" || resource === "production-readiness") {
+      if (
+        resource === "delivery" ||
+        resource === "production-readiness" ||
+        resource === "state-projection"
+      ) {
         return method === "GET";
+      }
+      if (
+        new Set([
+          "real-image-candidates",
+          "real-image-admission",
+          "real-image-successor-admission",
+          "real-video-candidates",
+          "semantic-visual-qc",
+          "media-selection",
+          "real-video-admission",
+        ]).has(resource)
+      ) {
+        return method === "GET" || method === "POST";
       }
       return new Set([
         "authority-identity",
