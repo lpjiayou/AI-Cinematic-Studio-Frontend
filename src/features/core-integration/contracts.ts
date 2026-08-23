@@ -321,17 +321,24 @@ export type SeriesIntelligenceWorkspaceEnvelope = {
   };
 };
 
-export type EpisodeProductionState =
-  | "ROOTS_READY"
-  | "AUTHORITY_READY"
-  | "SCRIPT_VALIDATED"
-  | "SHOTS_COMPILED"
-  | "ASSETS_READY"
-  | "MEDIA_READY"
-  | "PREVIEW_READY"
-  | "QC_READY"
-  | "APPROVAL_READY"
-  | "MASTER_READY";
+export const EPISODE_PRODUCTION_STATES = [
+  "ROOTS_READY",
+  "AUTHORITY_READY",
+  "SCRIPT_VALIDATED",
+  "SHOTS_COMPILED",
+  "ASSETS_READY",
+  "MEDIA_READY",
+  "PREVIEW_READY",
+  "QC_READY",
+  "REAL_IMAGE_PLAN_READY",
+  "REAL_IMAGE_READY",
+  "REAL_VIDEO_PLAN_READY",
+  "REAL_VIDEO_READY",
+  "APPROVAL_READY",
+  "MASTER_READY",
+] as const;
+
+export type EpisodeProductionState = (typeof EPISODE_PRODUCTION_STATES)[number];
 
 export type CreatorEpisodeProductionRun = {
   schemaVersion: string;
@@ -497,6 +504,87 @@ export type ProductionReadinessEnvelope = {
     blockers: string[];
     publicationAllowed: false;
   };
+};
+
+export type K2CandidateLifecycleProjection = {
+  schemaVersion?: string;
+  productionRunRef?: string;
+  candidates: unknown[];
+  assetVersions?: unknown[];
+  publicationAllowed?: false;
+};
+
+export type K2ProductionStateProjectionEnvelope = {
+  ok: true;
+  schemaVersion: "v5.k2-production-state-projection.v1";
+  productionRunRef: string;
+  state: EpisodeProductionState;
+  productionState: EpisodeProductionState;
+  rootState: {
+    state: string;
+    authority?: "V5_ROOT_DATABASE";
+    mutable?: false;
+    payloadDigest?: string;
+    version?: number;
+  };
+  productionProjection: {
+    state: EpisodeProductionState;
+    authority?: "V5_EVIDENCE_TRANSITIONS";
+    completedGates?: string[];
+    latestGateDigest?: string | null;
+    latestGateName?: string | null;
+  };
+  runtimeState: {
+    state: string;
+    authority?: "V4_RUNTIME_NON_CANONICAL";
+    counts?: Record<string, number>;
+    jobCount?: number;
+  };
+  visualQcState: {
+    state: string;
+    authority?: "V5_CANONICAL_APPEND_ONLY";
+    decisionCount?: number;
+    decisions?: unknown[];
+  };
+  activeRevision: {
+    state: string;
+    revisionRef: string | null;
+    authority?: "V5_CANONICAL_APPEND_ONLY";
+    candidateRevisionRefs?: string[];
+  };
+  candidateLifecycle?: K2CandidateLifecycleProjection;
+  invariants: {
+    runtimeDoesNotAdvanceProduction: boolean;
+    assetVersionAuthority: string;
+    visualQcDoesNotAdvanceProduction?: boolean;
+    publicationAllowed?: false;
+  };
+  publicationAllowed: false;
+};
+
+export type K2RealImageRevisionEnvelope = {
+  ok: true;
+  state: EpisodeProductionState;
+  realImagePlan: Record<string, unknown>;
+  generationRequests: unknown[];
+  realImageAdmissionManifest?: Record<string, unknown>;
+  candidates?: unknown[];
+  technicalValidations?: unknown[];
+  selectionDecisions?: unknown[];
+  assetAdmissions?: unknown[];
+  assetVersions?: unknown[];
+  candidateLifecycle?: K2CandidateLifecycleProjection;
+  publicationAllowed?: false;
+  [key: string]: unknown;
+};
+
+export type K2RealVideoRevisionEnvelope = {
+  ok: true;
+  state: EpisodeProductionState;
+  videoGenerationRequests?: unknown[];
+  videoAssetVersions?: unknown[];
+  publicationAllowed?: false;
+  [key: string]: unknown;
 };
 
 export type QcCheck = {
