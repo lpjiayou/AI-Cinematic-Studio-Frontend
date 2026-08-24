@@ -108,3 +108,82 @@ jobs:
           path: frontend/artifacts/gate-c-k2
           if-no-files-found: error
           retention-days: 30
+
+  gate-k2-control-plane-browser:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+
+    steps:
+      - name: Check out Frontend candidate
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+          persist-credentials: false
+
+      - name: Check out exact Core convergence candidate
+        uses: actions/checkout@v4
+        with:
+          repository: lpjiayou/AI-Cinematic-Studio
+          ref: debc7fadc8024f0e4db710668ef691e196c13772
+          path: core
+          persist-credentials: false
+
+      - name: Verify exact Core commit and tree
+        env:
+          K2_EXPECTED_CORE_SHA: debc7fadc8024f0e4db710668ef691e196c13772
+          K2_EXPECTED_CORE_TREE: c56913c4417e2b56610bb614b0f2b212d69ed3ac
+        run: |
+          test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
+          test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
+          test -z "$(git -C core status --porcelain=v1 --untracked-files=all)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deterministic media runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+
+      - name: Restore pinned Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install pinned Chromium and system dependencies
+        run: ./node_modules/.bin/playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Execute real HTTP and Chromium control-plane gate
+        env:
+          K2_CONTROL_PLANE_CORE_DIR: ${{ github.workspace }}/core
+          K2_CONTROL_PLANE_FRONTEND_DIR: ${{ github.workspace }}/frontend
+          K2_CONTROL_PLANE_ARTIFACT_ROOT: ${{ github.workspace }}/frontend/artifacts/k2-control-plane-ci
+        run: npm run test:gate-k2:control-plane
+        working-directory: frontend
+
+      - name: Upload control-plane gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k2-control-plane-browser-${{ github.sha }}
+          path: frontend/artifacts/k2-control-plane-ci
+          if-no-files-found: error
+          retention-days: 30
