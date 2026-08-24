@@ -51,13 +51,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: frontend
+          persist-credentials: false
 
-      - name: Check out exact Core main baseline
+      - name: Check out exact Core convergence candidate
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: 8d9ce52166cec27d2fefaa86548016130babdfff
+          ref: debc7fadc8024f0e4db710668ef691e196c13772
           path: core
+          persist-credentials: false
+
+      - name: Verify exact Core commit and tree
+        env:
+          K2_EXPECTED_CORE_SHA: debc7fadc8024f0e4db710668ef691e196c13772
+          K2_EXPECTED_CORE_TREE: c56913c4417e2b56610bb614b0f2b212d69ed3ac
+        run: |
+          test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
+          test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
+          test -z "$(git -C core status --porcelain=v1 --untracked-files=all)"
 
       - name: Set up Python
         uses: actions/setup-python@v5
