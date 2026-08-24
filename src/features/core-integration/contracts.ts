@@ -334,6 +334,8 @@ export const EPISODE_PRODUCTION_STATES = [
   "REAL_IMAGE_READY",
   "REAL_VIDEO_PLAN_READY",
   "REAL_VIDEO_READY",
+  "REAL_PREVIEW_READY",
+  "REAL_QC_READY",
   "APPROVAL_READY",
   "MASTER_READY",
 ] as const;
@@ -507,57 +509,67 @@ export type ProductionReadinessEnvelope = {
 };
 
 export type K2CandidateLifecycleProjection = {
-  schemaVersion?: string;
-  productionRunRef?: string;
+  schemaVersion: "v5.k2-candidate-lifecycle-projection.v1";
+  workspaceRef: string;
+  productionRunRef: string;
+  latestCandidateRevisionRef: string | null;
+  latestCandidateRevisionRefs: Record<string, string>;
+  activeRevisionRef: string | null;
+  historicalCandidateCount: number;
   candidates: unknown[];
-  assetVersions?: unknown[];
-  publicationAllowed?: false;
+  assetVersions: unknown[];
+  publicationAllowed: false;
 };
 
 export type K2ProductionStateProjectionEnvelope = {
   ok: true;
   schemaVersion: "v5.k2-production-state-projection.v1";
+  workspaceRef: string;
   productionRunRef: string;
   state: EpisodeProductionState;
   productionState: EpisodeProductionState;
   rootState: {
     state: string;
-    authority?: "V5_ROOT_DATABASE";
-    mutable?: false;
+    authority: "V5_ROOT_DATABASE";
+    mutable: false;
     payloadDigest?: string;
     version?: number;
   };
   productionProjection: {
     state: EpisodeProductionState;
-    authority?: "V5_EVIDENCE_TRANSITIONS";
+    authority: "V5_EVIDENCE_TRANSITIONS";
     completedGates?: string[];
     latestGateDigest?: string | null;
     latestGateName?: string | null;
   };
   runtimeState: {
     state: string;
-    authority?: "V4_RUNTIME_NON_CANONICAL";
+    authority: "V4_RUNTIME_NON_CANONICAL";
     counts?: Record<string, number>;
     jobCount?: number;
   };
   visualQcState: {
-    state: string;
-    authority?: "V5_CANONICAL_APPEND_ONLY";
-    decisionCount?: number;
-    decisions?: unknown[];
+    state: "BLOCKED_AMBIGUOUS" | "NOT_RECORDED" | "IN_PROGRESS" | "FAIL" | "PASS";
+    authority: "V5_CANONICAL_APPEND_ONLY";
+    activeRevisionRef: string | null;
+    candidateCount: number;
+    expectedCandidateCount?: number | null;
+    decisionCount: number;
+    decisions: unknown[];
   };
   activeRevision: {
-    state: string;
+    state: "ACTIVE" | "NOT_RECORDED" | "BLOCKED_AMBIGUOUS";
     revisionRef: string | null;
-    authority?: "V5_CANONICAL_APPEND_ONLY";
+    authority: "V5_CANONICAL_APPEND_ONLY";
     candidateRevisionRefs?: string[];
   };
-  candidateLifecycle?: K2CandidateLifecycleProjection;
+  candidateLifecycle: K2CandidateLifecycleProjection;
+  candidates: unknown[];
   invariants: {
-    runtimeDoesNotAdvanceProduction: boolean;
-    assetVersionAuthority: string;
-    visualQcDoesNotAdvanceProduction?: boolean;
-    publicationAllowed?: false;
+    runtimeDoesNotAdvanceProduction: true;
+    assetVersionAuthority: "V5_CANONICAL_EVIDENCE_ONLY";
+    visualQcDoesNotAdvanceProduction: true;
+    publicationAllowed: false;
   };
   publicationAllowed: false;
 };
@@ -581,9 +593,23 @@ export type K2RealImageRevisionEnvelope = {
 export type K2RealVideoRevisionEnvelope = {
   ok: true;
   state: EpisodeProductionState;
-  videoGenerationRequests?: unknown[];
+  productionState: EpisodeProductionState;
+  rootState: K2ProductionStateProjectionEnvelope["rootState"];
+  productionProjection: K2ProductionStateProjectionEnvelope["productionProjection"];
+  runtimeState: K2ProductionStateProjectionEnvelope["runtimeState"];
+  visualQcState: K2ProductionStateProjectionEnvelope["visualQcState"];
+  activeRevision: K2ProductionStateProjectionEnvelope["activeRevision"];
+  invariants: K2ProductionStateProjectionEnvelope["invariants"];
+  realVideoPlan: Record<string, unknown>;
+  videoGenerationRequests: unknown[];
+  realVideoAdmissionManifest?: Record<string, unknown>;
+  candidates: unknown[];
+  technicalValidations?: unknown[];
+  selectionDecisions?: unknown[];
+  videoAssetAdmissions?: unknown[];
   videoAssetVersions?: unknown[];
-  publicationAllowed?: false;
+  candidateLifecycle: K2CandidateLifecycleProjection;
+  publicationAllowed: false;
   [key: string]: unknown;
 };
 
