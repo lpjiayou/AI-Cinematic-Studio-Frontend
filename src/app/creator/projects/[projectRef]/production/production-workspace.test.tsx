@@ -142,10 +142,15 @@ const productionReadiness = {
 const stateProjection = {
   ok: true,
   schemaVersion: "v5.k2-production-state-projection.v1",
+  workspaceRef: "workspace-k2",
   productionRunRef: run.productionRunRef,
   state: "REAL_VIDEO_PLAN_READY",
   productionState: "REAL_VIDEO_PLAN_READY",
-  rootState: { state: "ROOTS_READY", authority: "V5_ROOT_DATABASE" },
+  rootState: {
+    state: "ROOTS_READY",
+    authority: "V5_ROOT_DATABASE",
+    mutable: false,
+  },
   productionProjection: {
     state: "REAL_VIDEO_PLAN_READY",
     authority: "V5_EVIDENCE_TRANSITIONS",
@@ -156,9 +161,12 @@ const stateProjection = {
     jobCount: 4,
   },
   visualQcState: {
-    state: "NOT_STARTED",
+    state: "NOT_RECORDED",
     authority: "V5_CANONICAL_APPEND_ONLY",
+    activeRevisionRef: "real-video-plan-v1",
+    candidateCount: 2,
     decisionCount: 0,
+    decisions: [],
   },
   activeRevision: {
     state: "ACTIVE",
@@ -166,11 +174,29 @@ const stateProjection = {
     authority: "V5_CANONICAL_APPEND_ONLY",
   },
   candidateLifecycle: {
-    candidates: [{ candidateRef: "candidate-1" }, { candidateRef: "candidate-2" }],
+    schemaVersion: "v5.k2-candidate-lifecycle-projection.v1",
+    workspaceRef: "workspace-k2",
+    productionRunRef: run.productionRunRef,
+    latestCandidateRevisionRef: "real-video-plan-v1",
+    latestCandidateRevisionRefs: { VIDEO: "real-video-plan-v1" },
+    activeRevisionRef: "real-video-plan-v1",
+    historicalCandidateCount: 0,
+    candidates: [
+      { candidateRef: "candidate-1", revisionRef: "real-video-plan-v1" },
+      { candidateRef: "candidate-2", revisionRef: "real-video-plan-v1" },
+    ],
+    assetVersions: [],
+    publicationAllowed: false,
   },
+  candidates: [
+    { candidateRef: "candidate-1", revisionRef: "real-video-plan-v1" },
+    { candidateRef: "candidate-2", revisionRef: "real-video-plan-v1" },
+  ],
   invariants: {
     runtimeDoesNotAdvanceProduction: true,
+    visualQcDoesNotAdvanceProduction: true,
     assetVersionAuthority: "V5_CANONICAL_EVIDENCE_ONLY",
+    publicationAllowed: false,
   },
   publicationAllowed: false,
 } as const;
@@ -239,7 +265,21 @@ function deliveryBundle(state: "QC_READY" | "MASTER_READY" = "QC_READY") {
   };
 }
 
-function installBundleMocks(activeRun: { state: string }) {
+function installBundleMocks(activeRun: { productionRunRef: string; state: string }) {
+  coreMocks.stateProjection.mockResolvedValue({
+    ...stateProjection,
+    productionRunRef: activeRun.productionRunRef,
+    state: activeRun.state,
+    productionState: activeRun.state,
+    productionProjection: {
+      ...stateProjection.productionProjection,
+      state: activeRun.state,
+    },
+    candidateLifecycle: {
+      ...stateProjection.candidateLifecycle,
+      productionRunRef: activeRun.productionRunRef,
+    },
+  });
   coreMocks.request.mockImplementation(async (path: string, init?: { method?: string }) => {
     if (path === "episode-production-runs") return { ok: true, runs: [activeRun] };
     if (path.endsWith("/production-readiness")) return productionReadiness;
@@ -257,6 +297,57 @@ function installBundleMocks(activeRun: { state: string }) {
   });
 }
 
+function approvalReadyProjection(
+  candidateCount = 4,
+  expectedCandidateCount: number | null = candidateCount,
+) {
+  const candidates = Array.from({ length: candidateCount }, (_, index) => ({
+    candidateRef: `video-candidate-${index + 1}`,
+    revisionRef: "video-revision-1",
+    selectionState: "SELECTED_BY_HUMAN",
+    admissionState: "ADMITTED",
+    assetVersionRef: `video-asset-version-${index + 1}`,
+  }));
+  return {
+    ...stateProjection,
+    productionRunRef: run.productionRunRef,
+    state: "APPROVAL_READY" as const,
+    productionState: "APPROVAL_READY" as const,
+    productionProjection: {
+      ...stateProjection.productionProjection,
+      state: "APPROVAL_READY" as const,
+    },
+    visualQcState: {
+      ...stateProjection.visualQcState,
+      state: "PASS" as const,
+      activeRevisionRef: "video-revision-1",
+      candidateCount,
+      expectedCandidateCount,
+      decisionCount: candidateCount,
+      decisions: candidates.map((candidate, index) => ({
+        visualQcRef: `video-qc-${index + 1}-v1`,
+        visualQcVersion: 1,
+        candidateRef: candidate.candidateRef,
+        result: "PASS",
+        payloadDigest: String(index + 1).repeat(64),
+      })),
+    },
+    activeRevision: {
+      ...stateProjection.activeRevision,
+      revisionRef: "video-revision-1",
+    },
+    candidateLifecycle: {
+      ...stateProjection.candidateLifecycle,
+      productionRunRef: run.productionRunRef,
+      latestCandidateRevisionRef: "video-revision-1",
+      latestCandidateRevisionRefs: { VIDEO: "video-revision-1" },
+      activeRevisionRef: "video-revision-1",
+      candidates,
+    },
+    candidates,
+  };
+}
+
 describe("ConnectedProductionWorkspace", () => {
   beforeEach(() => {
     coreMocks.request.mockReset();
@@ -272,7 +363,6 @@ describe("ConnectedProductionWorkspace", () => {
         requirements: ["M9"],
       },
     ]);
-    coreMocks.stateProjection.mockResolvedValue(stateProjection);
   });
 
   it("keeps the accepted Core baseline usable when readiness is not advertised", async () => {
@@ -318,7 +408,7 @@ describe("ConnectedProductionWorkspace", () => {
     expect(within(axes).getByText("根状态 · ROOTS_READY")).toBeInTheDocument();
     expect(within(axes).getByText("生产状态 · REAL_VIDEO_PLAN_READY")).toBeInTheDocument();
     expect(within(axes).getByText("V4 运行时 · ATTENTION_REQUIRED")).toBeInTheDocument();
-    expect(within(axes).getByText("语义视觉 QC · NOT_STARTED")).toBeInTheDocument();
+    expect(within(axes).getByText("语义视觉 QC · NOT_RECORDED")).toBeInTheDocument();
     expect(screen.getByText("候选链 · 2 个候选")).toBeInTheDocument();
     expect(screen.getByText("运行时不可推进生产状态")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "核对视频候选、视觉质检与选择" })).toBeInTheDocument();
@@ -327,6 +417,105 @@ describe("ConnectedProductionWorkspace", () => {
       run.productionRunRef,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+  });
+
+  it("fails closed when the run list and control-plane projection disagree", async () => {
+    const qcReady = { ...run, state: "QC_READY" as const };
+    installBundleMocks(qcReady);
+    coreMocks.stateProjection.mockResolvedValue({
+      ...stateProjection,
+      productionRunRef: qcReady.productionRunRef,
+      state: "REAL_VIDEO_PLAN_READY",
+      productionState: "REAL_VIDEO_PLAN_READY",
+      productionProjection: {
+        ...stateProjection.productionProjection,
+        state: "REAL_VIDEO_PLAN_READY",
+      },
+    });
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "控制面事实不一致，生产动作已冻结",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("生产状态冲突 · 动作已冻结")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "创作方向审批引用" })).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/finalize") && init?.method === "POST",
+      ),
+    ).toBe(false);
+  });
+
+  it("fails closed when a matching projection weakens a control-plane invariant", async () => {
+    installBundleMocks(run);
+    coreMocks.stateProjection.mockResolvedValue({
+      ...stateProjection,
+      productionRunRef: run.productionRunRef,
+      state: run.state,
+      productionState: run.state,
+      productionProjection: {
+        ...stateProjection.productionProjection,
+        state: run.state,
+      },
+      candidateLifecycle: {
+        ...stateProjection.candidateLifecycle,
+        productionRunRef: run.productionRunRef,
+      },
+      invariants: {
+        ...stateProjection.invariants,
+        runtimeDoesNotAdvanceProduction: false,
+      },
+    });
+    render(<ConnectedProductionWorkspace initialStage="assets" projectRef="project-core-1" />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "控制面事实不一致，生产动作已冻结",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "解析镜头资产需求" })).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/assets") && init?.method === "POST",
+      ),
+    ).toBe(false);
+  });
+
+  it("fails closed when the active revision diverges across projection axes", async () => {
+    installBundleMocks(run);
+    coreMocks.stateProjection.mockResolvedValue({
+      ...stateProjection,
+      productionRunRef: run.productionRunRef,
+      state: run.state,
+      productionState: run.state,
+      productionProjection: {
+        ...stateProjection.productionProjection,
+        state: run.state,
+      },
+      candidateLifecycle: {
+        ...stateProjection.candidateLifecycle,
+        productionRunRef: run.productionRunRef,
+        activeRevisionRef: "different-revision",
+      },
+    });
+    render(<ConnectedProductionWorkspace initialStage="assets" projectRef="project-core-1" />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "控制面事实不一致，生产动作已冻结",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "解析镜头资产需求" })).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/assets") && init?.method === "POST",
+      ),
+    ).toBe(false);
   });
 
   it("starts preview generation only after an explicit user action", async () => {
@@ -379,6 +568,196 @@ describe("ConnectedProductionWorkspace", () => {
       expect(call?.[1]?.body.decisions).toHaveLength(4);
       expect(call?.[1]?.body).not.toHaveProperty("workspaceRef");
     });
+  });
+
+  it("shows finalization only for four exact current admitted video candidates", async () => {
+    const approvalReady = { ...run, state: "APPROVAL_READY" as const };
+    installBundleMocks(approvalReady);
+    coreMocks.stateProjection.mockResolvedValue(approvalReadyProjection());
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(
+      await screen.findByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).toBeDisabled();
+    expect(screen.getByRole("textbox", { name: "创作方向审批引用" })).toBeInTheDocument();
+  });
+
+  it("accepts a four-item admitted successor whose plan cardinality is no longer projected", async () => {
+    const approvalReady = { ...run, state: "APPROVAL_READY" as const };
+    installBundleMocks(approvalReady);
+    coreMocks.stateProjection.mockResolvedValue(approvalReadyProjection(4, null));
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(
+      await screen.findByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).toBeDisabled();
+  });
+
+  it("withholds finalization for a sparse one-candidate PASS admission", async () => {
+    const approvalReady = { ...run, state: "APPROVAL_READY" as const };
+    installBundleMocks(approvalReady);
+    coreMocks.stateProjection.mockResolvedValue(approvalReadyProjection(1));
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(await screen.findByLabelText("K2 单集预览")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/finalize") && init?.method === "POST",
+      ),
+    ).toBe(false);
+  });
+
+  it("withholds finalization after one currently admitted candidate is authoritatively rejected", async () => {
+    const approvalReady = { ...run, state: "APPROVAL_READY" as const };
+    installBundleMocks(approvalReady);
+    const projection = approvalReadyProjection();
+    const rejectedCandidates = [
+      { ...projection.candidates[0], selectionState: "REJECTED_BY_HUMAN" },
+      ...projection.candidates.slice(1),
+    ];
+    coreMocks.stateProjection.mockResolvedValue({
+      ...projection,
+      candidateLifecycle: {
+        ...projection.candidateLifecycle,
+        candidates: rejectedCandidates,
+      },
+      candidates: rejectedCandidates,
+    });
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(await screen.findByLabelText("K2 单集预览")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/finalize") && init?.method === "POST",
+      ),
+    ).toBe(false);
+  });
+
+  it("withholds finalization when the latest admitted video revision has a superseding QC failure", async () => {
+    const approvalReady = { ...run, state: "APPROVAL_READY" as const };
+    installBundleMocks(approvalReady);
+    const failedVideoCandidate = {
+      candidateRef: "video-candidate-1",
+      revisionRef: "video-revision-1",
+      admissionState: "ADMITTED",
+    };
+    coreMocks.stateProjection.mockResolvedValue({
+      ...stateProjection,
+      productionRunRef: approvalReady.productionRunRef,
+      state: approvalReady.state,
+      productionState: approvalReady.state,
+      productionProjection: {
+        ...stateProjection.productionProjection,
+        state: approvalReady.state,
+      },
+      visualQcState: {
+        ...stateProjection.visualQcState,
+        state: "FAIL",
+        activeRevisionRef: "video-revision-1",
+        candidateCount: 1,
+        decisionCount: 1,
+        decisions: [
+          {
+            visualQcRef: "video-qc-1-v2",
+            visualQcVersion: 2,
+            candidateRef: failedVideoCandidate.candidateRef,
+            result: "FAIL",
+            payloadDigest: "9".repeat(64),
+          },
+        ],
+      },
+      activeRevision: {
+        ...stateProjection.activeRevision,
+        revisionRef: "video-revision-1",
+      },
+      candidateLifecycle: {
+        ...stateProjection.candidateLifecycle,
+        productionRunRef: approvalReady.productionRunRef,
+        latestCandidateRevisionRef: "video-revision-1",
+        latestCandidateRevisionRefs: { VIDEO: "video-revision-1" },
+        activeRevisionRef: "video-revision-1",
+        candidates: [failedVideoCandidate],
+      },
+      candidates: [failedVideoCandidate],
+    });
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(await screen.findByLabelText("K2 单集预览")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "创作方向审批引用" })).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/finalize") && init?.method === "POST",
+      ),
+    ).toBe(false);
+  });
+
+  it("withholds finalization when APPROVAL_READY omits the canonical video revision", async () => {
+    const approvalReady = { ...run, state: "APPROVAL_READY" as const };
+    installBundleMocks(approvalReady);
+    const admittedVideoCandidate = {
+      candidateRef: "video-candidate-1",
+      revisionRef: "video-revision-1",
+      admissionState: "ADMITTED",
+    };
+    coreMocks.stateProjection.mockResolvedValue({
+      ...stateProjection,
+      productionRunRef: approvalReady.productionRunRef,
+      state: approvalReady.state,
+      productionState: approvalReady.state,
+      productionProjection: {
+        ...stateProjection.productionProjection,
+        state: approvalReady.state,
+      },
+      visualQcState: {
+        ...stateProjection.visualQcState,
+        state: "PASS",
+        activeRevisionRef: "video-revision-1",
+        candidateCount: 1,
+        decisionCount: 1,
+        decisions: [
+          {
+            visualQcRef: "video-qc-1-v1",
+            visualQcVersion: 1,
+            candidateRef: admittedVideoCandidate.candidateRef,
+            result: "PASS",
+            payloadDigest: "8".repeat(64),
+          },
+        ],
+      },
+      activeRevision: {
+        ...stateProjection.activeRevision,
+        revisionRef: "video-revision-1",
+      },
+      candidateLifecycle: {
+        ...stateProjection.candidateLifecycle,
+        productionRunRef: approvalReady.productionRunRef,
+        latestCandidateRevisionRef: "video-revision-1",
+        latestCandidateRevisionRefs: {},
+        activeRevisionRef: "video-revision-1",
+        candidates: [admittedVideoCandidate],
+      },
+      candidates: [admittedVideoCandidate],
+    });
+    render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+
+    expect(await screen.findByLabelText("K2 单集预览")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "验证审批并生成不可变母版" }),
+    ).not.toBeInTheDocument();
+    expect(
+      coreMocks.request.mock.calls.some(
+        ([path, init]) => String(path).endsWith("/finalize") && init?.method === "POST",
+      ),
+    ).toBe(false);
   });
 
   it("shows the immutable local-evidence export without claiming publication rights", async () => {

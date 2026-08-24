@@ -43,6 +43,8 @@ const STATE_LABELS: Record<EpisodeProductionState, string> = {
   REAL_IMAGE_READY: "真实图像版本已准入",
   REAL_VIDEO_PLAN_READY: "真实视频计划已就绪",
   REAL_VIDEO_READY: "真实视频版本已准入",
+  REAL_PREVIEW_READY: "真实媒体预览已就绪",
+  REAL_QC_READY: "真实媒体质检已就绪",
   APPROVAL_READY: "审批证据已就绪",
   MASTER_READY: "单集母版已就绪",
 };
@@ -133,6 +135,71 @@ function stateRank(state: EpisodeProductionState) {
 
 function hasReached(state: EpisodeProductionState, target: EpisodeProductionState) {
   return stateRank(state) >= stateRank(target);
+}
+
+function controlPlaneMatchesRun(
+  run: CreatorEpisodeProductionRun,
+  projection: K2ProductionStateProjectionEnvelope,
+) {
+  return (
+    projection.productionRunRef === run.productionRunRef &&
+    projection.state === run.state &&
+    projection.productionState === run.state &&
+    projection.rootState.authority === "V5_ROOT_DATABASE" &&
+    projection.rootState.mutable === false &&
+    projection.productionProjection.state === run.state &&
+    projection.productionProjection.authority === "V5_EVIDENCE_TRANSITIONS" &&
+    projection.runtimeState.authority === "V4_RUNTIME_NON_CANONICAL" &&
+    projection.visualQcState.authority === "V5_CANONICAL_APPEND_ONLY" &&
+    projection.activeRevision.authority === "V5_CANONICAL_APPEND_ONLY" &&
+    projection.candidateLifecycle.activeRevisionRef === projection.activeRevision.revisionRef &&
+    projection.visualQcState.activeRevisionRef === projection.activeRevision.revisionRef &&
+    projection.visualQcState.candidateCount === projection.candidateLifecycle.candidates.length &&
+    projection.candidates.length === projection.candidateLifecycle.candidates.length &&
+    projection.candidateLifecycle.workspaceRef === projection.workspaceRef &&
+    projection.candidateLifecycle.productionRunRef === run.productionRunRef &&
+    projection.candidateLifecycle.publicationAllowed === false &&
+    projection.invariants.runtimeDoesNotAdvanceProduction === true &&
+    projection.invariants.visualQcDoesNotAdvanceProduction === true &&
+    projection.invariants.assetVersionAuthority === "V5_CANONICAL_EVIDENCE_ONLY" &&
+    projection.invariants.publicationAllowed === false &&
+    projection.publicationAllowed === false
+  );
+}
+
+function realMediaApprovalIsCurrent(
+  projection: K2ProductionStateProjectionEnvelope,
+) {
+  const videoRevisionRef = projection.candidateLifecycle.latestCandidateRevisionRefs.VIDEO;
+  const candidates = projection.candidateLifecycle.candidates;
+  if (!videoRevisionRef) return false;
+  return (
+    projection.candidateLifecycle.latestCandidateRevisionRef === videoRevisionRef &&
+    projection.activeRevision.revisionRef === videoRevisionRef &&
+    projection.visualQcState.state === "PASS" &&
+    (projection.visualQcState.expectedCandidateCount === 4 ||
+      projection.visualQcState.expectedCandidateCount === null) &&
+    projection.visualQcState.candidateCount === 4 &&
+    projection.visualQcState.decisionCount === 4 &&
+    candidates.length === 4 &&
+    new Set(
+      candidates.map((candidate) =>
+        candidate && typeof candidate === "object"
+          ? (candidate as Record<string, unknown>).candidateRef
+          : undefined,
+      ),
+    ).size === 4 &&
+    candidates.every(
+      (candidate) =>
+        Boolean(candidate) &&
+        typeof candidate === "object" &&
+        (candidate as Record<string, unknown>).revisionRef === videoRevisionRef &&
+        (candidate as Record<string, unknown>).selectionState === "SELECTED_BY_HUMAN" &&
+        (candidate as Record<string, unknown>).admissionState === "ADMITTED" &&
+        typeof (candidate as Record<string, unknown>).assetVersionRef === "string" &&
+        ((candidate as Record<string, unknown>).assetVersionRef as string).trim().length > 0,
+    )
+  );
 }
 
 function shortRef(value: string | undefined | null) {
@@ -336,6 +403,7 @@ function AssetWorkspace({
   media,
   run,
   busy,
+  actionsAllowed,
   onResolveAssets,
   onExecuteMedia,
 }: {
@@ -343,13 +411,14 @@ function AssetWorkspace({
   media: MediaBundleEnvelope | null;
   run: CreatorEpisodeProductionRun;
   busy: boolean;
+  actionsAllowed: boolean;
   onResolveAssets: () => void;
   onExecuteMedia: () => void;
 }) {
   if (!assetPlan) {
     return (
       <EmptyStage title="资产计划尚未建立" description="镜头图完成后，Core 才能解析权威资产与每镜视频、音频生成请求。">
-        <ACSButton disabled={run.state !== "SHOTS_COMPILED"} loading={busy} onClick={onResolveAssets}>
+        <ACSButton disabled={!actionsAllowed || run.state !== "SHOTS_COMPILED"} loading={busy} onClick={onResolveAssets}>
           解析镜头资产需求
         </ACSButton>
       </EmptyStage>
@@ -379,7 +448,7 @@ function AssetWorkspace({
             <strong>资产计划已通过，可提交单集媒体执行</strong>
             <span>当前 Core 的确定性本地适配器使用 CPU FFmpeg；不会标记为 GPU 或外部 Provider 成功。</span>
           </div>
-          <ACSButton disabled={run.state !== "ASSETS_READY"} loading={busy} onClick={onExecuteMedia}>
+          <ACSButton disabled={!actionsAllowed || run.state !== "ASSETS_READY"} loading={busy} onClick={onExecuteMedia}>
             执行本地媒体任务
           </ACSButton>
         </div>
@@ -408,6 +477,8 @@ function ReviewWorkspace({
   delivery,
   run,
   busy,
+  actionsAllowed,
+  finalizationAllowed,
   approvalDraft,
   acknowledged,
   onDraftChange,
@@ -418,6 +489,8 @@ function ReviewWorkspace({
   delivery: DeliveryBundleEnvelope | null;
   run: CreatorEpisodeProductionRun;
   busy: boolean;
+  actionsAllowed: boolean;
+  finalizationAllowed: boolean;
   approvalDraft: ApprovalDraft;
   acknowledged: boolean;
   onDraftChange: (kind: EpisodeApprovalKind, field: "approvalRef" | "actorRef", value: string) => void;
@@ -432,7 +505,7 @@ function ReviewWorkspace({
   if (!hasPreview) {
     return (
       <EmptyStage title="等待合成预览与机器质检" description="媒体证据齐备后，可生成一条受认证、禁止发布的单集预览，并运行六项确定性检查。">
-        <ACSButton disabled={run.state !== "MEDIA_READY"} loading={busy} onClick={onPreview}>
+        <ACSButton disabled={!actionsAllowed || run.state !== "MEDIA_READY"} loading={busy} onClick={onPreview}>
           生成预览并运行质检
         </ACSButton>
       </EmptyStage>
@@ -440,7 +513,8 @@ function ReviewWorkspace({
   }
   const preview = delivery?.previewCandidate;
   const qc = delivery?.qcReport;
-  const canFinalize = run.state === "QC_READY" || run.state === "APPROVAL_READY";
+  const canFinalize =
+    finalizationAllowed && (run.state === "QC_READY" || run.state === "APPROVAL_READY");
   const previewUrl = `/api/creator/episode-production-runs/${encodeURIComponent(run.productionRunRef)}/preview/content`;
   return (
     <section className={styles.canvasSection} aria-labelledby="review-workspace-title">
@@ -556,6 +630,8 @@ function NextAction({
   run,
   stateProjection,
   stateProjectionError,
+  actionsAllowed,
+  controlPlaneConflict,
   readiness,
   readinessAvailable,
   readinessLoading,
@@ -568,6 +644,8 @@ function NextAction({
   run: CreatorEpisodeProductionRun;
   stateProjection: K2ProductionStateProjectionEnvelope | null;
   stateProjectionError: { code: string; message: string } | null;
+  actionsAllowed: boolean;
+  controlPlaneConflict: boolean;
   readiness: ProductionReadinessEnvelope["readiness"] | null;
   readinessAvailable: boolean;
   readinessLoading: boolean;
@@ -580,7 +658,14 @@ function NextAction({
   let title = "核对当前链路";
   let description = "当前状态没有可安全自动执行的动作。";
   let action: React.ReactNode = null;
-  if (run.state === "ROOTS_READY") {
+  if (!actionsAllowed) {
+    title = controlPlaneConflict
+      ? "控制面事实不一致"
+      : "等待控制面状态核对";
+    description = controlPlaneConflict
+      ? "运行列表与四轴投影并非同一生产事实；所有生产动作保持冻结，直到重新读取后完全一致。"
+      : "尚未取得与当前运行一致的四轴状态投影；所有生产动作保持冻结。";
+  } else if (run.state === "ROOTS_READY") {
     title = "连接 M6 权限与身份引用";
     description = "需要外部权限裁决和角色身份参考；系统不会按名称推断引用。";
     action = <Link className={styles.secondaryLink} href={projectRoute(run.projectRef, "planning/characters")}>打开角色工作室</Link>;
@@ -612,6 +697,12 @@ function NextAction({
   } else if (run.state === "REAL_VIDEO_READY") {
     title = "真实视频版本已准入";
     description = "已选择候选被登记为不可变 AssetVersion；发布资格仍由服务端事实决定。";
+  } else if (run.state === "REAL_PREVIEW_READY") {
+    title = "核对真实媒体预览";
+    description = "预览只提供审阅证据；尚未完成的真实媒体质检不会被界面推断为通过。";
+  } else if (run.state === "REAL_QC_READY") {
+    title = "等待四项人工审批";
+    description = "真实媒体质检已记录；审批与发布资格仍必须来自独立权威事实。";
   } else if (run.state === "QC_READY" || run.state === "APPROVAL_READY") {
     title = "等待四项人工审批";
     description = "先在预览页看片，再填写来自外部审批权威的四组引用。";
@@ -644,10 +735,12 @@ function NextAction({
             <span>
               活动修订 · {stateProjection.activeRevision.revisionRef ?? stateProjection.activeRevision.state}
             </span>
-            <ACSBadge tone={stateProjection.invariants.runtimeDoesNotAdvanceProduction ? "success" : "danger"}>
-              {stateProjection.invariants.runtimeDoesNotAdvanceProduction
-                ? "运行时不可推进生产状态"
-                : "状态边界异常"}
+            <ACSBadge tone={controlPlaneConflict ? "danger" : stateProjection.invariants.runtimeDoesNotAdvanceProduction ? "success" : "danger"}>
+              {controlPlaneConflict
+                ? "生产状态冲突 · 动作已冻结"
+                : stateProjection.invariants.runtimeDoesNotAdvanceProduction
+                  ? "运行时不可推进生产状态"
+                  : "状态边界异常"}
             </ACSBadge>
           </>
         ) : (
@@ -757,6 +850,23 @@ export function ConnectedProductionWorkspace({
   const stateProjection = currentBundles?.stateProjection ?? null;
   const stateProjectionError = currentBundles?.stateProjectionError ?? null;
   const loadingBundles = Boolean(selectedRun && !currentBundles);
+  const controlPlaneConflict = Boolean(
+    selectedRun &&
+      stateProjection &&
+      !controlPlaneMatchesRun(selectedRun, stateProjection),
+  );
+  const productionActionsAllowed = Boolean(
+    selectedRun &&
+      stateProjection &&
+      !controlPlaneConflict,
+  );
+  const finalizationAllowed = Boolean(
+    productionActionsAllowed &&
+      selectedRun &&
+      stateProjection &&
+      (selectedRun.state !== "APPROVAL_READY" ||
+        realMediaApprovalIsCurrent(stateProjection)),
+  );
   const productionReadinessAvailable =
     connection.status === "connected" &&
     connection.capabilities.some((capability) =>
@@ -872,6 +982,10 @@ export function ConnectedProductionWorkspace({
 
   async function execute(resource: "assets" | "media" | "preview", successMessage: string) {
     if (!selectedRun || busy) return;
+    if (!productionActionsAllowed) {
+      setOperationMessage("控制面状态尚未与当前运行形成一致证据，生产动作已冻结。");
+      return;
+    }
     setBusy(true);
     setOperationMessage(null);
     try {
@@ -899,7 +1013,16 @@ export function ConnectedProductionWorkspace({
   }
 
   async function finalize() {
-    if (!selectedRun || busy || !acknowledged) return;
+    if (!selectedRun || busy) return;
+    if (!productionActionsAllowed) {
+      setOperationMessage("控制面状态尚未与当前运行形成一致证据，母版生成已冻结。");
+      return;
+    }
+    if (!finalizationAllowed) {
+      setOperationMessage("最新真实视频修订尚未同时满足视觉 QC 与准入条件，母版生成已冻结。");
+      return;
+    }
+    if (!acknowledged) return;
     setBusy(true);
     setOperationMessage(null);
     try {
@@ -1011,9 +1134,17 @@ export function ConnectedProductionWorkspace({
         <RunNavigator onSelect={selectRun} run={selectedRun} runs={runs} selectedRunRef={selectedRun.productionRunRef} />
         <div className={styles.canvas}>
           {loadingBundles ? <div className={styles.loadingOverlay}>正在核对最新版本与血缘…</div> : null}
-          {initialStage === "shots" ? <ShotWorkspace bundle={shotGraph} run={selectedRun} /> : null}
-          {initialStage === "assets" ? (
+          {controlPlaneConflict ? (
+            <EmptyStage
+              title="控制面事实不一致，生产动作已冻结"
+              description="运行列表、四轴投影或控制面不变量不一致。当前页面不会显示或提交任何生产动作。"
+            >
+              <ACSButton onClick={reloadRuns} variant="secondary">重新读取权威事实</ACSButton>
+            </EmptyStage>
+          ) : initialStage === "shots" ? <ShotWorkspace bundle={shotGraph} run={selectedRun} /> : null}
+          {!controlPlaneConflict && initialStage === "assets" ? (
             <AssetWorkspace
+              actionsAllowed={productionActionsAllowed}
               assetPlan={assetPlan}
               busy={busy}
               media={media}
@@ -1022,12 +1153,14 @@ export function ConnectedProductionWorkspace({
               run={selectedRun}
             />
           ) : null}
-          {initialStage === "review" ? (
+          {!controlPlaneConflict && initialStage === "review" ? (
             <ReviewWorkspace
               acknowledged={acknowledged}
+              actionsAllowed={productionActionsAllowed}
               approvalDraft={approvalDraft}
               busy={busy}
               delivery={delivery}
+              finalizationAllowed={finalizationAllowed}
               onAcknowledgedChange={setAcknowledged}
               onDraftChange={updateApproval}
               onFinalize={() => void finalize()}
@@ -1035,10 +1168,12 @@ export function ConnectedProductionWorkspace({
               run={selectedRun}
             />
           ) : null}
-          {initialStage === "delivery" ? <DeliveryWorkspace delivery={delivery} run={selectedRun} /> : null}
+          {!controlPlaneConflict && initialStage === "delivery" ? <DeliveryWorkspace delivery={delivery} run={selectedRun} /> : null}
         </div>
         <NextAction
           busy={busy}
+          actionsAllowed={productionActionsAllowed}
+          controlPlaneConflict={controlPlaneConflict}
           onExecuteMedia={() => void execute("media", "媒体任务已执行并通过证据校验。")}
           onPreview={() => void execute("preview", "预览已合成，机器质检已完成。")}
           onResolveAssets={() => void execute("assets", "资产需求与生成请求已建立。")}
