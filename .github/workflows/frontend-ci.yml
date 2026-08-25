@@ -57,14 +57,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
+          ref: 00894c05395af8b2fb327b537162727cbdcd512d
           path: core
           persist-credentials: false
 
       - name: Verify exact Core commit and tree
         env:
-          K2_EXPECTED_CORE_SHA: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
-          K2_EXPECTED_CORE_TREE: 51d25529f4781cd276f43c726a21c3046a28f74c
+          K2_EXPECTED_CORE_SHA: 00894c05395af8b2fb327b537162727cbdcd512d
+          K2_EXPECTED_CORE_TREE: 7d0ff9da66920f8af1749bef950a55eb9a66b8f4
         run: |
           test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
           test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
@@ -138,14 +138,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
+          ref: 00894c05395af8b2fb327b537162727cbdcd512d
           path: core
           persist-credentials: false
 
       - name: Verify exact Core commit and tree
         env:
-          K2_EXPECTED_CORE_SHA: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
-          K2_EXPECTED_CORE_TREE: 51d25529f4781cd276f43c726a21c3046a28f74c
+          K2_EXPECTED_CORE_SHA: 00894c05395af8b2fb327b537162727cbdcd512d
+          K2_EXPECTED_CORE_TREE: 7d0ff9da66920f8af1749bef950a55eb9a66b8f4
         run: |
           test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
           test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
