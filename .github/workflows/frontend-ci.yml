@@ -53,18 +53,18 @@ jobs:
           path: frontend
           persist-credentials: false
 
-      - name: Check out exact Core convergence candidate
+      - name: Check out exact merged Core main R1 baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: debc7fadc8024f0e4db710668ef691e196c13772
+          ref: 6d28a53f3a077f032e341a87412b19b37c00bb1e
           path: core
           persist-credentials: false
 
       - name: Verify exact Core commit and tree
         env:
-          K2_EXPECTED_CORE_SHA: debc7fadc8024f0e4db710668ef691e196c13772
-          K2_EXPECTED_CORE_TREE: c56913c4417e2b56610bb614b0f2b212d69ed3ac
+          K2_EXPECTED_CORE_SHA: 6d28a53f3a077f032e341a87412b19b37c00bb1e
+          K2_EXPECTED_CORE_TREE: 369c3b1479f3136cc32fcbc4efd0fa24e4964058
         run: |
           test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
           test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
@@ -134,18 +134,18 @@ jobs:
           path: frontend
           persist-credentials: false
 
-      - name: Check out exact Core convergence candidate
+      - name: Check out exact merged Core main R1 baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: debc7fadc8024f0e4db710668ef691e196c13772
+          ref: 6d28a53f3a077f032e341a87412b19b37c00bb1e
           path: core
           persist-credentials: false
 
       - name: Verify exact Core commit and tree
         env:
-          K2_EXPECTED_CORE_SHA: debc7fadc8024f0e4db710668ef691e196c13772
-          K2_EXPECTED_CORE_TREE: c56913c4417e2b56610bb614b0f2b212d69ed3ac
+          K2_EXPECTED_CORE_SHA: 6d28a53f3a077f032e341a87412b19b37c00bb1e
+          K2_EXPECTED_CORE_TREE: 369c3b1479f3136cc32fcbc4efd0fa24e4964058
         run: |
           test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
           test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
