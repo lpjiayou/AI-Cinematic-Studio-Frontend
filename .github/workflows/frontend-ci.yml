@@ -53,18 +53,18 @@ jobs:
           path: frontend
           persist-credentials: false
 
-      - name: Check out exact merged Core main R1 baseline
+      - name: Check out exact merged Core main K2-002 baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: 6d28a53f3a077f032e341a87412b19b37c00bb1e
+          ref: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
           path: core
           persist-credentials: false
 
       - name: Verify exact Core commit and tree
         env:
-          K2_EXPECTED_CORE_SHA: 6d28a53f3a077f032e341a87412b19b37c00bb1e
-          K2_EXPECTED_CORE_TREE: 369c3b1479f3136cc32fcbc4efd0fa24e4964058
+          K2_EXPECTED_CORE_SHA: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
+          K2_EXPECTED_CORE_TREE: 51d25529f4781cd276f43c726a21c3046a28f74c
         run: |
           test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
           test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
@@ -134,18 +134,18 @@ jobs:
           path: frontend
           persist-credentials: false
 
-      - name: Check out exact merged Core main R1 baseline
+      - name: Check out exact merged Core main K2-002 baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: 6d28a53f3a077f032e341a87412b19b37c00bb1e
+          ref: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
           path: core
           persist-credentials: false
 
       - name: Verify exact Core commit and tree
         env:
-          K2_EXPECTED_CORE_SHA: 6d28a53f3a077f032e341a87412b19b37c00bb1e
-          K2_EXPECTED_CORE_TREE: 369c3b1479f3136cc32fcbc4efd0fa24e4964058
+          K2_EXPECTED_CORE_SHA: af7f50a8dc7cdccdb7dd47cd425d33a288961cc9
+          K2_EXPECTED_CORE_TREE: 51d25529f4781cd276f43c726a21c3046a28f74c
         run: |
           test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
           test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
