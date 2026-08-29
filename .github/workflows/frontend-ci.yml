@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+env:
+  CORE_PIN_TAG: core-baseline-v1
+  CORE_PIN_TREE: 15c5d1d0804f41d1b3145d3e9c0d41f8c6e631f9
+
 concurrency:
   group: frontend-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -53,21 +57,18 @@ jobs:
           path: frontend
           persist-credentials: false
 
-      - name: Check out exact merged Core main K2-002 baseline
+      - name: Check out pinned Core baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: 00894c05395af8b2fb327b537162727cbdcd512d
+          ref: ${{ env.CORE_PIN_TAG }}
           path: core
+          fetch-tags: true
           persist-credentials: false
 
-      - name: Verify exact Core commit and tree
-        env:
-          K2_EXPECTED_CORE_SHA: 00894c05395af8b2fb327b537162727cbdcd512d
-          K2_EXPECTED_CORE_TREE: 7d0ff9da66920f8af1749bef950a55eb9a66b8f4
+      - name: Verify pinned Core baseline
         run: |
-          test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
-          test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
+          test "$(git -C core rev-parse HEAD^{tree})" = "${{ env.CORE_PIN_TREE }}"
           test -z "$(git -C core status --porcelain=v1 --untracked-files=all)"
 
       - name: Set up Python
@@ -134,21 +135,18 @@ jobs:
           path: frontend
           persist-credentials: false
 
-      - name: Check out exact merged Core main K2-002 baseline
+      - name: Check out pinned Core baseline
         uses: actions/checkout@v4
         with:
           repository: lpjiayou/AI-Cinematic-Studio
-          ref: 00894c05395af8b2fb327b537162727cbdcd512d
+          ref: ${{ env.CORE_PIN_TAG }}
           path: core
+          fetch-tags: true
           persist-credentials: false
 
-      - name: Verify exact Core commit and tree
-        env:
-          K2_EXPECTED_CORE_SHA: 00894c05395af8b2fb327b537162727cbdcd512d
-          K2_EXPECTED_CORE_TREE: 7d0ff9da66920f8af1749bef950a55eb9a66b8f4
+      - name: Verify pinned Core baseline
         run: |
-          test "$(git -C core rev-parse HEAD)" = "$K2_EXPECTED_CORE_SHA"
-          test "$(git -C core rev-parse HEAD^{tree})" = "$K2_EXPECTED_CORE_TREE"
+          test "$(git -C core rev-parse HEAD^{tree})" = "${{ env.CORE_PIN_TREE }}"
           test -z "$(git -C core status --porcelain=v1 --untracked-files=all)"
 
       - name: Set up Python
