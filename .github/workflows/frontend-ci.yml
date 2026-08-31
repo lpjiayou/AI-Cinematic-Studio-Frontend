@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 env:
-  CORE_PIN_SHA: 023b4b5309969e0cdf21b682b718159cbc16c8c6
-  CORE_PIN_TREE: b6cf6028525c0a0f37b2e323852d58741095ea0e
+  CORE_PIN_SHA: f6689516c3517f4954f505f41a11804d178afdc1
+  CORE_PIN_TREE: 76386aa55ba8949007d4406ccb85923a500e2518
 
 concurrency:
   group: frontend-ci-${{ github.ref }}
