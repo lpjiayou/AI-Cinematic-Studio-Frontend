@@ -1,6 +1,15 @@
 # Creator Core integration
 
-Status: `K2 P0 publishable-production truth mapping`
+Status: `CURRENT CORE BEHAVIOR MAPPING / FRONTEND PRODUCT SURFACE PARTIAL`
+
+Reviewed baseline: Frontend `a0be9edc91437bf0e7c5dd14883e656e750b3aee`; Core
+accepted behavior tag `m13-base-backend-v1` at
+`a455c8e76427d53d75bb7f15259b9875d9768914`. The existing Frontend CI behavior pin
+remains `ef7844c10fc49cdf265da6d8a408ae238c0ab890`; this document does not move it.
+
+Pin compatibility and a public route mapping do not prove a complete Frontend product
+surface. The current cross-repository truth is recorded in
+[`status/CROSS_REPOSITORY_BASELINE.md`](status/CROSS_REPOSITORY_BASELINE.md).
 
 ## Runtime boundary
 
@@ -34,8 +43,10 @@ the runtime credential registry and maps the credential to exactly one workspace
 | M5 | Story World / series planning | `series-planning-workspaces`, `series-plan-*` | candidate then explicit human confirmation |
 | M6 | Story World / character continuity | `series-intelligence-workspaces`, `series-intelligence/*` | accepted surface; fail closed when external authorities are absent |
 | M7–M9 | K2 production workspace | `episode-production-runs/shot-graph`, `assets` | deterministic `local_evidence_only`; never presented as provider output |
-| M10–M12 | K2 production readiness | `episode-production-runs/production-readiness`, `media` | `production_policy_required`; image, video and audio each require rights-cleared live provider policy and evidence |
-| M13–M15 | Preview, QC, approval and local master | `episode-production-runs/preview`, `finalize`, `delivery` | `local_evidence_only`; current export remains non-publishable |
+| M10–M11 | K2 production readiness | `episode-production-runs/production-readiness`, `media` | `production_policy_required`; historical K2 image/video evidence does not establish a general or publishable product |
+| M12 | Core audio domain and runtime protocol | no complete Frontend audio product surface verified | `not_open`; runtimes are not installed and Runtime G0 is not complete |
+| M13 | Preview/composition/render-candidate backend | existing preview/finalize/delivery mappings do not expose a complete Timeline Studio, Effect Inspector or RenderCandidate review product | `local_evidence_only`; Core base backend is accepted, Frontend product surface is incomplete, and Extension G0 is not authorized |
+| M14–M15 | QC/Approval and Master/Export | no accepted complete product integration | `not_open`; M13 candidates remain non-publishing and cannot become Master/Export |
 | M16–M19 | Batch, release, feedback and commercial SaaS | `capabilities` only | `not_open`; no executable controls |
 
 The M1 candidate response includes a Core-issued `sourcePlanRef` and
