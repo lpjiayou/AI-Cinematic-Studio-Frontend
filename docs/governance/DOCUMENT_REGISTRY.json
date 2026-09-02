@@ -1,0 +1,1495 @@
+{
+  "schemaVersion": 1,
+  "repository": "Frontend",
+  "reviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+  "reviewedAt": "2026-09-02",
+  "documentClasses": [
+    "ACCEPTED_DECISION",
+    "NORMATIVE_ARCHITECTURE",
+    "NORMATIVE_CONTRACT",
+    "CURRENT_STATUS",
+    "CAPABILITY_MATRIX",
+    "OPERATIONAL_RUNBOOK",
+    "IMPLEMENTATION_EVIDENCE",
+    "HISTORICAL_EVIDENCE",
+    "SUPERSEDED",
+    "DRAFT",
+    "DEPRECATED",
+    "GENERATED_REFERENCE"
+  ],
+  "inventoryRules": {
+    "included": [
+      "tracked Markdown, MDX and RST",
+      "documentary TXT",
+      "repository guidance and PR templates",
+      "documentary manifests"
+    ],
+    "excluded": [
+      "dependencies, build output, caches, generated media, binaries, models and test output"
+    ]
+  },
+  "documents": [
+    {
+      "path": ".github/pull_request_template.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Engineering Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "AGENTS.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Engineering Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "CLAUDE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Engineering Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Engineering Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "README.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Documentation Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Navigation/reference only; follow the linked source for authority."
+    },
+    {
+      "path": "design-qa.md",
+      "repository": "Frontend",
+      "documentClass": "IMPLEMENTATION_EVIDENCE",
+      "status": "RECORDED",
+      "owner": "Frontend Documentation Owner",
+      "authoritativeFor": [
+        "bounded implementation evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "docs/CREATOR_CORE_INTEGRATION.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Owner / Core Integration Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/README.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Documentation Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Navigation/reference only; follow the linked source for authority."
+    },
+    {
+      "path": "docs/design-system/ACS_BRAND_GUIDE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Design System Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/design-system/ACS_COMPONENT_GUIDE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Design System Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/design-system/ACS_LAYOUT_SYSTEM.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Design System Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/design-system/ACS_STATUS_SYSTEM.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Design System Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/design-system/ACS_THEME_GUIDE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Design System Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/governance/DOCUMENTATION_GOVERNANCE_POLICY.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "docs/governance/DOCUMENT_AUTHORITY_MAP.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Navigation/reference only; follow the linked source for authority."
+    },
+    {
+      "path": "docs/governance/DOCUMENT_REGISTRY.json",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Navigation/reference only; follow the linked source for authority."
+    },
+    {
+      "path": "docs/status/CROSS_REPOSITORY_BASELINE.md",
+      "repository": "Frontend",
+      "documentClass": "CURRENT_STATUS",
+      "status": "CURRENT",
+      "owner": "Frontend Owner / Core Integration Owner",
+      "authoritativeFor": [
+        "evidence-backed current Frontend/Core status projection"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": true,
+      "historicalMutationPolicy": "UPDATE_FROM_MERGED_EVIDENCE_ONLY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Current claims require merged evidence and may not override Core Accepted ADRs."
+    },
+    {
+      "path": "governance/ACS-XR1-FRONTEND-CORE-INTEGRATION-CLOSEOUT.md",
+      "repository": "Frontend",
+      "documentClass": "HISTORICAL_EVIDENCE",
+      "status": "HISTORICAL",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "immutable historical Frontend evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FE-G0-R1_FRONTEND_GLOBAL_SHELL_ROUTE_GOVERNANCE.md",
+      "repository": "Frontend",
+      "documentClass": "HISTORICAL_EVIDENCE",
+      "status": "HISTORICAL",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "immutable historical Frontend evidence only"
+      ],
+      "supersedes": [
+        "governance/FE-G0_FRONTEND_GLOBAL_SHELL_ROUTE_GOVERNANCE.md"
+      ],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FE-G0_FRONTEND_GLOBAL_SHELL_ROUTE_GOVERNANCE.md",
+      "repository": "Frontend",
+      "documentClass": "SUPERSEDED",
+      "status": "SUPERSEDED",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [],
+      "supersedes": [],
+      "supersededBy": [
+        "governance/FE-G0-R1_FRONTEND_GLOBAL_SHELL_ROUTE_GOVERNANCE.md"
+      ],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FRONTEND_CORE_DOMAIN_ALIGNMENT_STANDARD.md",
+      "repository": "Frontend",
+      "documentClass": "HISTORICAL_EVIDENCE",
+      "status": "HISTORICAL",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "immutable historical Frontend evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FRONTEND_GLOBAL_SHELL_REMEDIATION_CONTRACT_REV2.md",
+      "repository": "Frontend",
+      "documentClass": "SUPERSEDED",
+      "status": "SUPERSEDED",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [],
+      "supersedes": [],
+      "supersededBy": [
+        "governance/FRONTEND_GLOBAL_SHELL_REMEDIATION_CONTRACT_REV3.md"
+      ],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FRONTEND_GLOBAL_SHELL_REMEDIATION_CONTRACT_REV3.md",
+      "repository": "Frontend",
+      "documentClass": "HISTORICAL_EVIDENCE",
+      "status": "HISTORICAL",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "immutable historical Frontend evidence only"
+      ],
+      "supersedes": [
+        "governance/FRONTEND_GLOBAL_SHELL_REMEDIATION_CONTRACT_REV2.md"
+      ],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FRONTEND_IA_CORRECTION_CONTRACT.md",
+      "repository": "Frontend",
+      "documentClass": "HISTORICAL_EVIDENCE",
+      "status": "HISTORICAL",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "immutable historical Frontend evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/FRONTEND_PAGE_ARCHETYPE_AND_REMEDIATION_MATRIX.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "governance/K2_G7_CONNECTED_PRODUCTION_WORKSPACE_CONTRACT.md",
+      "repository": "Frontend",
+      "documentClass": "HISTORICAL_EVIDENCE",
+      "status": "HISTORICAL",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "immutable historical Frontend evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "governance/PRODUCTION_WORKSPACE_USABILITY_AND_LAYOUT_CONTRACT.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Owner / Documentation Governance Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/COMPONENT_MAP.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/PAGE_STRUCTURE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/README.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/RESPONSIVE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/STATE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/STYLE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/assets-spec/HERO_ASSET_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/assets-spec/IMAGE_ASSET_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/assets-spec/LOGO_USAGE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/assets-spec/VISUAL_REFERENCE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/assets-spec/WORK_GALLERY_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/visual-spec/HERO_VISUAL_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/visual-spec/SECTION_DETAIL_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/01-landing-page/visual-spec/VISUAL_DIRECTION.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/CODEX_VERIFY_PROMPT.txt",
+      "repository": "Frontend",
+      "documentClass": "OPERATIONAL_RUNBOOK",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "bounded Frontend operator or verification procedure"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_REPRODUCIBLE_PRECONDITION_REVIEW",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/COMPONENT_MAP.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/DATA_BINDING_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/INTERACTION_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/PACKAGE_MANIFEST.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/PAGE_STRUCTURE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/README.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/RESPONSIVE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/STATE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/STYLE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/assets-spec/PROJECT_COVER_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/assets-spec/WORKSPACE_VISUAL_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/visual-spec/CONTENT_SECTION_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/visual-spec/HERO_SECTION_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/02-workspace-home/visual-spec/VISUAL_DIRECTION.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/ASSET_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/CHARACTER_STUDIO_FIELD_ALIGNMENT_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/COMPONENT_MAP.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/DATA_BINDING_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/DOMAIN_ALIGNMENT.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/FREEZE_CHECKLIST.md",
+      "repository": "Frontend",
+      "documentClass": "OPERATIONAL_RUNBOOK",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "bounded Frontend operator or verification procedure"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_REPRODUCIBLE_PRECONDITION_REVIEW",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/IMPLEMENTATION_CONTRACT.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/IMPLEMENTATION_READINESS_CHECKLIST.md",
+      "repository": "Frontend",
+      "documentClass": "OPERATIONAL_RUNBOOK",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "bounded Frontend operator or verification procedure"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_REPRODUCIBLE_PRECONDITION_REVIEW",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/INTERACTION_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/PACKAGE_MANIFEST.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/PAGE_STRUCTURE.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/README.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/RESPONSIVE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/STATE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/STYLE_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/TOKEN_MAPPING.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/assets-spec/CHARACTER_ASSET_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/assets-spec/PACKAGE_MANIFEST.md",
+      "repository": "Frontend",
+      "documentClass": "GENERATED_REFERENCE",
+      "status": "REFERENCE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "navigation or machine-readable reference only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "REGENERATE_FROM_REVIEWED_INVENTORY",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/visual-spec/CHARACTER_CANVAS_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/visual-spec/CHARACTER_RELATION_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/visual-spec/IDENTITY_LOCK_VISUAL_SPEC.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "prototype-spec/customer/06-character-studio/visual-spec/VISUAL_DIRECTION.md",
+      "repository": "Frontend",
+      "documentClass": "NORMATIVE_CONTRACT",
+      "status": "ACTIVE",
+      "owner": "Frontend Product Design Owner",
+      "authoritativeFor": [
+        "Frontend contract or governance boundary within explicit scope"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Presentation/design scope only; does not prove implementation or Core capability."
+    },
+    {
+      "path": "public/assets/ai-director/ASSET_PROVENANCE.md",
+      "repository": "Frontend",
+      "documentClass": "IMPLEMENTATION_EVIDENCE",
+      "status": "RECORDED",
+      "owner": "Frontend Asset Owner",
+      "authoritativeFor": [
+        "bounded implementation evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "public/assets/character-studio/ASSET_PROVENANCE.md",
+      "repository": "Frontend",
+      "documentClass": "IMPLEMENTATION_EVIDENCE",
+      "status": "RECORDED",
+      "owner": "Frontend Asset Owner",
+      "authoritativeFor": [
+        "bounded implementation evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    },
+    {
+      "path": "public/assets/story-world/ASSET_PROVENANCE.md",
+      "repository": "Frontend",
+      "documentClass": "IMPLEMENTATION_EVIDENCE",
+      "status": "RECORDED",
+      "owner": "Frontend Asset Owner",
+      "authoritativeFor": [
+        "bounded implementation evidence only"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": false,
+      "historicalMutationPolicy": "IMMUTABLE_EXCEPT_METADATA_AND_LINK_REPAIR",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-02",
+      "linkedFromIndex": true,
+      "notes": "Does not grant current execution authority. HISTORICAL_PATH_NOT_EXECUTION_AUTHORITY=true"
+    }
+  ]
+}
