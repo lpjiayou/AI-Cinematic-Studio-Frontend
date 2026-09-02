@@ -105,8 +105,12 @@ jobs:
 
       - name: Install deterministic media runtime
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version
+          ffprobe -version
 
       - name: Install Frontend dependencies
         run: npm ci
