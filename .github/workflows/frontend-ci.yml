@@ -24,6 +24,26 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate tracked Markdown files
+        run: python scripts/validate_markdown.py
+
+      - name: Validate local documentation links and anchors
+        run: python scripts/validate_doc_links.py
+
+      - name: Validate document registry coverage
+        run: python scripts/validate_document_registry.py
+
+      - name: Validate current-state projection and Core pins
+        run: python scripts/validate_current_state.py
+
+      - name: Validate document supersession and indexing
+        run: python scripts/validate_document_supersession.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
