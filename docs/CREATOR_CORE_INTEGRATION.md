@@ -5,7 +5,7 @@ Status: `CURRENT CORE BEHAVIOR MAPPING / FRONTEND PRODUCT SURFACE PARTIAL`
 Reviewed baseline: Frontend `a0be9edc91437bf0e7c5dd14883e656e750b3aee`; Core
 accepted behavior tag `m13-base-backend-v1` at
 `a455c8e76427d53d75bb7f15259b9875d9768914`. The existing Frontend CI behavior pin
-remains `ef7844c10fc49cdf265da6d8a408ae238c0ab890`; this document does not move it.
+remains `5c9ea7fe6993eddb7a492b2ae8f6bd8c2d5ae326`; this document does not move it.
 
 Pin compatibility and a public route mapping do not prove a complete Frontend product
 surface. The current cross-repository truth is recorded in

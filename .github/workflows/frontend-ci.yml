@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 env:
-  CORE_PIN_SHA: ef7844c10fc49cdf265da6d8a408ae238c0ab890
-  CORE_PIN_TREE: 8a13c807e65d24971f4a890d84847159bade3c82
+  CORE_PIN_SHA: 5c9ea7fe6993eddb7a492b2ae8f6bd8c2d5ae326
+  CORE_PIN_TREE: de6d43a16f97c1e34dc536336d05b0174d9aab39
 
 concurrency:
   group: frontend-ci-${{ github.ref }}
@@ -105,8 +105,12 @@ jobs:
 
       - name: Install deterministic media runtime
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version
+          ffprobe -version
 
       - name: Install Frontend dependencies
         run: npm ci
