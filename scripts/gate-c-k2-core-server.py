@@ -14,6 +14,7 @@ from services.v4_platform import (
 )
 from services.v5_core_os.episode_production import create_in_memory_boundary
 from services.v5_core_os.text_generation.testing import FakeTextGenerationCapability
+from tests.support.legacy_k2_history import seed_legacy_g4, seed_legacy_g5
 from tests.unit.test_episode_production_k2 import (
     WORKSPACE,
     activate_k2_m6_baseline,
@@ -68,8 +69,22 @@ def main():
         raise RuntimeError("unexpected deterministic production run reference")
     production.authorize_and_lock(g2_command(run))
     production.compile_shot_graph(g3_command(run))
-    production.resolve_assets(g4_command(run))
-    production.execute_media(g5_command(run))
+    legacy_g4 = seed_legacy_g4(
+        production,
+        g4_command(run),
+    )
+    legacy_g5 = seed_legacy_g5(
+        production,
+        g5_command(run),
+    )
+    if legacy_g4.get("state") != "ASSETS_READY":
+        raise RuntimeError("legacy G4 fixture did not reach ASSETS_READY")
+    if legacy_g5.get("state") != "MEDIA_READY":
+        raise RuntimeError("legacy G5 fixture did not reach MEDIA_READY")
+    if legacy_g4.get("idempotentReplay") is not False:
+        raise RuntimeError("legacy G4 fixture unexpectedly replayed")
+    if legacy_g5.get("idempotentReplay") is not False:
+        raise RuntimeError("legacy G5 fixture unexpectedly replayed")
 
     server = create_server(
         ("127.0.0.1", port),
@@ -92,6 +107,8 @@ def main():
         "episodeRef": episode["episodeRef"],
         "productionRunRef": run["productionRunRef"],
         "state": production.get_run(WORKSPACE, run_ref)["state"],
+        "fixtureMode": "IMMUTABLE_PRE_CUTOVER_G4_G5_HISTORY",
+        "legacyProductionWriteEntrypointsUsed": False,
         "artifactRoot": str(artifact_root),
     }
     print("K2_GATE_READY " + json.dumps(metadata, ensure_ascii=False), flush=True)
