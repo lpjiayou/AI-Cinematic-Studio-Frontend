@@ -16,8 +16,8 @@ REQUIRED_BASELINE_VALUES = {
     "M13_BASE_TAG_TARGET": "a455c8e76427d53d75bb7f15259b9875d9768914",
     "FRONTEND_MAIN": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
     "FRONTEND_TREE": "c25b9e3744d561c93fed26d0a07e59a1915a6071",
-    "FRONTEND_CI_CORE_PIN_SHA": "5c9ea7fe6993eddb7a492b2ae8f6bd8c2d5ae326",
-    "FRONTEND_CI_CORE_PIN_TREE": "de6d43a16f97c1e34dc536336d05b0174d9aab39",
+    "FRONTEND_CI_CORE_PIN_SHA": "e21789d265c4e936b0e0b29921746a4c205889b8",
+    "FRONTEND_CI_CORE_PIN_TREE": "086f37ed4e5412d1d6608c4ee856ac75d61625e9",
 }
 REQUIRED_STATES = {
     "FRONTEND_PIN_CHANGED": "false",
@@ -69,8 +69,8 @@ def main() -> None:
         require_pair(policy_text, key, value, POLICY, errors)
 
     expected_pin = {
-        "CORE_PIN_SHA": "5c9ea7fe6993eddb7a492b2ae8f6bd8c2d5ae326",
-        "CORE_PIN_TREE": "de6d43a16f97c1e34dc536336d05b0174d9aab39",
+        "CORE_PIN_SHA": "e21789d265c4e936b0e0b29921746a4c205889b8",
+        "CORE_PIN_TREE": "086f37ed4e5412d1d6608c4ee856ac75d61625e9",
     }
     for key, expected in expected_pin.items():
         actual = workflow_value(workflow_text, key)
