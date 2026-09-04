@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import {
-  BLOCKED_GLOBAL_DESTINATIONS,
-  BlockedGlobalDestinationV3,
-} from "@/features/creator-v3";
+import { BlockedGlobalDestinationV3 } from "@/features/creator-v3";
 
 export const metadata: Metadata = {
   title: "快速创作 · 镜构智能",
@@ -10,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function QuickCreatePage() {
-  return <BlockedGlobalDestinationV3 config={BLOCKED_GLOBAL_DESTINATIONS["quick-create"]} />;
+  return <BlockedGlobalDestinationV3 destinationKey="quick-create" />;
 }

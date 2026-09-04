@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import nextConfig from "../../../next.config";
@@ -13,6 +13,10 @@ const REDIRECTS = [
 
 function routeFileExists(path: string) {
   return existsSync(resolve(process.cwd(), path));
+}
+
+function routeFileSource(path: string) {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
 describe("Creator route contract", () => {
@@ -63,5 +67,45 @@ describe("Creator route contract", () => {
     expect(routeFileExists("src/app/creator/projects/page.tsx")).toBe(true);
     expect(routeFileExists("src/app/creator/projects/[projectRef]/planning/bible/page.tsx")).toBe(true);
     expect(routeFileExists("src/app/creator/projects/[projectRef]/production/page.tsx")).toBe(true);
+  });
+
+  it("keeps blocked route configuration inside the client boundary", () => {
+    const routeEntries = [
+      ["src/app/creator/create/page.tsx", "quick-create"],
+      ["src/app/creator/assets/page.tsx", "assets"],
+      ["src/app/creator/jobs/page.tsx", "jobs"],
+      ["src/app/creator/works/page.tsx", "works"],
+    ] as const;
+
+    for (const [path, destinationKey] of routeEntries) {
+      const source = routeFileSource(path);
+      expect(source, path).toContain("BlockedGlobalDestinationV3");
+      expect(source, path).toContain(`destinationKey="${destinationKey}"`);
+      expect(source, path).not.toContain("BLOCKED_GLOBAL_DESTINATIONS");
+      expect(source, path).not.toContain('"use client"');
+      expect(source, path).not.toContain("force-dynamic");
+      expect(source, path).not.toMatch(/ssr:\s*false/);
+      expect(source, path).not.toContain("config=");
+      expect(source, path).toContain("export const metadata");
+    }
+
+    const pagesBarrel = routeFileSource("src/features/creator-v3/pages/index.ts");
+    expect(pagesBarrel).not.toContain("BLOCKED_GLOBAL_DESTINATIONS");
+
+    const clientSource = routeFileSource(
+      "src/features/creator-v3/pages/blocked-global-destination-v3.tsx",
+    );
+    expect(clientSource.startsWith('"use client";')).toBe(true);
+    expect(clientSource).toContain("destinationKey");
+    expect(clientSource).toContain("const BLOCKED_GLOBAL_DESTINATIONS");
+    expect(clientSource).not.toContain("export const BLOCKED_GLOBAL_DESTINATIONS");
+    expect(clientSource).toContain(
+      "const config = BLOCKED_GLOBAL_DESTINATIONS[destinationKey];",
+    );
+    expect(clientSource).toContain("Unknown blocked global destination");
+    expect(clientSource).not.toContain("config?.");
+    expect(clientSource).not.toMatch(
+      /BLOCKED_GLOBAL_DESTINATIONS\[destinationKey\]\s*(?:\?\?|\|\|)/,
+    );
   });
 });

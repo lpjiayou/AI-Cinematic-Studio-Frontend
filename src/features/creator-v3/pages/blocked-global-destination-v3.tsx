@@ -31,7 +31,11 @@ export interface BlockedGlobalDestinationConfiguration {
   secondaryActionHref?: string;
 }
 
-export const BLOCKED_GLOBAL_DESTINATIONS: Record<
+export interface BlockedGlobalDestinationV3Props {
+  destinationKey: BlockedGlobalDestinationKey;
+}
+
+const BLOCKED_GLOBAL_DESTINATIONS: Record<
   BlockedGlobalDestinationKey,
   BlockedGlobalDestinationConfiguration
 > = {
@@ -112,10 +116,16 @@ function authorityLayers(config: BlockedGlobalDestinationConfiguration): readonl
 }
 
 export function BlockedGlobalDestinationV3({
-  config,
-}: {
-  config: BlockedGlobalDestinationConfiguration;
-}) {
+  destinationKey,
+}: BlockedGlobalDestinationV3Props) {
+  const config = BLOCKED_GLOBAL_DESTINATIONS[destinationKey];
+
+  if (!config) {
+    throw new Error(
+      `Unknown blocked global destination: ${String(destinationKey)}`,
+    );
+  }
+
   const { state } = useCreatorIntegration();
   const evidenceFields: readonly EvidenceFieldView[] = [
     { id: "destination-state", label: "目的地状态", value: config.statusLabel, sensitivity: "ordinary", copyAllowed: false },

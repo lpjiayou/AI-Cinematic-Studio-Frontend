@@ -1,8 +1,8 @@
 export { CreatorHomeV3 } from "./creator-home-v3";
 export { ProjectCenterV3 } from "./project-center-v3";
 export {
-  BLOCKED_GLOBAL_DESTINATIONS,
   BlockedGlobalDestinationV3,
+  type BlockedGlobalDestinationV3Props,
   type BlockedGlobalDestinationConfiguration,
   type BlockedGlobalDestinationKey,
 } from "./blocked-global-destination-v3";
