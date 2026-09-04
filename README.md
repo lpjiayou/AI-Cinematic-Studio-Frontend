@@ -72,6 +72,32 @@ Existing preview/production-workspace routes and pin-only compatibility do not p
 Timeline Studio, Effect Inspector, RenderCandidate review UI, M14 QC/Approval or M15
 Master/Export experience.
 
+## Accepted Frontend V3 target
+
+~~~text
+FRONTEND_REDESIGN_G0=ACCEPTED_WITH_REVISIONS
+FRONTEND_V3_TARGET_IA=ACCEPTED
+FRONTEND_V3_SCREEN_CONTRACT_COUNT=16
+FRONTEND_V3_DESIGN_SYSTEM_DECISION=ACCEPTED
+FRONTEND_V3_IMPLEMENTATION=NOT_STARTED
+FRONTEND_V3_REDESIGN_COMPLETE=false
+PAGE_LEVEL_IN_PLACE_PATCHING_ALLOWED=false
+PARALLEL_REBUILD_REQUIRED=true
+ATOMIC_ROUTE_CUTOVER_REQUIRED=true
+~~~
+
+The accepted target is a guarded Quick Create plus primary Project Production model
+over one Job/Candidate/AssetVersion/TimelineCandidate/Delivery lifecycle. Its global
+navigation is 首页, 项目, 快速创作, 资产, 任务, 作品; project navigation is 概览,
+故事, 剧本, 角色, 分镜, 生成, 音频, 剪辑, 审片, 交付. This docs-only
+decision does not add any route, page, component, adapter operation, or runtime.
+
+See the [Product IA decision](docs/product/ACS_FRONTEND_V3_PRODUCT_IA_DECISION.md),
+[16-screen contract](docs/product/ACS_FRONTEND_V3_SCREEN_CONTRACT.md),
+[Design System V3 decision](docs/design-system/ACS_DESIGN_SYSTEM_V3_DECISION.md),
+[rebuild and route migration](docs/product/ACS_FRONTEND_V3_REBUILD_AND_ROUTE_MIGRATION.md),
+and [G0 acceptance](docs/status/FRONTEND_REDESIGN_G0_ACCEPTANCE_2026-09-04.md).
+
 ## Documentation
 
 - [complete documentation index](docs/README.md)
@@ -112,8 +138,10 @@ variables remain server-only; never add a `NEXT_PUBLIC_*` equivalent.
 ## Next legal project boundary
 
 ```text
-NEXT_TASK=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
+NEXT_TASK=ACS-FRONTEND-WAVE-1A-V3-SHELL-AND-TRUTH-PRESENTATION-COMPONENTS
+INDEPENDENT_M12_BOUNDARY=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
 ```
 
-This is a handoff/preflight boundary only. It does not authorize M12-C3/C4, A100,
-models, provider/GPU execution, M13 Extension G0 or publication.
+Wave 1A requires separate authorization and is not started. The independent M12
+handoff/preflight boundary also grants no M12-C3/C4, A100, model, Provider/GPU,
+M13 Extension G0, or publication authority.

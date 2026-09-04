@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "acs.frontend-component-inventory.v1",
+  "generatedAt": "2026-09-04",
+  "sourceTree": "4214fa4a4c5ddf8a61583d94f5ae89248d684da1",
+  "counts": {
+    "uppercaseExportedSymbols": 108,
+    "componentLikeReactExports": 99,
+    "nonComponentConstantsOrClasses": 9,
+    "sharedPrimitiveComponents": 15,
+    "pageOrFeatureComponents": 84
+  },
+  "groups": [
+    {
+      "name": "ACS primitives",
+      "disposition": "REUSE_UNCHANGED",
+      "sources": ["src/components/acs/acs-badge.tsx","src/components/acs/acs-button.tsx","src/components/acs/acs-card.tsx","src/components/acs/acs-drawer.tsx","src/components/acs/acs-modal.tsx"],
+      "exports": ["ACSBadge","ACSButton","ACSCard","ACSDrawer","ACSModal"]
+    },
+    {
+      "name": "Shells and layout",
+      "disposition": "EXTEND",
+      "sources": ["src/components/app-shell/unified-app-header.tsx","src/layouts/customer-layout.tsx","src/layouts/workspace-layout.tsx","src/layouts/editor-layout.tsx","src/app/creator/project-workspace-chrome.tsx"],
+      "exports": ["UnifiedAppHeader","CustomerLayout","WorkspaceLayout","EditorLayout","ProjectWorkspaceChrome"]
+    },
+    {
+      "name": "AI and workflow shared patterns",
+      "disposition": "EXTEND",
+      "sources": ["src/components/ai/ai-assistant-panel.tsx","src/components/ai/ai-candidate-card.tsx","src/components/ai/ai-thinking-state.tsx","src/components/inspector/inspector-drawer.tsx","src/components/workflow/version-timeline.tsx","src/components/workflow/workflow-map.tsx"],
+      "exports": ["AIAssistantPanel","AICandidateCard","AIThinkingState","InspectorDrawer","VersionTimeline","WorkflowMap"]
+    },
+    {
+      "name": "AI Director",
+      "disposition": "REFACTOR_INTO_PROJECT_CONTEXT",
+      "source": "src/app/creator/ai-director/ai-director.tsx",
+      "count": 19,
+      "exports": ["AIDirectorPage","DirectorWorkspace","DirectorPageIntro","DirectorContextBar","StoryIntentInput","DirectorSelector","AudienceSelector","ToneSelector","ReferenceStyleSelector","CreativeDirectionCanvas","DirectorRoomVisual","StoryAnalysisCard","ThemeAnalysisCard","CharacterDirectionCard","VisualLanguageCard","ProductionStrategyCard","AIDirectorAnalysisPanel","DirectorPlanCard","ConfirmDirectorButton"]
+    },
+    {
+      "name": "Project creation",
+      "disposition": "REUSE_AND_SIMPLIFY",
+      "source": "src/app/creator/projects/new/create-project.tsx",
+      "count": 14,
+      "exports": ["CreateProjectPage","CreativeIdeaInput","ProjectTypeSelector","PlatformSelector","VisualStyleSelector","CreativeBriefCanvas","PreviewVisual","StoryDirectionCard","CharacterDirectionCard","VisualDirectionCard","ProductionSuggestionCard","AIUnderstandingPanel","CreationSummaryCard","CreateFilmButton"]
+    },
+    {
+      "name": "Story world",
+      "disposition": "REUSE_AND_CONNECT_CONTINUITY",
+      "source": "src/app/creator/projects/[projectRef]/planning/bible/story-world.tsx",
+      "count": 17,
+      "exports": ["StoryWorldPage","StoryWorldPageIntro","WorldContextBar","WorldOverviewVisual","WorldPremiseCard","WorldRuleCard","WorldOverviewCanvas","TimelineEventCard","WorldTimeline","LocationCard","WorldMapCanvas","FactionCard","FactionSystem","CultureCanvas","VisualLanguagePanel","AIWorldAssistantPanel","ContinueCharacterButton"]
+    },
+    {
+      "name": "Character Studio",
+      "disposition": "REUSE_AND_CONNECT_CONTINUITY",
+      "source": "src/app/creator/projects/[projectRef]/planning/characters/character-studio.tsx",
+      "count": 14,
+      "exports": ["CharacterStudioPage","CharacterStudioWorkspace","CharacterContextBar","CharacterOverviewCard","CharacterReferenceRail","IdentityCanvas","AppearanceBoard","PersonalityCard","CharacterStateCard","RelationshipGraph","VisualConsistencyPanel","CharacterAssetViewer","AICharacterAssistantPanel","ContinueScriptButton"]
+    },
+    {
+      "name": "Script Studio",
+      "disposition": "REUSE_EDITOR_CORE",
+      "source": "src/app/script-studio/script-studio.tsx",
+      "count": 4,
+      "exports": ["ScriptStudioPage","ScriptNavigator","ScriptCanvas","ScriptCompareSurface"]
+    },
+    {
+      "name": "K2 production control plane",
+      "disposition": "DEPRECATE_AS_PRIMARY_KEEP_READ_COMPATIBILITY",
+      "source": "src/app/creator/projects/[projectRef]/production/production-workspace.tsx",
+      "exports": ["ConnectedProductionWorkspace"]
+    }
+  ],
+  "missingProductionObjects": ["GenerationPromptBar","AssetPicker","GenerationHistory","JobQueue","ShotNavigator","MediaCompare","Waveform","TimelineTrack","TimelineClip","EffectInspector","AudioInspector","RenderCandidateCard","CapabilityBlocker","AuthorityStatus","EmptyProductState"],
+  "finding": "The repository has substantial page-local UI but a thin shared production-object layer. The redesign should extract production objects without moving domain authority into the design system."
+}
