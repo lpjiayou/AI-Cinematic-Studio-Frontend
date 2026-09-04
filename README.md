@@ -81,8 +81,9 @@ FRONTEND_V3_SCREEN_CONTRACT_COUNT=16
 FRONTEND_V3_DESIGN_SYSTEM_DECISION=ACCEPTED
 FRONTEND_V3_WAVE_1A=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_WAVE_1A_OBJECT_COUNT=9
-FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=0
-FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=0
+FRONTEND_V3_WAVE_1B=IMPLEMENTED_AND_VERIFIED
+FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=3
+FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=7
 FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
 FRONTEND_V3_REDESIGN_COMPLETE=false
 PAGE_LEVEL_IN_PLACE_PATCHING_ALLOWED=false
@@ -95,9 +96,10 @@ over one Job/Candidate/AssetVersion/TimelineCandidate/Delivery lifecycle. Its gl
 navigation is 首页, 项目, 快速创作, 资产, 任务, 作品; project navigation is 概览,
 故事, 剧本, 角色, 分镜, 生成, 音频, 剪辑, 审片, 交付. Wave 1A implements
 GlobalRail, ProjectContextBar, ProjectNavigatorV3, WorkbenchShell and five truth-
-presentation components. The other 12 objects and all 16 canonical pages remain
-unimplemented. The unlinked, environment-gated evidence route is CI-only and is not
-a product route.
+presentation components. Wave 1B atomically cuts over Creator Home and Project Center,
+adds Project Overview, and makes four blocked global destinations honestly reachable.
+Those four blockers are not completed business screens. The unlinked Wave 1A evidence
+route remains CI-only and is not a product route.
 
 See the [Product IA decision](docs/product/ACS_FRONTEND_V3_PRODUCT_IA_DECISION.md),
 [16-screen contract](docs/product/ACS_FRONTEND_V3_SCREEN_CONTRACT.md),
@@ -106,6 +108,8 @@ See the [Product IA decision](docs/product/ACS_FRONTEND_V3_PRODUCT_IA_DECISION.m
 and [G0 acceptance](docs/status/FRONTEND_REDESIGN_G0_ACCEPTANCE_2026-09-04.md).
 Wave 1A's bounded implementation status is recorded in the
 [Wave 1A acceptance](docs/status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md).
+Wave 1B's route, data, shell, navigation, and execution boundaries are recorded in the
+[Wave 1B acceptance](docs/status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md).
 
 ## Documentation
 
@@ -147,10 +151,11 @@ variables remain server-only; never add a `NEXT_PUBLIC_*` equivalent.
 ## Next legal project boundary
 
 ```text
-NEXT_TASK=ACS-FRONTEND-WAVE-1B-GLOBAL-ROUTES-PROJECT-OVERVIEW-AND-V3-NAVIGATION
+NEXT_TASK=ACS-FRONTEND-WAVE-1C-STORY-SCRIPT-CHARACTER-V3-PAGE-REBUILD
 INDEPENDENT_M12_BOUNDARY=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
 ```
 
-Wave 1B requires separate authorization. Wave 1A has not changed the current product
-UI or any canonical route. The independent M12 handoff/preflight boundary also grants
-no M12-C3/C4, A100, model, Provider/GPU, M13 Extension G0, or publication authority.
+Wave 1C requires separate authorization. Wave 1B does not implement Story, Script,
+Characters, method-aware Adapter resources, media runtime, or publication. The
+independent M12 handoff/preflight boundary also grants no M12-C3/C4, A100, model,
+Provider/GPU, M13 Extension G0, or publication authority.

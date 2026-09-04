@@ -1,0 +1,29 @@
+.shellRoot {
+  width: 100%;
+  min-width: 0;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--acs-bg);
+  color: var(--acs-text-primary);
+}
+
+.sideStack {
+  display: grid;
+  gap: var(--acs-space-3);
+}
+
+.triggerGroup {
+  display: flex;
+  gap: var(--acs-space-1);
+}
+
+.trigger {
+  width: 2rem;
+  padding: 0;
+}
+
+.footer {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}

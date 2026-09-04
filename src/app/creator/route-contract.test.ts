@@ -48,16 +48,20 @@ describe("Creator route contract", () => {
     }
   });
 
-  it("keeps global deferred destinations absent while exposing only the bounded project production routes", () => {
+  it("exposes the Wave 1B canonical routes without changing legacy project routes", () => {
     for (const path of [
       "src/app/creator/create/page.tsx",
       "src/app/creator/assets/page.tsx",
+      "src/app/creator/jobs/page.tsx",
       "src/app/creator/works/page.tsx",
+      "src/app/creator/projects/[projectRef]/overview/page.tsx",
     ]) {
-      expect(routeFileExists(path), path).toBe(false);
+      expect(routeFileExists(path), path).toBe(true);
     }
 
     expect(routeFileExists("src/app/script-studio/page.tsx")).toBe(true);
     expect(routeFileExists("src/app/creator/projects/page.tsx")).toBe(true);
+    expect(routeFileExists("src/app/creator/projects/[projectRef]/planning/bible/page.tsx")).toBe(true);
+    expect(routeFileExists("src/app/creator/projects/[projectRef]/production/page.tsx")).toBe(true);
   });
 });

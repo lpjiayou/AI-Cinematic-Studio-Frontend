@@ -198,7 +198,9 @@ def main() -> None:
                 "K2_CONTROL_PLANE_RUN_REF": fixture["productionRunRef"],
                 "K2_CONTROL_PLANE_ARTIFACT_ROOT": str(ARTIFACT_ROOT),
                 "K2_CONTROL_PLANE_CORE_SHA": runtime["core"]["commit"],
+                "K2_CONTROL_PLANE_CORE_TREE": runtime["core"]["tree"],
                 "K2_CONTROL_PLANE_FRONTEND_SHA": runtime["frontend"]["commit"],
+                "K2_CONTROL_PLANE_FRONTEND_TREE": runtime["frontend"]["tree"],
             }
         )
         browser_log_path = ARTIFACT_ROOT / "browser.log"
@@ -234,6 +236,25 @@ def main() -> None:
         print(wave_browser_log_path.read_text(encoding="utf-8", errors="replace"))
         if wave_result.returncode:
             raise SystemExit(wave_result.returncode)
+        wave_1b_artifact_root = ARTIFACT_ROOT / "frontend-v3-wave-1b"
+        wave_1b_browser_env = browser_env.copy()
+        wave_1b_browser_env["FRONTEND_V3_WAVE_1B_ARTIFACT_ROOT"] = str(
+            wave_1b_artifact_root
+        )
+        wave_1b_browser_log_path = ARTIFACT_ROOT / "frontend-v3-wave-1b-browser.log"
+        with wave_1b_browser_log_path.open("w", encoding="utf-8") as wave_1b_browser_log:
+            wave_1b_result = subprocess.run(
+                ["node", str(FRONTEND / "scripts" / "gate-frontend-v3-wave-1b.mjs")],
+                cwd=FRONTEND,
+                env=wave_1b_browser_env,
+                stdout=wave_1b_browser_log,
+                stderr=subprocess.STDOUT,
+                check=False,
+                timeout=600,
+            )
+        print(wave_1b_browser_log_path.read_text(encoding="utf-8", errors="replace"))
+        if wave_1b_result.returncode:
+            raise SystemExit(wave_1b_result.returncode)
         print(f"K2_CONTROL_PLANE_BROWSER_E2E=PASS\nEVIDENCE_DIR={ARTIFACT_ROOT}")
     finally:
         stop(frontend_process)

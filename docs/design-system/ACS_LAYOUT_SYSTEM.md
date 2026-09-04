@@ -182,6 +182,25 @@ drawer state, or authorize an action. Escape closes the active overlay and resto
 focus to its supplied trigger. Hidden fixed tracks do not reserve width, and reduced
 motion preferences disable nonessential transition movement.
 
-This implementation does not replace `WorkspaceLayout` or `EditorLayout`, change any
-legacy product page, or cut over a canonical route. The environment-gated Wave 1A
-evidence fixture is test-only; all sixteen canonical V3 pages remain unimplemented.
+This implementation does not replace `WorkspaceLayout` or `EditorLayout`. The
+environment-gated Wave 1A evidence fixture remains test-only.
+
+## 10. Wave 1B feature composition
+
+Wave 1B composes `WorkbenchShell` through feature-owned `CreatorGlobalShell` and
+`CreatorProjectShell`. These are application composition objects, not public Design
+System V3 primitives, and do not change the frozen design-system object count.
+
+Creator global pages supply the six-item route registry, context copy, real project
+collection state, four-layer authority view, closed evidence, and empty JobShelf.
+Project Overview additionally supplies the ten-item transitional project registry and
+project context. Route ownership and Core reads remain in `src/features/creator-v3/`;
+`WorkbenchShell` and the presentation objects still own no paths, fetching, readiness,
+permission, or production behavior.
+
+At 1440px and above, global screens may show the 72px GlobalRail, primary canvas, and
+360px authority/evidence side. Project Overview at 1440px and above may additionally
+show the 220px project navigation. Below 1440px, project navigation and the side move
+to overlays; below 768px, fixed global navigation and the JobShelf also leave the
+grid. Exact 390px layouts retain one main region and named drawer triggers with focus
+restoration and no horizontal overflow.
