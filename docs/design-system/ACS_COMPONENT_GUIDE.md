@@ -186,3 +186,32 @@ It fixes the drawer to the right side, narrow size, and canonical inspector widt
 - Do not nest modal overlays.
 - Do not make an entire card clickable when a named button or link is clearer.
 - Preserve native HTML attributes and accessible labels when wrapping components.
+
+## 14. Frontend V3 Wave 1A production presentation
+
+Wave 1A adds eight presentation components under `src/components/production/`:
+
+- `GlobalRail`
+- `ProjectContextBar`
+- `ProjectNavigatorV3`
+- `CapabilityBlocker`
+- `AuthorityStatus`
+- `EvidenceDisclosure`
+- `EmptyProductState`
+- `JobShelf`
+
+Together with `WorkbenchShell` from the V3 layout barrel, these are the nine
+implemented objects from the accepted 21-object V3 contract. They are
+presentation-only: callers supply all destinations, view data, state, labels,
+callbacks, and content. The objects do not fetch, call a router, own domain
+authority, poll jobs, persist evidence, or create production facts. Unknown external
+states fail closed, blocked reasons remain textual, and redacted evidence never
+renders a hidden value.
+
+GenerationPromptBar, AssetPicker, GenerationHistory, JobQueue, ShotNavigator,
+MediaCompare, Waveform, TimelineTrack, TimelineClip, EffectInspector,
+AudioInspector, and RenderCandidateCard remain unimplemented.
+
+The Wave 1A evidence fixture is a non-canonical, environment-gated CI route. It is not
+a reusable production component or a product screen. None of the sixteen canonical
+V3 screens is implemented or cut over by this component release.

@@ -1,0 +1,123 @@
+.contextBar {
+  display: grid;
+  min-width: 0;
+  min-height: var(--acs-topbar-min-height);
+  align-items: center;
+  gap: var(--acs-space-4);
+  grid-template-columns:
+    minmax(12rem, 1.2fr)
+    minmax(8rem, 1fr)
+    minmax(8rem, auto)
+    minmax(10rem, auto)
+    auto
+    auto;
+  padding: var(--acs-space-2) var(--acs-space-4);
+  border-bottom: 1px solid var(--acs-border);
+  background: var(--acs-surface);
+  color: var(--acs-text-primary);
+}
+
+.identity,
+.context,
+.version,
+.readiness {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-1);
+}
+
+.projectTitle {
+  overflow: hidden;
+  font-size: var(--acs-type-section-size);
+  line-height: var(--acs-type-section-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contextTrail,
+.version span,
+.readiness span {
+  overflow: hidden;
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  line-height: var(--acs-type-caption-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.version strong,
+.readiness strong {
+  overflow: hidden;
+  color: var(--acs-text-secondary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contextBar[data-readiness-state="blocked"] .readiness strong,
+.contextBar[data-readiness-state="required"] .readiness strong,
+.contextBar[data-readiness-state="not_open"] .readiness strong {
+  color: var(--acs-accent);
+}
+
+.contextBar[data-readiness-state="unverified"] .readiness strong {
+  color: var(--acs-danger);
+}
+
+.triggers,
+.actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--acs-space-2);
+}
+
+@media (max-width: 89.9375rem) {
+  .contextBar {
+    grid-template-columns: minmax(10rem, 1fr) minmax(8rem, auto) auto auto;
+  }
+
+  .version,
+  .readiness {
+    display: none;
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .contextBar {
+    height: var(--acs-topbar-min-height);
+    min-height: var(--acs-topbar-min-height);
+    gap: var(--acs-space-2);
+    grid-template-areas:
+      "identity triggers"
+      "context triggers";
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    overflow: hidden;
+    padding: var(--acs-space-1) var(--acs-space-3);
+  }
+
+  .identity {
+    grid-area: identity;
+    gap: 0;
+  }
+
+  .context {
+    grid-area: context;
+  }
+
+  .projectTitle {
+    font-size: var(--acs-type-body-size);
+  }
+
+  .triggers {
+    grid-area: triggers;
+    gap: var(--acs-space-1);
+    overflow: visible;
+  }
+
+  .actions {
+    display: none;
+  }
+}

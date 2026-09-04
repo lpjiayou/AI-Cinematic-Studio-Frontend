@@ -167,6 +167,7 @@ def main() -> None:
                 "CREATOR_CORE_BASE_URL": f"http://127.0.0.1:{CORE_PORT}",
                 "CREATOR_CORE_TOKEN": token,
                 "CREATOR_CONTENT_PROFILE_REF": "content-profile-k2",
+                "ACS_FRONTEND_V3_EVIDENCE_MODE": "1",
                 "NEXT_TELEMETRY_DISABLED": "1",
             }
         )
@@ -214,6 +215,25 @@ def main() -> None:
         print(browser_log_path.read_text(encoding="utf-8", errors="replace"))
         if result.returncode:
             raise SystemExit(result.returncode)
+        wave_artifact_root = ARTIFACT_ROOT / "frontend-v3-wave-1a"
+        wave_browser_env = browser_env.copy()
+        wave_browser_env["FRONTEND_V3_WAVE_1A_ARTIFACT_ROOT"] = str(
+            wave_artifact_root
+        )
+        wave_browser_log_path = ARTIFACT_ROOT / "frontend-v3-wave-1a-browser.log"
+        with wave_browser_log_path.open("w", encoding="utf-8") as wave_browser_log:
+            wave_result = subprocess.run(
+                ["node", str(FRONTEND / "scripts" / "gate-frontend-v3-wave-1a.mjs")],
+                cwd=FRONTEND,
+                env=wave_browser_env,
+                stdout=wave_browser_log,
+                stderr=subprocess.STDOUT,
+                check=False,
+                timeout=600,
+            )
+        print(wave_browser_log_path.read_text(encoding="utf-8", errors="replace"))
+        if wave_result.returncode:
+            raise SystemExit(wave_result.returncode)
         print(f"K2_CONTROL_PLANE_BROWSER_E2E=PASS\nEVIDENCE_DIR={ARTIFACT_ROOT}")
     finally:
         stop(frontend_process)

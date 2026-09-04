@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "repository": "Frontend",
   "reviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
-  "reviewedAt": "2026-09-02",
+  "reviewedAt": "2026-09-04",
   "documentClasses": [
     "ACCEPTED_DECISION",
     "NORMATIVE_ARCHITECTURE",
@@ -349,9 +349,9 @@
       "currentStateClaimsAllowed": false,
       "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
       "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
-      "lastReviewedAt": "2026-09-02",
+      "lastReviewedAt": "2026-09-04",
       "linkedFromIndex": true,
-      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+      "notes": "Includes the authorized Wave 1A presentation-only implementation boundary; authority remains limited to Frontend presentation contracts and subordinate to Core Accepted ADRs."
     },
     {
       "path": "docs/design-system/ACS_DESIGN_SYSTEM_V3_DECISION.md",
@@ -385,9 +385,9 @@
       "currentStateClaimsAllowed": false,
       "historicalMutationPolicy": "UPDATE_WITH_AUTHORIZED_CONTRACT_CHANGE",
       "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
-      "lastReviewedAt": "2026-09-02",
+      "lastReviewedAt": "2026-09-04",
       "linkedFromIndex": true,
-      "notes": "Authority is limited to the declared Frontend scope and subordinate to Core Accepted ADRs."
+      "notes": "Includes the authorized WorkbenchShell Wave 1A geometry boundary; authority remains limited to Frontend presentation contracts and subordinate to Core Accepted ADRs."
     },
     {
       "path": "docs/design-system/ACS_STATUS_SYSTEM.md",
@@ -590,6 +590,24 @@
       "lastReviewedAt": "2026-09-04",
       "linkedFromIndex": true,
       "notes": "Current projection for this bounded decision scope; implementation and runtime gates remain closed."
+    },
+    {
+      "path": "docs/status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md",
+      "repository": "Frontend",
+      "documentClass": "CURRENT_STATUS",
+      "status": "CURRENT",
+      "owner": "Frontend Product / Repository Governance Owner",
+      "authoritativeFor": [
+        "evidence-backed Frontend V3 Wave 1A shell and truth-presentation implementation status"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": true,
+      "historicalMutationPolicy": "UPDATE_WITH_EVIDENCE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-04",
+      "linkedFromIndex": true,
+      "notes": "Current projection for the bounded presentation-only Wave 1A implementation; canonical routes, product pages, runtime and authority gates remain unchanged."
     },
     {
       "path": "governance/ACS-XR1-FRONTEND-CORE-INTEGRATION-CLOSEOUT.md",

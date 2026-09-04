@@ -166,3 +166,22 @@ Only include one fixed inspector at a time. When `EditorLayout` owns the active-
 - Do not invent project, episode, version, or asset facts to fill empty slots.
 - Do not override canonical widths in feature CSS.
 - Do not create a parallel global shell for a single feature.
+
+## 9. WorkbenchShell V3 Wave 1A boundary
+
+`WorkbenchShell`, exported from `src/layouts/v3/`, is the implemented V3 production
+shell primitive. At desktop width it composes the caller-supplied GlobalRail,
+ProjectContextBar, ProjectNavigatorV3, primary canvas, inspector, evidence, and
+JobShelf regions with canonical token geometry. At smaller breakpoints, fixed regions
+leave the grid and callers may expose exactly one of the supplied global navigation,
+project navigation, inspector, evidence, or job-shelf drawers.
+
+The shell owns only layout and accessible overlay mechanics. It does not define or
+resolve routes, fetch projects, select a domain object, infer capabilities, persist
+drawer state, or authorize an action. Escape closes the active overlay and restores
+focus to its supplied trigger. Hidden fixed tracks do not reserve width, and reduced
+motion preferences disable nonessential transition movement.
+
+This implementation does not replace `WorkspaceLayout` or `EditorLayout`, change any
+legacy product page, or cut over a canonical route. The environment-gated Wave 1A
+evidence fixture is test-only; all sixteen canonical V3 pages remain unimplemented.
