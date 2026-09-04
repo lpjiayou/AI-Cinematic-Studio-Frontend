@@ -1,0 +1,75 @@
+.contextBar {
+  display: grid;
+  min-width: 0;
+  min-height: var(--acs-topbar-min-height);
+  align-items: center;
+  gap: var(--acs-space-4);
+  grid-template-columns: minmax(12rem, 1fr) minmax(11rem, auto) auto auto;
+  padding: var(--acs-space-2) var(--acs-space-4);
+  border-bottom: 1px solid var(--acs-border);
+  background: var(--acs-surface);
+  color: var(--acs-text-primary);
+}
+
+.identity {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-1);
+}
+
+.identity strong,
+.identity span,
+.connection {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity strong {
+  font-size: var(--acs-type-section-size);
+}
+
+.identity span,
+.connection {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.contextBar[data-connection-state="disconnected"] .connection,
+.contextBar[data-connection-state="error"] .connection {
+  color: var(--acs-accent);
+}
+
+.triggers,
+.actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--acs-space-1);
+}
+
+@media (max-width: 47.9375rem) {
+  .contextBar {
+    height: var(--acs-topbar-min-height);
+    min-height: var(--acs-topbar-min-height);
+    gap: var(--acs-space-2);
+    grid-template-columns: minmax(0, 1fr) auto;
+    overflow: hidden;
+    padding: var(--acs-space-1) var(--acs-space-3);
+  }
+
+  .identity {
+    gap: 0;
+  }
+
+  .identity strong {
+    font-size: var(--acs-type-body-size);
+  }
+
+  .identity span,
+  .connection,
+  .actions {
+    display: none;
+  }
+}

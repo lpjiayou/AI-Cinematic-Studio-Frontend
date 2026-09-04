@@ -81,6 +81,7 @@ _No documents currently classified in this category._
 - [`docs/status/CROSS_REPOSITORY_BASELINE.md`](status/CROSS_REPOSITORY_BASELINE.md) — `CURRENT`
 - [`docs/status/FRONTEND_REDESIGN_G0_ACCEPTANCE_2026-09-04.md`](status/FRONTEND_REDESIGN_G0_ACCEPTANCE_2026-09-04.md) — `CURRENT`
 - [`docs/status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md`](status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md) — `CURRENT`
+- [`docs/status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md`](status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md) — `CURRENT`
 
 ## CAPABILITY_MATRIX
 
@@ -148,7 +149,7 @@ _No documents currently classified in this category._
 
 ## Inventory boundary
 
-This index contains 96 governed Frontend documents. Registry
+This index contains 97 governed Frontend documents. Registry
 compatibility remains reviewed at `a0be9edc91437bf0e7c5dd14883e656e750b3aee`; the V3 decision
 evidence is frozen at Frontend start commit
 `4d295718975c0ddb3d2e5d6099d4dea4d63acb54` on `2026-09-04`.

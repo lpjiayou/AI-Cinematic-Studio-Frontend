@@ -4,11 +4,11 @@ import { ThemeProvider } from "@/theme";
 import CreatorLayout from "./layout";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/creator",
+  usePathname: () => "/creator/ai-director",
 }));
 
-describe("CreatorLayout", () => {
-  it("renders the shared brand, navigation, and route content", () => {
+describe("CreatorLayout legacy regression", () => {
+  it("retains the shared brand, navigation, and route content on legacy routes", () => {
     render(
       <ThemeProvider>
         <CreatorLayout>
@@ -29,7 +29,7 @@ describe("CreatorLayout", () => {
     );
   });
 
-  it("links only available destinations and exposes unavailable items as disabled", () => {
+  it("retains legacy navigation semantics outside the V3 route set", () => {
     render(
       <ThemeProvider>
         <CreatorLayout>
@@ -47,7 +47,7 @@ describe("CreatorLayout", () => {
       "href",
       "/creator",
     );
-    expect(within(navigation).getByRole("link", { name: "首页" })).toHaveAttribute(
+    expect(within(navigation).getByRole("link", { name: "AI导演" })).toHaveAttribute(
       "aria-current",
       "page",
     );

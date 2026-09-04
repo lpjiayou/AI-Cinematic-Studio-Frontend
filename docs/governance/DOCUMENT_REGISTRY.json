@@ -610,6 +610,24 @@
       "notes": "Current projection for the bounded presentation-only Wave 1A implementation; canonical routes, product pages, runtime and authority gates remain unchanged."
     },
     {
+      "path": "docs/status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md",
+      "repository": "Frontend",
+      "documentClass": "CURRENT_STATUS",
+      "status": "CURRENT",
+      "owner": "Frontend Product / Repository Governance Owner",
+      "authoritativeFor": [
+        "evidence-backed Frontend V3 Wave 1B global route, project overview and transitional navigation implementation status"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": true,
+      "historicalMutationPolicy": "UPDATE_WITH_EVIDENCE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-04",
+      "linkedFromIndex": true,
+      "notes": "Current projection for bounded Wave 1B route cutovers and honest blockers; later V3 pages, adapters, runtimes and authority remain incomplete."
+    },
+    {
       "path": "governance/ACS-XR1-FRONTEND-CORE-INTEGRATION-CLOSEOUT.md",
       "repository": "Frontend",
       "documentClass": "HISTORICAL_EVIDENCE",
