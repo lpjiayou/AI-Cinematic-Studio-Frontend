@@ -115,6 +115,95 @@ async function navigationLabels(navigation) {
   )));
 }
 
+function legacyUnifiedHeader(page) {
+  return page.locator("header[data-mode]");
+}
+
+function v3ContextHeader(page) {
+  return page.locator(
+    'header[data-wave-region="context-bar"]',
+  );
+}
+
+async function assertV3ShellBoundary(page, shellSelector, routeLabel) {
+  const v3Shell = page.locator(shellSelector);
+  const v3ShellCount = await v3Shell.count();
+
+  assert(
+    v3ShellCount === 1,
+    `${routeLabel} expected exactly one V3 shell, got ${v3ShellCount}`,
+  );
+
+  assert(
+    await v3Shell.isVisible(),
+    `${routeLabel} V3 shell is not visible`,
+  );
+
+  const contextHeader = v3ContextHeader(page);
+  const contextHeaderCount = await contextHeader.count();
+
+  assert(
+    contextHeaderCount === 1,
+    `${routeLabel} expected exactly one V3 context header, got ${contextHeaderCount}`,
+  );
+
+  assert(
+    await contextHeader.isVisible(),
+    `${routeLabel} V3 context header is not visible`,
+  );
+
+  const legacyHeader = legacyUnifiedHeader(page);
+  const legacyHeaderCount = await legacyHeader.count();
+
+  assert(
+    legacyHeaderCount === 0,
+    `${routeLabel} expected no legacy UnifiedAppHeader, got ${legacyHeaderCount}`,
+  );
+}
+
+async function assertLegacyShellBoundary(page, route, expectedMode) {
+  const legacyHeader = legacyUnifiedHeader(page);
+  const legacyHeaderCount = await legacyHeader.count();
+
+  assert(
+    legacyHeaderCount === 1,
+    `${route} expected exactly one legacy UnifiedAppHeader, got ${legacyHeaderCount}`,
+  );
+
+  assert(
+    await legacyHeader.isVisible(),
+    `${route} legacy UnifiedAppHeader is not visible`,
+  );
+
+  const actualMode = await legacyHeader.getAttribute("data-mode");
+
+  assert(
+    actualMode === expectedMode,
+    `${route} expected legacy header mode ${expectedMode}, got ${actualMode}`,
+  );
+
+  const brandLinkCount = await legacyHeader
+    .getByRole("link", {
+      name: "镜构智能 Creator 首页",
+      exact: true,
+    })
+    .count();
+
+  assert(
+    brandLinkCount === 1,
+    `${route} legacy UnifiedAppHeader brand link expected once, got ${brandLinkCount}`,
+  );
+
+  const v3ShellCount = await page
+    .locator("[data-creator-v3-shell]")
+    .count();
+
+  assert(
+    v3ShellCount === 0,
+    `${route} incorrectly rendered a V3 shell`,
+  );
+}
+
 async function visit(page, pathname, heading) {
   const response = await page.goto(`${baseUrl}${pathname}`, { waitUntil: "networkidle" });
   assert(response && response.status() === 200, `${pathname} returned ${response?.status() ?? "no response"}`);
@@ -194,8 +283,14 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   try {
     await recordedVisit("/creator", "创作首页");
     await ensureTheme(page, "dark");
+
+    await assertV3ShellBoundary(
+      page,
+      '[data-creator-v3-shell="global"]',
+      "Creator Home",
+    );
+
     const homeGlobalNavigation = page.getByRole("navigation", { name: "V3 全局导航" });
-    assert(await page.getByRole("banner").count() === 0, "Creator Home still renders UnifiedAppHeader");
     assert(JSON.stringify(await navigationLabels(homeGlobalNavigation)) === JSON.stringify(globalNavigationOrder), "Creator Home global navigation order changed");
     assert(await homeGlobalNavigation.getByText("AI 导演", { exact: true }).count() === 0, "AI Director appears in GlobalRail");
     assert(await page.getByRole("heading", { name: "项目制作", exact: true }).count() === 1, "Project mode is missing");
@@ -234,8 +329,13 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     await page.setViewportSize({ width: 1920, height: 1080 });
     await recordedVisit(overviewHref, projectTitle);
     await ensureTheme(page, "dark");
-    assert(await page.getByRole("banner").count() === 0, "Project Overview still renders UnifiedAppHeader");
-    assert(await page.locator('[data-creator-v3-shell="project"]').count() === 1, "Project Overview does not use the project V3 shell");
+
+    await assertV3ShellBoundary(
+      page,
+      '[data-creator-v3-shell="project"]',
+      "Project Overview",
+    );
+
     assert((await page.locator("h1").first().innerText()).trim() === projectTitle, "Project Overview title did not come from Core");
     const projectNavigation = page.getByRole("navigation", { name: "V3 项目导航" });
     const ids = await projectNavigation.locator("[data-destination-id]").evaluateAll((links) => links.map((link) => link.getAttribute("data-destination-id")));
@@ -349,21 +449,53 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
 
     const legacyProjectRef = "future-city";
     const legacyRoutes = [
-      "/creator/ai-director",
-      "/creator/projects/new",
-      `/creator/projects/${legacyProjectRef}/planning/bible`,
-      `/creator/projects/${legacyProjectRef}/content/script`,
-      `/creator/projects/${legacyProjectRef}/production`,
-      `/creator/projects/${legacyProjectRef}/post`,
-      `/creator/projects/${legacyProjectRef}/delivery`,
+      {
+        route: "/creator/ai-director",
+        expectedMode: "global",
+      },
+      {
+        route: "/creator/projects/new",
+        expectedMode: "global",
+      },
+      {
+        route: `/creator/projects/${legacyProjectRef}/planning/bible`,
+        expectedMode: "project",
+      },
+      {
+        route: `/creator/projects/${legacyProjectRef}/content/script`,
+        expectedMode: "project",
+      },
+      {
+        route: `/creator/projects/${legacyProjectRef}/production`,
+        expectedMode: "project",
+      },
+      {
+        route: `/creator/projects/${legacyProjectRef}/post`,
+        expectedMode: "project",
+      },
+      {
+        route: `/creator/projects/${legacyProjectRef}/delivery`,
+        expectedMode: "project",
+      },
     ];
     await page.setViewportSize({ width: 1440, height: 900 });
-    for (const route of legacyRoutes) {
+    for (const { route, expectedMode } of legacyRoutes) {
       await recordedVisit(route);
-      await page.getByRole("banner").waitFor({ state: "visible", timeout: 120_000 });
-      assert(await page.locator('[data-creator-v3-shell]').count() === 0, `${route} incorrectly uses V3 shell`);
+
+      await assertLegacyShellBoundary(
+        page,
+        route,
+        expectedMode,
+      );
+
       assert(await page.getByText("404", { exact: true }).count() === 0, `${route} is a 404`);
-      legacyRouteResults.push({ route, shell: "legacy", httpStatus: 200, ok: true });
+      legacyRouteResults.push({
+        route,
+        shell: "legacy",
+        headerMode: expectedMode,
+        httpStatus: 200,
+        ok: true,
+      });
     }
 
     const allowedCreatorRequest = /^GET \/api\/creator\/(?:capabilities|projects(?:\/[^/]+)?)$/;
