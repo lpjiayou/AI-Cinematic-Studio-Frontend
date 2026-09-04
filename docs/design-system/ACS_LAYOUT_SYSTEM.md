@@ -2,7 +2,7 @@
 
 **Status:** Official
 
-**Version:** V3.0 (Wave 1A boundary)
+**Version:** V2.3
 
 **Public entry point:** `src/layouts/index.ts`
 
