@@ -1,0 +1,127 @@
+.fixture {
+  width: 100%;
+  min-width: 0;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--acs-bg);
+  color: var(--acs-text-primary);
+}
+
+.canvas {
+  min-width: 0;
+  min-height: 100%;
+  padding: var(--acs-space-5);
+}
+
+.evidenceBanner {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--acs-space-2);
+  margin-bottom: var(--acs-space-5);
+  padding: var(--acs-space-2) var(--acs-space-3);
+  border: 1px solid var(--acs-accent);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-accent-soft);
+  color: var(--acs-text-primary);
+  font-size: var(--acs-type-caption-size);
+}
+
+.evidenceBanner span::before {
+  margin-right: var(--acs-space-2);
+  color: var(--acs-accent);
+  content: "•";
+}
+
+.canvasIntro {
+  max-width: 40rem;
+  margin-bottom: var(--acs-space-6);
+}
+
+.canvasIntro h1,
+.canvasIntro p {
+  margin: 0;
+}
+
+.canvasIntro h1 {
+  margin-top: var(--acs-space-2);
+  font-size: var(--acs-type-display-size);
+  line-height: var(--acs-type-display-line-height);
+}
+
+.canvasIntro p {
+  margin-top: var(--acs-space-3);
+  color: var(--acs-text-secondary);
+}
+
+.eyebrow,
+.utilityLabel {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.canvasGrid {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: var(--acs-space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.inspectorFixture {
+  display: grid;
+  gap: var(--acs-space-3);
+}
+
+.inspectorFixture h2,
+.inspectorFixture p {
+  margin: 0;
+}
+
+.inspectorFixture h2 {
+  font-size: var(--acs-type-section-size);
+}
+
+.inspectorFixture p {
+  color: var(--acs-text-secondary);
+}
+
+.authorityStack {
+  display: grid;
+  gap: var(--acs-space-3);
+}
+
+.triggerGroup {
+  display: flex;
+  gap: var(--acs-space-1);
+}
+
+.iconTrigger {
+  width: 2rem;
+  min-width: 2rem;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+@media (max-width: 89.9375rem) {
+  .canvasGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .canvas {
+    padding: var(--acs-space-3);
+  }
+
+  .evidenceBanner {
+    gap: var(--acs-space-1) var(--acs-space-2);
+    margin-bottom: var(--acs-space-3);
+  }
+
+  .canvasIntro {
+    margin-bottom: var(--acs-space-4);
+  }
+}

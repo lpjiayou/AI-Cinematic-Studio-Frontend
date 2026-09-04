@@ -8,3 +8,4 @@ export {
   type WorkspaceLayoutProps,
 } from "./workspace-layout";
 export { EditorLayout, type EditorLayoutProps } from "./editor-layout";
+export * from "./v3";

@@ -1,0 +1,129 @@
+.shelf {
+  display: grid;
+  width: 100%;
+  height: 3rem;
+  min-width: 0;
+  max-height: var(--acs-bottom-drawer-height);
+  grid-template-rows: 3rem minmax(0, 1fr);
+  overflow: hidden;
+  border-top: 1px solid var(--acs-border);
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  transition: height var(--acs-motion-base) var(--acs-ease-standard);
+}
+
+.shelf[data-expanded="true"] {
+  height: var(--acs-bottom-drawer-height);
+}
+
+.summary {
+  display: flex;
+  min-width: 0;
+  height: 3rem;
+  align-items: center;
+  gap: var(--acs-space-3);
+  padding: 0 var(--acs-space-3);
+}
+
+.summary > span:first-of-type {
+  font-weight: var(--acs-weight-semibold);
+}
+
+.counts {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--acs-space-1);
+}
+
+.summary > :last-child {
+  margin-left: auto;
+}
+
+.expandedContent {
+  min-height: 0;
+  overflow: hidden auto;
+  padding: var(--acs-space-3);
+  border-top: 1px solid var(--acs-border);
+}
+
+.jobs {
+  display: grid;
+  gap: var(--acs-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jobs li > button,
+.jobs li > div {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: var(--acs-space-3);
+  grid-template-columns: minmax(0, 1fr) auto minmax(8rem, 0.5fr);
+  padding: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface);
+  color: var(--acs-text-primary);
+  text-align: left;
+}
+
+.jobs li > button {
+  cursor: pointer;
+}
+
+.jobs li[data-job-state="blocked"] > *,
+.jobs li[data-job-state="failed"] > * {
+  border-color: var(--acs-accent);
+}
+
+.jobs li[data-job-state="failed"] > * {
+  border-color: var(--acs-danger);
+}
+
+.jobCopy,
+.jobState {
+  display: grid;
+  min-width: 0;
+}
+
+.jobCopy span,
+.jobState small,
+.reason,
+.empty {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.reason {
+  color: var(--acs-accent);
+}
+
+.empty {
+  margin: 0;
+}
+
+@media (max-width: 47.9375rem) {
+  .shelf {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .counts {
+    flex-wrap: wrap;
+  }
+
+  .jobs li > button,
+  .jobs li > div {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf {
+    transition: none;
+  }
+}

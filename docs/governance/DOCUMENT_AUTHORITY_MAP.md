@@ -19,7 +19,7 @@ cannot authorize execution.
 | `ACCEPTED_DECISION` | 4 | no |
 | `NORMATIVE_ARCHITECTURE` | 0 | no |
 | `NORMATIVE_CONTRACT` | 53 | no |
-| `CURRENT_STATUS` | 2 | yes |
+| `CURRENT_STATUS` | 3 | yes |
 | `CAPABILITY_MATRIX` | 0 | yes |
 | `OPERATIONAL_RUNBOOK` | 3 | no |
 | `IMPLEMENTATION_EVIDENCE` | 4 | no |
@@ -108,6 +108,7 @@ cannot authorize execution.
 | --- | --- | --- |
 | [`docs/status/CROSS_REPOSITORY_BASELINE.md`](../status/CROSS_REPOSITORY_BASELINE.md) | `CURRENT` | Frontend Owner / Core Integration Owner |
 | [`docs/status/FRONTEND_REDESIGN_G0_ACCEPTANCE_2026-09-04.md`](../status/FRONTEND_REDESIGN_G0_ACCEPTANCE_2026-09-04.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
+| [`docs/status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md`](../status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
 
 ## CAPABILITY_MATRIX
 
