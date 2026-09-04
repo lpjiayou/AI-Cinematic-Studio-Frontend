@@ -112,8 +112,42 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     await page.getByRole("heading", { name: "工作台壳层与真实性呈现组件", exact: true }).waitFor({ timeout: 120_000 });
     const robots = await page.locator('meta[name="robots"]').getAttribute("content");
     assert(robots?.includes("noindex") && robots.includes("nofollow"), `evidence route robots metadata changed: ${robots}`);
-    for (const label of ["LOCAL_FIXTURE", "EVIDENCE ONLY", "NOT PRODUCT DATA", "NO AUTHORITY", "NO RUNTIME EXECUTION"]) {
-      assert(await page.getByText(label, { exact: true }).count() === 1, `missing permanent evidence label: ${label}`);
+    const evidenceBoundary = page.getByRole("note", {
+      name: "证据环境边界",
+      exact: true,
+    });
+
+    const evidenceBoundaryCount = await evidenceBoundary.count();
+
+    assert(
+      evidenceBoundaryCount === 1,
+      `permanent evidence boundary expected exactly once, got ${evidenceBoundaryCount}`,
+    );
+
+    await evidenceBoundary.waitFor({ state: "visible" });
+
+    for (const label of [
+      "LOCAL_FIXTURE",
+      "EVIDENCE ONLY",
+      "NOT PRODUCT DATA",
+      "NO AUTHORITY",
+      "NO RUNTIME EXECUTION",
+    ]) {
+      const permanentLabel = evidenceBoundary.getByText(label, {
+        exact: true,
+      });
+
+      const permanentLabelCount = await permanentLabel.count();
+
+      assert(
+        permanentLabelCount === 1,
+        `permanent evidence label ${label} expected exactly once within boundary, got ${permanentLabelCount}`,
+      );
+
+      assert(
+        await permanentLabel.isVisible(),
+        `permanent evidence label is not visible: ${label}`,
+      );
     }
 
     const globalBox = await requiredBox(page.locator('[data-wave-region="global-rail-fixed"]'), "GlobalRail");
