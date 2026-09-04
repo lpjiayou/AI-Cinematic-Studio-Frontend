@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "acs.frontend-route-inventory.v1",
+  "generatedAt": "2026-09-04",
+  "source": {
+    "frontendMain": "4d295718975c0ddb3d2e5d6099d4dea4d63acb54",
+    "frontendTree": "4214fa4a4c5ddf8a61583d94f5ae89248d684da1",
+    "worktreeClean": true
+  },
+  "counts": {
+    "pageRoutes": 12,
+    "apiRoutes": 1,
+    "totalRoutes": 13
+  },
+  "routes": [
+    {"kind":"PAGE","path":"/","source":"src/app/page.tsx","purpose":"Customer landing","dataMode":"STATIC"},
+    {"kind":"PAGE","path":"/script-studio","source":"src/app/script-studio/page.tsx","purpose":"Standalone Script Studio evidence surface","dataMode":"LOCAL_PRESENTATION"},
+    {"kind":"PAGE","path":"/creator","source":"src/app/creator/page.tsx","purpose":"Creator workspace home","dataMode":"MIXED"},
+    {"kind":"PAGE","path":"/creator/ai-director","source":"src/app/creator/ai-director/page.tsx","purpose":"AI Director candidates and confirmation","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects","source":"src/app/creator/projects/page.tsx","purpose":"Project browser","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/new","source":"src/app/creator/projects/new/page.tsx","purpose":"Project creation","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/[projectRef]/planning/bible","source":"src/app/creator/projects/[projectRef]/planning/bible/page.tsx","purpose":"Story world and bible","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/[projectRef]/planning/characters","source":"src/app/creator/projects/[projectRef]/planning/characters/page.tsx","purpose":"Character studio","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/[projectRef]/content/script","source":"src/app/creator/projects/[projectRef]/content/script/page.tsx","purpose":"Project Script Studio","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/[projectRef]/production","source":"src/app/creator/projects/[projectRef]/production/page.tsx","purpose":"Legacy-compatible K2 control plane","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/[projectRef]/post","source":"src/app/creator/projects/[projectRef]/post/page.tsx","purpose":"Preview, QC and approval","dataMode":"CORE_ADAPTER"},
+    {"kind":"PAGE","path":"/creator/projects/[projectRef]/delivery","source":"src/app/creator/projects/[projectRef]/delivery/page.tsx","purpose":"Restricted delivery evidence","dataMode":"CORE_ADAPTER"},
+    {"kind":"API","path":"/api/creator/[...path]","source":"src/app/api/creator/[...path]/route.ts","purpose":"Server-side Frontend Experience Adapter proxy","methods":["GET","POST","DELETE"]}
+  ],
+  "navigation": {
+    "global": [
+      {"label":"首页","available":true},
+      {"label":"AI导演","available":true},
+      {"label":"项目","available":true},
+      {"label":"资产库","available":false},
+      {"label":"创作中心","available":false},
+      {"label":"作品","available":false}
+    ],
+    "project": [
+      {"label":"概览","available":false},
+      {"label":"策划","available":true},
+      {"label":"内容","available":true},
+      {"label":"制作","available":true},
+      {"label":"后期","available":true},
+      {"label":"交付","available":true}
+    ],
+    "planning": [
+      {"label":"AI 导演","available":false},
+      {"label":"系列规划","available":false},
+      {"label":"故事世界","available":true},
+      {"label":"角色工作室","available":true},
+      {"label":"连续性","available":false}
+    ]
+  },
+  "materialMissingRoutes": [
+    "/creator/assets",
+    "/creator/create",
+    "/creator/jobs",
+    "/creator/works",
+    "/creator/projects/[projectRef]/overview",
+    "/creator/projects/[projectRef]/planning/series",
+    "/creator/projects/[projectRef]/planning/continuity",
+    "/creator/projects/[projectRef]/storyboard",
+    "/creator/projects/[projectRef]/audio",
+    "/creator/projects/[projectRef]/timeline"
+  ],
+  "finding": "The route tree is project-aware but not capability-complete. Method-aware M8-M13 work is compressed into one legacy-compatible production route or absent entirely."
+}

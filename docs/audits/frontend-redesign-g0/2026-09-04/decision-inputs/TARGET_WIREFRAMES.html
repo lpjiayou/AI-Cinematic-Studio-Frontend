@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ACS Frontend Redesign G0 — 14-screen low-fi wireframes</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, "Noto Sans SC", system-ui, sans-serif; --ink:#202124; --muted:#676a70; --line:#aeb2ba; --paper:#f7f7f5; --panel:#fff; --focus:#335eea; }
+    * { box-sizing: border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); }
+    header.site { padding:24px clamp(18px,4vw,56px); border-bottom:2px solid var(--ink); background:var(--panel); }
+    header.site h1 { margin:0 0 8px; font-size:clamp(22px,3vw,34px); }
+    header.site p { max-width:960px; margin:0; color:var(--muted); line-height:1.55; }
+    nav.index { display:flex; gap:8px; overflow:auto; padding:12px clamp(18px,4vw,56px); position:sticky; top:0; z-index:5; border-bottom:1px solid var(--line); background:rgba(247,247,245,.96); }
+    nav.index a { flex:0 0 auto; padding:8px 10px; border:1px solid var(--line); border-radius:6px; color:var(--ink); text-decoration:none; background:#fff; }
+    main { padding:28px clamp(18px,4vw,56px) 64px; display:grid; gap:32px; }
+    .screen { scroll-margin-top:70px; }
+    .screen-head { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:10px; }
+    .screen h2 { margin:0; font-size:20px; }
+    .tag { padding:5px 8px; border:1px solid var(--ink); border-radius:999px; font-size:12px; white-space:nowrap; }
+    .frame { min-height:420px; border:2px solid var(--ink); background:#fff; display:grid; grid-template-columns:180px minmax(0,1fr) 260px; grid-template-rows:54px minmax(300px,1fr) 84px; grid-template-areas:"top top top" "left main right" "bottom bottom bottom"; }
+    .region { border:1px solid var(--line); padding:14px; min-width:0; }
+    .top { grid-area:top; display:flex; gap:12px; align-items:center; justify-content:space-between; }
+    .left { grid-area:left; }
+    .main { grid-area:main; }
+    .right { grid-area:right; }
+    .bottom { grid-area:bottom; }
+    .region strong { display:block; margin-bottom:8px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
+    .region p, .region li { color:var(--muted); font-size:13px; line-height:1.45; }
+    .region ul { margin:0; padding-left:18px; }
+    .action { display:inline-block; border:2px solid var(--focus); color:var(--focus); padding:7px 10px; border-radius:5px; font-size:13px; font-weight:700; }
+    .blocks { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .block { min-height:80px; border:1px dashed var(--line); padding:10px; font-size:13px; color:var(--muted); }
+    .note { margin:8px 0 0; color:var(--muted); font-size:13px; }
+    @media (max-width: 840px) {
+      .frame { grid-template-columns:1fr; grid-template-rows:auto auto auto auto; grid-template-areas:"top" "main" "right" "bottom"; }
+      .left { display:none; }
+      .right { border-top:2px solid var(--ink); }
+      .blocks { grid-template-columns:1fr; }
+      .screen-head { align-items:flex-start; flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <h1>ACS Frontend Redesign G0</h1>
+    <p>14 个可编辑的结构低保真线框。灰色区域代表真实产品对象/状态的布局槽位，不代表伪造资产或已实现功能。所有 mutation 仍受 Adapter、Core、Runtime 与 Authority 边界约束。</p>
+  </header>
+  <nav class="index" aria-label="线框索引">
+    <a href="#wf01">首页</a><a href="#wf02">项目</a><a href="#wf03">概览</a><a href="#wf04">剧本</a><a href="#wf05">角色</a><a href="#wf06">分镜</a><a href="#wf07">生成</a><a href="#wf08">音频</a><a href="#wf09">剪辑</a><a href="#wf10">审片</a><a href="#wf11">资产</a><a href="#wf12">任务</a><a href="#wf13">作品</a><a href="#wf14">快速创作</a>
+  </nav>
+  <main>
+    <section class="screen" id="wf01"><div class="screen-head"><h2>01 Creator 首页</h2><span class="tag">PARTIAL NOW</span></div><div class="frame"><div class="region top"><strong>全局导航</strong><span>首页 · 项目 · 快速创作 · 资产 · 任务 · 作品</span></div><aside class="region left"><strong>最近工作</strong><ul><li>项目</li><li>失败任务</li><li>受限作品</li></ul></aside><div class="region main"><strong>模式选择与最近项目</strong><div class="blocks"><div class="block">项目制作<br>继续一个有上下文的长流程</div><div class="block">快速创作<br>一个有边界的生成任务</div><div class="block">最近项目与下一安全动作</div><div class="block">真实 blocker，不伪造 ready</div></div></div><aside class="region right"><strong>下一动作 / 阻断</strong><p>用户语言摘要；技术证据按需展开。</p><span class="action">继续项目</span></aside><footer class="region bottom"><strong>任务架</strong><span>运行中 · 阻断 · 失败恢复</span></footer></div></section>
+
+    <section class="screen" id="wf02"><div class="screen-head"><h2>02 项目中心</h2><span class="tag">SUPPORTED NOW</span></div><div class="frame"><div class="region top"><strong>项目中心</strong><span class="action">新建项目</span></div><aside class="region left"><strong>筛选</strong><ul><li>系列 / 单集</li><li>状态</li><li>最近更新</li></ul></aside><div class="region main"><strong>项目列表</strong><div class="blocks"><div class="block">项目 · 当前阶段 · blocker</div><div class="block">项目 · 最近工作 · 下一动作</div><div class="block">项目 · 连接状态</div><div class="block">不以 milestone 命名</div></div></div><aside class="region right"><strong>项目摘要</strong><p>上下文、系列/分集和安全入口。</p></aside><footer class="region bottom"><strong>分页 / 批量选择</strong><span>无隐式删除或迁移</span></footer></div></section>
+
+    <section class="screen" id="wf03"><div class="screen-head"><h2>03 项目概览</h2><span class="tag">UI MISSING</span></div><div class="frame"><div class="region top"><strong>项目上下文</strong><span>项目 · 分集 · 当前版本 · 权限</span></div><aside class="region left"><strong>项目导航</strong><ul><li>概览</li><li>故事 / 剧本 / 角色</li><li>分镜 / 生成 / 音频</li><li>剪辑 / 审片 / 交付</li></ul></aside><div class="region main"><strong>阶段与最近工作</strong><div class="blocks"><div class="block">准备度清单</div><div class="block">最近版本</div><div class="block">最近候选</div><div class="block">下一安全动作</div></div></div><aside class="region right"><strong>AuthorityStatus</strong><p>UI / Runtime / Authority / Policy 分层。</p><span class="action">查看 blocker</span></aside><footer class="region bottom"><strong>项目任务架</strong><span>跨工作台连续恢复</span></footer></div></section>
+
+    <section class="screen" id="wf04"><div class="screen-head"><h2>04 剧本工作台</h2><span class="tag">PARTIAL NOW</span></div><div class="frame"><div class="region top"><strong>剧本版本</strong><span>草稿 · 对比 · 确认</span></div><aside class="region left"><strong>分集 / 场景</strong><ul><li>EP01</li><li>场景 01</li><li>场景 02</li></ul></aside><div class="region main"><strong>编辑 / 对比画布</strong><div class="blocks"><div class="block">剧本文本与结构</div><div class="block">可切换的版本对比</div></div></div><aside class="region right"><strong>版本与权威</strong><p>来源、确认、stale/conflict。</p><span class="action">显式确认</span></aside><footer class="region bottom"><strong>保存状态</strong><span>未保存保护 · 键盘状态 · 当前版本</span></footer></div></section>
+
+    <section class="screen" id="wf05"><div class="screen-head"><h2>05 角色工作台</h2><span class="tag">AUTHORITY BLOCKED</span></div><div class="frame"><div class="region top"><strong>角色上下文</strong><span>角色 · 来源计划 · 基线状态</span></div><aside class="region left"><strong>角色列表</strong><ul><li>身份</li><li>关系</li><li>参考素材</li></ul></aside><div class="region main"><strong>身份 / 外观 / 关系</strong><div class="blocks"><div class="block">身份事实</div><div class="block">外观与参考</div><div class="block">关系图</div><div class="block">连续性冲突</div></div></div><aside class="region right"><strong>连续性 / 权威</strong><p>本地草稿与 authoritative baseline 清晰分离。</p></aside><footer class="region bottom"><strong>版本时间线</strong><span>候选 · 比较 · 确认请求</span></footer></div></section>
+
+    <section class="screen" id="wf06"><div class="screen-head"><h2>06 分镜工作台</h2><span class="tag">METHOD UI MISSING</span></div><div class="frame"><div class="region top"><strong>当前剧本来源</strong><span>currentness · shot plan</span></div><aside class="region left"><strong>Scene / Shot</strong><ul><li>场景 01</li><li>镜头 01A</li><li>镜头 01B</li></ul></aside><div class="region main"><strong>分镜 / Shot Graph</strong><div class="blocks"><div class="block">镜头构图信息</div><div class="block">动作与连续性</div><div class="block">镜头顺序</div><div class="block">输入需求提示</div></div></div><aside class="region right"><strong>服务器方法计划</strong><p>executionClass 只读 · 原因 · Contact/Gait blocker。</p></aside><footer class="region bottom"><strong>镜头条</strong><span>选择镜头 → 进入生成输入</span></footer></div></section>
+
+    <section class="screen" id="wf07"><div class="screen-head"><h2>07 Generation Studio</h2><span class="tag">RUNTIME BLOCKED</span></div><div class="frame"><div class="region top"><strong>选中镜头 / 服务器路由</strong><span class="action">预检（有权限时）</span></div><aside class="region left"><strong>镜头 / 历史</strong><ul><li>输入缺失</li><li>候选批次</li><li>修订</li></ul></aside><div class="region main"><strong>Prompt / 参考 / 候选</strong><div class="blocks"><div class="block">GenerationPromptBar</div><div class="block">AssetPicker</div><div class="block">候选 A / 生命周期</div><div class="block">候选 B / QC</div></div></div><aside class="region right"><strong>InputPlan / QC</strong><p>方法不可改 · 选择≠admission · 失败不隐藏。</p></aside><footer class="region bottom"><strong>任务架</strong><span>queued · running · blocked · failed</span></footer></div></section>
+
+    <section class="screen" id="wf08"><div class="screen-head"><h2>08 Audio Studio</h2><span class="tag">READ-ONLY FIRST</span></div><div class="frame"><div class="region top"><strong>显式音频需求</strong><span>required / silence / blocked</span></div><aside class="region left"><strong>镜头 / 需求</strong><ul><li>对白</li><li>环境</li><li>效果</li><li>音乐</li></ul></aside><div class="region main"><strong>音频对象 / 波形</strong><div class="blocks"><div class="block">Requirement 来源</div><div class="block">合法素材绑定</div><div class="block">Waveform（已有音频）</div><div class="block">时间线交接</div></div></div><aside class="region right"><strong>AudioInspector</strong><p>rights · lineage · Runtime G0 blocker。</p></aside><footer class="region bottom"><strong>任务 / 时间线</strong><span>本阶段不启动合成或克隆</span></footer></div></section>
+
+    <section class="screen" id="wf09"><div class="screen-head"><h2>09 Timeline Studio</h2><span class="tag">M13 UI MISSING</span></div><div class="frame"><div class="region top"><strong>Timeline 版本</strong><span>draft · stale · candidate</span></div><aside class="region left"><strong>已 admitted 资产</strong><ul><li>视频</li><li>音频</li><li>字幕</li><li>效果</li></ul></aside><div class="region main"><strong>Viewer</strong><div class="blocks"><div class="block">当前画面 / 播放状态</div><div class="block">选中对象说明</div></div></div><aside class="region right"><strong>Clip / Effect Inspector</strong><p>选择范围内的属性，不承载所有系统状态。</p></aside><footer class="region bottom"><strong>多轨时间线</strong><span>V1 · V2 · A1 · Captions · Effects · Waveform</span></footer></div></section>
+
+    <section class="screen" id="wf10"><div class="screen-head"><h2>10 Review / QC</h2><span class="tag">FAIL-CLOSED</span></div><div class="frame"><div class="region top"><strong>PreviewCandidate</strong><span>绝不显示为 Master</span></div><aside class="region left"><strong>候选 / 版本</strong><ul><li>当前</li><li>上一修订</li><li>QC 状态</li></ul></aside><div class="region main"><strong>播放器 / A-B 对比</strong><div class="blocks"><div class="block">视频播放</div><div class="block">对比或问题定位</div></div></div><aside class="region right"><strong>QC / 评论 / Authority</strong><p>FAIL 保留；审批缺失时不可执行。</p><span class="action">请求修正</span></aside><footer class="region bottom"><strong>时间码问题轨</strong><span>评论与对象引用，不暴露原始 stack trace</span></footer></div></section>
+
+    <section class="screen" id="wf11"><div class="screen-head"><h2>11 资产库</h2><span class="tag">UI MISSING</span></div><div class="frame"><div class="region top"><strong>资产</strong><span>搜索 · 上传 · 项目筛选</span></div><aside class="region left"><strong>分类</strong><ul><li>上传</li><li>候选</li><li>Selected</li><li>Admitted</li><li>Rights blocked</li></ul></aside><div class="region main"><strong>资产网格 / 列表</strong><div class="blocks"><div class="block">资产 · 生命周期</div><div class="block">资产 · 项目成员关系</div><div class="block">资产 · 版本</div><div class="block">资产 · rights</div></div></div><aside class="region right"><strong>Rights / Lineage</strong><p>选择、admission 与 canonical 关系严格分开。</p></aside><footer class="region bottom"><strong>显式批量操作</strong><span>无静默 admission</span></footer></div></section>
+
+    <section class="screen" id="wf12"><div class="screen-head"><h2>12 任务中心</h2><span class="tag">UI MISSING</span></div><div class="frame"><div class="region top"><strong>任务</strong><span>全部项目 · 当前用户 scope</span></div><aside class="region left"><strong>状态筛选</strong><ul><li>运行中</li><li>阻断</li><li>失败</li><li>完成</li></ul></aside><div class="region main"><strong>任务流</strong><div class="blocks"><div class="block">任务 · 用户可读状态</div><div class="block">任务 · blocker owner</div><div class="block">任务 · exact replay 条件</div><div class="block">任务 · 下一动作</div></div></div><aside class="region right"><strong>证据 / 恢复</strong><p>技术详情折叠；不直接访问 queue/provider。</p><span class="action">返回 blocker</span></aside><footer class="region bottom"><strong>状态说明</strong><span>unknown → fail closed</span></footer></div></section>
+
+    <section class="screen" id="wf13"><div class="screen-head"><h2>13 作品与交付</h2><span class="tag">NOT AUTHORIZED</span></div><div class="frame"><div class="region top"><strong>作品 / 交付</strong><span>Preview · Restricted · Master · Publication</span></div><aside class="region left"><strong>筛选</strong><ul><li>项目</li><li>资格</li><li>审批</li></ul></aside><div class="region main"><strong>交付对象</strong><div class="blocks"><div class="block">未满足上游条件</div><div class="block">受限导出（若合法）</div><div class="block">Master future</div><div class="block">Publication unavailable</div></div></div><aside class="region right"><strong>Eligibility / Evidence</strong><p>精确显示缺失的 Timeline、QC 或审批。</p></aside><footer class="region bottom"><strong>边界</strong><span>无发布按钮 · 无 Preview→Master 跳级</span></footer></div></section>
+
+    <section class="screen" id="wf14"><div class="screen-head"><h2>14 快速创作</h2><span class="tag">FUTURE / GUARDED</span></div><div class="frame"><div class="region top"><strong>任务类型</strong><span>图像 · 视频 · 音频 · 数字人</span></div><aside class="region left"><strong>历史</strong><ul><li>草稿</li><li>任务</li><li>候选</li></ul></aside><div class="region main"><strong>Prompt / 参考 / 结果</strong><div class="blocks"><div class="block">Prompt + intent</div><div class="block">参考素材 + rights</div><div class="block">候选结果</div><div class="block">加入现有项目</div></div></div><aside class="region right"><strong>参数 / CapabilityBlocker</strong><p>上下文参数；executionMethod 和 Provider 不可由客户端选择。</p></aside><footer class="region bottom"><strong>任务架</strong><span>提交后可离开，失败进入任务中心</span></footer></div></section>
+  </main>
+</body>
+</html>
