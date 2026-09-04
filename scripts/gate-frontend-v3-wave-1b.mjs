@@ -4,8 +4,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
+import {
+  EXPECTED_NEXT_RSC_ABORT,
+  classifyWave1BRequestFailure,
+} from "./gate-frontend-v3-wave-1b-request-policy.mjs";
+
 const frontendRoot = path.resolve(new URL("..", import.meta.url).pathname);
 const baseUrl = (process.env.K2_CONTROL_PLANE_FRONTEND_ORIGIN ?? "http://127.0.0.1:3101").replace(/\/$/, "");
+const baseOrigin = new URL(baseUrl).origin;
 const parentArtifactRoot = path.resolve(
   process.env.K2_CONTROL_PLANE_ARTIFACT_ROOT ?? "artifacts/k2-control-plane-e2e",
 );
@@ -232,6 +238,7 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   const consoleErrors = [];
   const pageErrors = [];
   const requestErrors = [];
+  const expectedNextRscAborts = [];
   const httpErrors = [];
   const mutationRequests = [];
   const creatorApiRequests = [];
@@ -247,7 +254,33 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("requestfailed", (request) => {
-    requestErrors.push(`${request.method()} ${request.url()} ${request.failure()?.errorText ?? "failed"}`);
+    const errorText =
+      request.failure()?.errorText ?? "failed";
+
+    const classification =
+      classifyWave1BRequestFailure({
+        baseOrigin,
+        method: request.method(),
+        url: request.url(),
+        errorText,
+        isNavigationRequest:
+          request.isNavigationRequest(),
+        resourceType: request.resourceType(),
+      });
+
+    if (
+      classification.classification
+      === EXPECTED_NEXT_RSC_ABORT
+    ) {
+      expectedNextRscAborts.push(
+        classification.evidence,
+      );
+      return;
+    }
+
+    requestErrors.push(
+      `${request.method()} ${request.url()} ${errorText}`,
+    );
   });
   page.on("response", (response) => {
     if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
@@ -502,7 +535,7 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     const unexpectedCreatorRequests = creatorApiRequests.filter((entry) => !allowedCreatorRequest.test(entry));
     assert(consoleErrors.length === 0, `console errors: ${consoleErrors.join(" | ")}`);
     assert(pageErrors.length === 0, `page errors: ${pageErrors.join(" | ")}`);
-    assert(requestErrors.length === 0, `request errors: ${requestErrors.join(" | ")}`);
+    assert(requestErrors.length === 0, `unexpected request errors: ${requestErrors.join(" | ")}`);
     assert(httpErrors.length === 0, `HTTP errors: ${httpErrors.join(" | ")}`);
     assert(mutationRequests.length === 0, `mutation requests: ${mutationRequests.join(" | ")}`);
     assert(unexpectedCreatorRequests.length === 0, `unexpected Creator API requests: ${unexpectedCreatorRequests.join(" | ")}`);
@@ -512,6 +545,20 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     const screenshotSha256 = Object.fromEntries(
       screenshotNames.map((name) => [name, sha256File(path.join(artifactRoot, name))]),
     );
+    const requestFailureSummary = {
+      rawRequestFailedEventCount:
+        expectedNextRscAborts.length
+        + requestErrors.length,
+      expectedNextRscAbortCount:
+        expectedNextRscAborts.length,
+      unexpectedRequestFailureCount:
+        requestErrors.length,
+    };
+    const expectedNextRscAbortUniquePaths = [
+      ...new Set(
+        expectedNextRscAborts.map(({ pathname }) => pathname),
+      ),
+    ].sort();
     const result = {
       schema: "acs.frontend-v3-wave-1b-browser-evidence.v1",
       frontendCommit: process.env.K2_CONTROL_PLANE_FRONTEND_SHA ?? gitValue("rev-parse", "HEAD"),
@@ -538,6 +585,9 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
       consoleErrors,
       pageErrors,
       requestErrors,
+      requestFailureSummary,
+      expectedNextRscAborts,
+      expectedNextRscAbortUniquePaths,
       httpErrors,
       mutationRequests,
       creatorApiRequests,
@@ -550,6 +600,20 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     console.log(JSON.stringify(result, null, 2));
     console.log(`WAVE_1B_EVIDENCE_RESULT_SHA256=${sha256File(resultPath)}`);
   } catch (error) {
+    const requestFailureSummary = {
+      rawRequestFailedEventCount:
+        expectedNextRscAborts.length
+        + requestErrors.length,
+      expectedNextRscAbortCount:
+        expectedNextRscAborts.length,
+      unexpectedRequestFailureCount:
+        requestErrors.length,
+    };
+    const expectedNextRscAbortUniquePaths = [
+      ...new Set(
+        expectedNextRscAborts.map(({ pathname }) => pathname),
+      ),
+    ].sort();
     const failure = {
       schema: "acs.frontend-v3-wave-1b-browser-evidence.v1",
       ok: false,
@@ -557,6 +621,9 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
       consoleErrors,
       pageErrors,
       requestErrors,
+      requestFailureSummary,
+      expectedNextRscAborts,
+      expectedNextRscAbortUniquePaths,
       httpErrors,
       mutationRequests,
       creatorApiRequests,
