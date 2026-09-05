@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  useCallback,
   useMemo,
   useRef,
   useState,
   type MouseEventHandler,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -61,6 +63,7 @@ export interface CreatorProjectShellProps {
   inspectorLabel?: string;
   authorityLabel?: string;
   onNavigationCapture?: MouseEventHandler<HTMLDivElement>;
+  onRequestNavigation?: (href: string, trigger: HTMLElement | null) => void;
 }
 
 function Trigger({
@@ -115,6 +118,7 @@ export function CreatorProjectShell({
   inspectorLabel = "项目概览检查器",
   authorityLabel = "项目概览授权与证据",
   onNavigationCapture,
+  onRequestNavigation,
 }: CreatorProjectShellProps) {
   const router = useRouter();
   const { theme, toggleTheme } = useACSTheme();
@@ -131,6 +135,12 @@ export function CreatorProjectShell({
   const inspectorTriggerRef = useRef<HTMLButtonElement>(null);
   const activeOverlay = controlledOverlay === undefined ? internalOverlay : controlledOverlay;
   const setActiveOverlay = onActiveOverlayChange ?? setInternalOverlay;
+  const openJobCenter = useCallback((event?: MouseEvent<HTMLButtonElement>) => {
+    const trigger = event?.currentTarget ??
+      (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    if (onRequestNavigation) onRequestNavigation("/creator/jobs", trigger);
+    else router.push("/creator/jobs");
+  }, [onRequestNavigation, router]);
 
   function openOverlay(
     overlay: Exclude<WorkbenchOverlay, null>,
@@ -186,14 +196,14 @@ export function CreatorProjectShell({
           jobs={[]}
           expanded
           onExpandedChange={() => undefined}
-          onOpenJobCenter={() => router.push("/creator/jobs")}
+          onOpenJobCenter={openJobCenter}
           label="当前没有可由本页核验的活动任务"
         />
       );
     }
     if (activeOverlay === "inspector") return inspector ?? null;
     return null;
-  }, [activeDestinationId, activeOverlay, authorityEvidence, destinations, inspector, jobShelf, project?.title, router, setActiveOverlay]);
+  }, [activeDestinationId, activeOverlay, authorityEvidence, destinations, inspector, jobShelf, project?.title, openJobCenter, setActiveOverlay]);
 
   const navigationTrigger = (
     <div className={styles.triggerGroup}>
@@ -277,7 +287,7 @@ export function CreatorProjectShell({
             jobs={[]}
             expanded={jobsExpanded}
             onExpandedChange={setJobsExpanded}
-            onOpenJobCenter={() => router.push("/creator/jobs")}
+            onOpenJobCenter={openJobCenter}
             label="当前没有可由本页核验的活动任务"
           />
         )}

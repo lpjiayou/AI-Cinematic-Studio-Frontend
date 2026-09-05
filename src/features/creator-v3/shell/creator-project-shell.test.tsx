@@ -1,12 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthorityLayerView, EvidenceFieldView } from "@/components";
 import type { CreatorProject } from "@/features/core-integration";
 import { ThemeProvider } from "@/theme";
 import { CreatorProjectShell } from "./creator-project-shell";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+const navigation = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
 
 const project: CreatorProject = {
   schemaVersion: "creator.project.v1",
@@ -36,7 +37,7 @@ const fields: readonly EvidenceFieldView[] = [
   { id: "project-ref", label: "项目引用", value: project.projectRef, sensitivity: "restricted", copyAllowed: true },
 ];
 
-function renderShell() {
+function renderShell(onRequestNavigation?: (href: string, trigger: HTMLElement | null) => void) {
   return render(
     <ThemeProvider>
       <CreatorProjectShell
@@ -45,6 +46,7 @@ function renderShell() {
         activeDestinationId="overview"
         primaryCanvas={<h1>项目概览</h1>}
         inspector={<p>项目检查器</p>}
+        onRequestNavigation={onRequestNavigation}
         authorityEvidence={{ layers, summary: "四层独立", fields, evidenceSummary: "受限证据" }}
       />
     </ThemeProvider>,
@@ -52,6 +54,7 @@ function renderShell() {
 }
 
 describe("CreatorProjectShell", () => {
+  beforeEach(() => navigation.push.mockReset());
   it("composes the project context and ten transitional destinations", () => {
     renderShell();
     expect(screen.getByRole("region", { name: "V3 项目上下文" })).toHaveTextContent("北岸计划");
@@ -77,5 +80,32 @@ describe("CreatorProjectShell", () => {
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it.each([false, true])("delegates the %s mobile Job Center to its caller with the exact trigger", async (mobile) => {
+    const user = userEvent.setup();
+    const request = vi.fn();
+    renderShell(request);
+    if (mobile) await user.click(screen.getByRole("button", { name: "打开任务" }));
+    const scope = mobile ? within(screen.getByRole("dialog", { name: "任务" })) : screen;
+    const trigger = scope.getByRole("button", { name: "打开任务中心" });
+    await user.click(trigger);
+    expect(request).toHaveBeenCalledExactlyOnceWith("/creator/jobs", trigger);
+    expect(navigation.push).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])("retains the %s mobile Job Center push when no caller owns navigation", async (mobile) => {
+    const user = userEvent.setup(); renderShell();
+    if (mobile) await user.click(screen.getByRole("button", { name: "打开任务" }));
+    const scope = mobile ? within(screen.getByRole("dialog", { name: "任务" })) : screen;
+    await user.click(scope.getByRole("button", { name: "打开任务中心" }));
+    expect(navigation.push).toHaveBeenCalledExactlyOnceWith("/creator/jobs");
+  });
+
+  it("does not request navigation when opening an Inspector", async () => {
+    const user = userEvent.setup(); const request = vi.fn(); renderShell(request);
+    await user.click(screen.getByRole("button", { name: "打开检查器" }));
+    expect(screen.getByRole("dialog", { name: "检查器" })).toBeVisible();
+    expect(request).not.toHaveBeenCalled(); expect(navigation.push).not.toHaveBeenCalled();
   });
 });

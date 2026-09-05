@@ -84,6 +84,7 @@ FRONTEND_V3_WAVE_1A_OBJECT_COUNT=9
 FRONTEND_V3_WAVE_1B=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_WAVE_1C=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_WAVE_2A=IMPLEMENTED_AND_VERIFIED
+FRONTEND_WORKSPACE_STATE_INTEGRITY=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=6
 FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=10
 FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
@@ -123,6 +124,9 @@ Wave 2A adds four closed method-aware Adapter resources, eight typed operations,
 and four runtime parsers, with zero product UI callsites. See the
 [Wave 2A acceptance](docs/status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md)
 for the pinned contract, authorized field corrections and verification boundary.
+The [workspace state integrity closure](docs/status/FRONTEND_WORKSPACE_STATE_INTEGRITY_CLOSURE_2026-09-05.md)
+separates Script drafts from saved baselines, unifies departure protection, and isolates
+Story client state by project and Series. Core candidate-source binding remains incomplete.
 
 ## Documentation
 
@@ -164,11 +168,14 @@ variables remain server-only; never add a `NEXT_PUBLIC_*` equivalent.
 ## Next legal project boundary
 
 ```text
-NEXT_TASK=ACS-FRONTEND-WAVE-2B-STORYBOARD-AND-METHOD-PLAN-READ-ONLY
+NEXT_TASK=ACS-PRE-WAVE-1D-FRONTEND-PRODUCTION-TRUTH-CLOSURE
+OLD_WAVE_1D_COMMAND=SUPERSEDED_NOT_EXECUTED
 INDEPENDENT_M12_BOUNDARY=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
 ```
 
-Wave 2B requires separate authorization. Wave 2A adds Adapter/contracts only;
+Production Truth Closure requires separate authorization, followed by rewritten
+Wave 1D and then Wave 2B. None starts as part of workspace integrity closure.
+Wave 2A adds Adapter/contracts only;
 method-aware UI, media runtime, reviewed import, identity writes and publication
 remain outside this implementation.
 The independent M12 handoff/preflight boundary also grants no M12-C3/C4, A100, model,
