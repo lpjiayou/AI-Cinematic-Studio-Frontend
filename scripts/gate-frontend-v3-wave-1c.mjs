@@ -52,7 +52,7 @@ const protectedFiles = {
   "src/app/creator/projects/[projectRef]/planning/characters/connected-character-studio.tsx": "608052b41867d1eaa61ca48550ece6bb3812f478d4dafc89ba0e42318adef6c4",
   "src/app/creator/projects/[projectRef]/planning/characters/character-studio.tsx": "ecc169adc9bf28537e240544dfeeeff79e52323fd3b5cd9d07e943e6949e2472",
   "src/app/creator/projects/[projectRef]/planning/characters/character-studio.module.css": "cd4f7d8a6d71d093fd78efbd71a1d536c960b897a0a6ada810bb499dd96bbd1f",
-  "src/features/core-integration/experience-adapter.ts": "637de9f6aecf1f1cc75a16b5f6343339a6a5a7c91c19c7600ab484028c9d6751",
+  "src/features/core-integration/experience-adapter.ts": "3866ab83b93e01a5a26d8a67b847fb3eca29dd8929b44b54cd550cdca05e8781",
   "src/features/core-integration/browser-client.ts": "7ddc4ec94db69baed9c005fbbcd4500a0e2619f8ef7f45bd6d59510026a22d58",
   "src/features/core-integration/contracts.ts": "abae1118d8c7088a25370688342350dfd3a73d61f11f524043cbd8a64a501c08",
   "package.json": "f6341832103f45b79f4d6171afb9a4c40964e0c2eeed824cf43b35e251207348",

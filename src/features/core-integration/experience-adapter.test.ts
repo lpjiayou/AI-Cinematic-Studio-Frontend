@@ -1,10 +1,106 @@
 import { randomBytes } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleCreatorExperienceRequest } from "./experience-adapter";
+import { METHOD_AWARE_RESOURCES } from "./method-aware-contracts";
+import { audioFixture, commandScope, executionCommand, executionFixture, inputCommand, inputFixture, videoFixture } from "./method-aware-test-fixtures";
 
 function coreResponse(payload: unknown, status = 200) {
   return Response.json(payload, { status });
 }
+
+describe("Method-aware closed Adapter", () => {
+  const values = [executionFixture, inputFixture, videoFixture, audioFixture];
+  const commands = () => [executionCommand(), inputCommand(), { ...commandScope }, { ...commandScope, audioRequirementRef: "audio-silence" }];
+  const query = "projectRef=project-test&seriesRef=series-test&episodeRef=episode-test";
+  const url = (resource: string) => `http://frontend.test/api/creator/episode-production-runs/run-test/${resource}`;
+  beforeEach(() => { vi.stubEnv("CREATOR_CORE_TOKEN", "test-only-token"); vi.stubEnv("CREATOR_CORE_BASE_URL", "http://core.test:8765"); });
+  afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
+  for (const [i, resource] of METHOD_AWARE_RESOURCES.entries()) {
+    it(`${resource}: allows GET with only the closed scope and optional version`, async () => {
+      const mock = vi.spyOn(globalThis, "fetch").mockResolvedValue(coreResponse(values[i]()));
+      const response = await handleCreatorExperienceRequest(new Request(`${url(resource)}?${query}&versionRef=version-test&workspaceRef=forged&productionRunRef=forged&tenantId=forged&contentProfileRef=forged`), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(200); expect(mock).toHaveBeenCalledOnce();
+      expect(String(mock.mock.calls[0][0])).toBe(`http://core.test:8765/creator/api/v1/episode-production-runs/run-test/${resource}?${query}&versionRef=version-test`);
+      const init = mock.mock.calls[0][1];
+      expect(init).toMatchObject({ method: "GET", cache: "no-store" });
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer test-only-token");
+      expect(response.headers.get("Cache-Control")).toBe("no-store");
+      expect(await response.json()).toEqual(values[i]());
+    });
+    it(`${resource}: strips forged POST scope and forwards the exact public command`, async () => {
+      const mock = vi.spyOn(globalThis, "fetch").mockResolvedValue(coreResponse(values[i](), 201));
+      const body = { ...commands()[i], workspaceRef: "forged", productionRunRef: "forged", tenantId: "forged", contentProfileRef: "forged" };
+      const response = await handleCreatorExperienceRequest(new Request(url(resource), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(201); expect(mock).toHaveBeenCalledOnce();
+      expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toEqual(commands()[i]);
+      expect(mock.mock.calls[0][1]?.method).toBe("POST");
+    });
+    for (const method of ["PUT", "PATCH", "DELETE", "HEAD", "CUSTOM"]) it(`${resource}: rejects ${method} with 404 before Core`, async () => {
+      const mock = vi.spyOn(globalThis, "fetch");
+      const response = await handleCreatorExperienceRequest(new Request(url(resource), { method }), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(404); expect(await response.json()).toMatchObject({ error: { code: "not_found" } }); expect(mock).not.toHaveBeenCalled();
+    });
+    for (const suffix of ["&unknown=value", "&executionMethod=forged", "&executionClass=forged", "&provider=forged", "&adapterCapability=forged", "&authorityDigest=forged", "&localPath=forged", "&projectRef=duplicate", "&versionRef="]) it(`${resource}: rejects query ${suffix} before Core`, async () => {
+      const mock = vi.spyOn(globalThis, "fetch");
+      const response = await handleCreatorExperienceRequest(new Request(`${url(resource)}?${query}${suffix}`), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ error: { code: "invalid_request" } }); expect(mock).not.toHaveBeenCalled();
+    });
+    for (const field of ["executionMethod", "executionClass", "provider", "adapterCapability", "adapterIdentity", "authorityDigest", "publicationAllowed", "fallbackPolicy", "assetVersionDigest", "rightsBinding", "voiceAssetVersion", "storageKey", "internalPath", "unknown"]) it(`${resource}: rejects POST ${field} before Core`, async () => {
+      const mock = vi.spyOn(globalThis, "fetch");
+      const response = await handleCreatorExperienceRequest(new Request(url(resource), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...commands()[i], [field]: "forged" }) }), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ error: { code: "invalid_request" } }); expect(mock).not.toHaveBeenCalled();
+    });
+    for (const status of [404, 409, 503]) it(`${resource}: preserves Core ${status} and code`, async () => {
+      const error = { ok: false, error: { code: "core-specific-error", message: "Core 拒绝" } };
+      const mock = vi.spyOn(globalThis, "fetch").mockResolvedValue(coreResponse(error, status));
+      const response = await handleCreatorExperienceRequest(new Request(`${url(resource)}?${query}`), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(status); expect(await response.json()).toEqual(error); expect(mock).toHaveBeenCalledOnce();
+    });
+    it(`${resource}: rejects malformed or private success data before returning it to the browser`, async () => {
+      const mock = vi.spyOn(globalThis, "fetch").mockResolvedValue(coreResponse({ ...values[i](), secret: "server-private" }));
+      const response = await handleCreatorExperienceRequest(new Request(`${url(resource)}?${query}`), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(502); const payload = await response.json();
+      expect(payload).toMatchObject({ error: { code: "invalid_method_aware_response" } }); expect(JSON.stringify(payload)).not.toContain("server-private"); expect(mock).toHaveBeenCalledOnce();
+    });
+  }
+  it("keeps the four-resource set closed", async () => {
+    const mock = vi.spyOn(globalThis, "fetch");
+    for (const resource of ["provider-experiments", "dynamic-media-preflight", "real-media-revision", "real-video-revision", "reviewed-import", "canonical-registrations", "timeline", "render-candidates"]) {
+      for (const method of ["GET", "POST"]) {
+        const response = await handleCreatorExperienceRequest(new Request(url(resource), { method }), ["episode-production-runs", "run-test", resource]); expect(response.status).toBe(404);
+      }
+    }
+    expect(mock).not.toHaveBeenCalled();
+  });
+  it("rejects nested digest and unknown shape claims, including incomplete speech source spans", async () => {
+    const input = inputCommand(); Object.assign(input.assetBindings[0], { assetVersionDigest: "forged" });
+    const badCamera = executionCommand(); Object.assign(badCamera.shots[0].cameraInstruction, { provider: "forged" });
+    const badBeat = executionCommand(); Object.assign(badBeat.shots[0].actionExecutionBeats[0].sourceSpan, { unknown: "forged" });
+    const badAudio = executionCommand(); Reflect.deleteProperty(badAudio.shots[0].audioIntents[0], "sourceSpan");
+    const wrongField = executionCommand(); const audio = wrongField.shots[0].audioIntents[0];
+    if (audio.audioType === "DIALOGUE") Object.assign(audio.sourceSpan, { sourceField: "NARRATION" });
+    const mock = vi.spyOn(globalThis, "fetch");
+    for (const [resource, command] of [["method-aware-input-plan", input], ...[badCamera, badBeat, badAudio, wrongField].map((command) => ["execution-method-plan", command] as const)] as const) {
+      const response = await handleCreatorExperienceRequest(new Request(url(resource), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(command) }), ["episode-production-runs", "run-test", resource]);
+      expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ error: { code: "invalid_request" } });
+    }
+    expect(mock).not.toHaveBeenCalled();
+  });
+  it("requires a nonempty deterministic key and rejects it on every other execution class", async () => {
+    const mutations: ((body: ReturnType<typeof executionCommand>) => void)[] = [
+      (body) => { Reflect.deleteProperty(body.shots[0].actionExecutionBeats[4], "postprocessRequirementKey"); },
+      (body) => { Object.assign(body.shots[0].actionExecutionBeats[4], { postprocessRequirementKey: "" }); },
+      ...[0, 1, 2, 3].map((i) => (body: ReturnType<typeof executionCommand>) => { Object.assign(body.shots[0].actionExecutionBeats[i], { postprocessRequirementKey: "event-1" }); }),
+    ];
+    const mock = vi.spyOn(globalThis, "fetch");
+    for (const mutate of mutations) {
+      const command = executionCommand(); mutate(command);
+      const response = await handleCreatorExperienceRequest(new Request(url("execution-method-plan"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(command) }), ["episode-production-runs", "run-test", "execution-method-plan"]);
+      expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ error: { code: "invalid_request" } });
+    }
+    expect(mock).not.toHaveBeenCalled();
+  });
+});
 
 describe("Creator Experience Adapter", () => {
   let runtimeToken: string;

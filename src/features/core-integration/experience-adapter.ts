@@ -1,6 +1,9 @@
 import "server-only";
 
 import { getCreatorServerConfig } from "./server-config";
+import { AUDIO_TYPES, EXECUTION_METHOD_BY_CLASS, METHOD_AWARE_RESOURCES, METHOD_INPUT_ROLES, type MethodAwareResource } from "./method-aware-contracts";
+import { parseExecutionMethodPlan, parseExplicitAudioRequirementRoute, parseMethodAwareInputPlan, parseMethodAwareVideoRoute } from "./method-aware-validators";
+import { CreatorClientError } from "./browser-client";
 
 const MAX_REQUEST_BYTES = 512_000;
 const CORE_PREFIX = "/creator/api/v1";
@@ -64,6 +67,9 @@ function isAllowed(path: string, method: string) {
     if (parts.length === 2) return method === "GET";
     if (parts.length === 3) {
       const resource = parts[2];
+      if (METHOD_AWARE_RESOURCES.some((value) => value === resource)) {
+        return method === "GET" || method === "POST";
+      }
       if (
         resource === "delivery" ||
         resource === "production-readiness" ||
@@ -163,6 +169,71 @@ class AdapterInputError extends Error {
   }
 }
 
+const methodAwareBrowserScope = new Set(["workspaceRef", "productionRunRef", "tenantId", "contentProfileRef"]);
+const methodAwareQuery = new Set(["projectRef", "seriesRef", "episodeRef", "versionRef"]);
+const commandFields = ["projectRef", "seriesRef", "episodeRef", "idempotencyKey"];
+function objectFields(value: unknown, required: readonly string[], optional: readonly string[] = []): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value) &&
+    required.every((key) => Object.hasOwn(value, key)) && Object.keys(value).every((key) => required.includes(key) || optional.includes(key));
+}
+function inputRef(value: unknown): value is string { return typeof value === "string" && value.length > 0 && value.trim() === value; }
+function inputInteger(value: unknown, minimum = 0): value is number { return typeof value === "number" && Number.isSafeInteger(value) && value >= minimum; }
+function inputRefs(value: unknown) { return Array.isArray(value) && value.every(inputRef); }
+function inputSpan(value: unknown, sourceField?: string) {
+  return objectFields(value, ["scriptSceneRef", "sourceField", "sourceIndex", "startOffsetInclusive", "endOffsetExclusive"]) &&
+    inputRef(value.scriptSceneRef) && typeof value.sourceField === "string" &&
+    ["ACTION", "DIALOGUE", "NARRATION", "SUBTITLE_TEXT"].includes(value.sourceField) && (!sourceField || value.sourceField === sourceField) &&
+    inputInteger(value.sourceIndex) && inputInteger(value.startOffsetInclusive) && inputInteger(value.endOffsetExclusive, 1) && value.endOffsetExclusive > value.startOffsetInclusive;
+}
+function inputTiming(value: unknown) {
+  return objectFields(value, ["startFrameInclusive", "endFrameExclusive"]) && inputInteger(value.startFrameInclusive) &&
+    inputInteger(value.endFrameExclusive, 1) && value.endFrameExclusive > value.startFrameInclusive;
+}
+function inputShot(value: unknown) {
+  if (!objectFields(value, ["shotOrder", "shotFrameCount", "cameraInstruction", "actionExecutionBeats", "audioIntents"]) ||
+      !inputInteger(value.shotOrder, 1) || !inputInteger(value.shotFrameCount, 1) ||
+      !objectFields(value.cameraInstruction, ["framing", "movement"]) || !inputRef(value.cameraInstruction.framing) || !inputRef(value.cameraInstruction.movement) ||
+      !Array.isArray(value.actionExecutionBeats) || !value.actionExecutionBeats.length || !Array.isArray(value.audioIntents)) return false;
+  return value.actionExecutionBeats.every((beat: unknown) => {
+    const event = beat !== null && typeof beat === "object" && (beat as { executionClass?: unknown }).executionClass === "DETERMINISTIC_EVENT";
+    const fields = ["beatRef", "beatOrder", "sourceSpan", "subjectRefs", "targetRefs", "frameRangeStartInclusive", "frameRangeEndExclusive", "executionClass"];
+    if (event) fields.push("postprocessRequirementKey");
+    return objectFields(beat, fields) && (!event || inputRef(beat.postprocessRequirementKey)) &&
+    inputRef(beat.beatRef) && inputInteger(beat.beatOrder, 1) && inputSpan(beat.sourceSpan) && inputRefs(beat.subjectRefs) && inputRefs(beat.targetRefs) &&
+    inputInteger(beat.frameRangeStartInclusive) && inputInteger(beat.frameRangeEndExclusive, 1) && beat.frameRangeEndExclusive > beat.frameRangeStartInclusive &&
+    typeof beat.executionClass === "string" && Object.hasOwn(EXECUTION_METHOD_BY_CLASS, beat.executionClass);
+  }) &&
+    value.audioIntents.every((intent: unknown) => {
+      if (!intent || typeof intent !== "object" || Array.isArray(intent)) return false;
+      const type = (intent as { audioType?: unknown }).audioType;
+      const speech = type === "DIALOGUE" || type === "NARRATION";
+      return objectFields(intent, speech ? ["audioType", "beatRef", "timingReference", "sourceSpan"] : ["audioType", "beatRef", "timingReference"]) &&
+        AUDIO_TYPES.some((known) => known === type) && inputRef(intent.beatRef) && inputTiming(intent.timingReference) && (!speech || inputSpan(intent.sourceSpan, type));
+    });
+}
+function validMethodAwareBody(resource: MethodAwareResource, value: Record<string, unknown>) {
+  if (!commandFields.every((key) => inputRef(value[key]))) return false;
+  switch (resource) {
+    case "execution-method-plan":
+      return objectFields(value, [...commandFields, "consistencyValidationVersionRef", "shots"]) && inputRef(value.consistencyValidationVersionRef) &&
+        Array.isArray(value.shots) && value.shots.length > 0 && value.shots.every(inputShot);
+    case "method-aware-input-plan":
+      return objectFields(value, [...commandFields, "assetBindings"]) && Array.isArray(value.assetBindings) && value.assetBindings.every((binding: unknown) =>
+        objectFields(binding, ["visualExecutionRequirementRef", "inputRequirementKey", "inputRole", "assetVersionRef"]) && inputRef(binding.visualExecutionRequirementRef) &&
+        inputRef(binding.inputRequirementKey) && inputRef(binding.assetVersionRef) && METHOD_INPUT_ROLES.some((role) => role === binding.inputRole));
+    case "method-aware-video-route": return objectFields(value, commandFields);
+    case "explicit-audio-requirement-route":
+      return objectFields(value, [...commandFields, "audioRequirementRef"], ["rightsBindingRef", "voiceAssetVersionRef"]) && inputRef(value.audioRequirementRef) &&
+        (!Object.hasOwn(value, "rightsBindingRef") || inputRef(value.rightsBindingRef)) && (!Object.hasOwn(value, "voiceAssetVersionRef") || inputRef(value.voiceAssetVersionRef));
+  }
+}
+const methodAwareParsers = {
+  "execution-method-plan": parseExecutionMethodPlan,
+  "method-aware-input-plan": parseMethodAwareInputPlan,
+  "method-aware-video-route": parseMethodAwareVideoRoute,
+  "explicit-audio-requirement-route": parseExplicitAudioRequirementRoute,
+};
+
 export async function handleCreatorExperienceRequest(
   request: Request,
   pathParts: string[],
@@ -181,11 +252,23 @@ export async function handleCreatorExperienceRequest(
   }
 
   const incomingUrl = new URL(request.url);
+  const methodAwareResource = pathParts.length === 3 && pathParts[0] === "episode-production-runs"
+    ? METHOD_AWARE_RESOURCES.find((resource) => resource === pathParts[2]) : undefined;
   const targetUrl = new URL(`${config.coreBaseUrl}${CORE_PREFIX}/${path}`);
   for (const [key, value] of incomingUrl.searchParams) {
+    if (methodAwareResource) {
+      // Strip browser scope before applying the closed query contract (task 14.1).
+      if (methodAwareBrowserScope.has(key)) continue;
+      if (method !== "GET" || !methodAwareQuery.has(key) || !inputRef(value) || targetUrl.searchParams.has(key)) {
+        return errorResponse(400, "invalid_request", "方法规划查询字段无效。");
+      }
+    }
     if (key !== "workspaceRef" && key !== "contentProfileRef" && key !== "tenantId") {
       targetUrl.searchParams.append(key, value);
     }
+  }
+  if (methodAwareResource && method === "GET" && ["projectRef", "seriesRef", "episodeRef"].some((key) => !targetUrl.searchParams.has(key))) {
+    return errorResponse(400, "invalid_request", "方法规划查询缺少项目范围。");
   }
 
   const contentRequest = path.endsWith("/content");
@@ -202,6 +285,9 @@ export async function handleCreatorExperienceRequest(
       delete input.tenantId;
       if (path.startsWith("episode-production-runs/")) {
         delete input.productionRunRef;
+      }
+      if (methodAwareResource && !validMethodAwareBody(methodAwareResource, input)) {
+        return errorResponse(400, "invalid_request", "方法规划请求字段无效。");
       }
       const payload: Record<string, unknown> = { ...input };
       if (shouldInjectContentProfile(path, method)) {
@@ -262,6 +348,15 @@ export async function handleCreatorExperienceRequest(
   }
   if (!payload || typeof payload !== "object" || typeof (payload as { ok?: unknown }).ok !== "boolean") {
     return errorResponse(502, "invalid_core_response", "Core 返回了无法识别的响应。")
+  }
+
+  if (methodAwareResource && response.ok && (payload as { ok: boolean }).ok) {
+    try {
+      payload = methodAwareParsers[methodAwareResource](payload);
+    } catch (error) {
+      if (error instanceof CreatorClientError) return errorResponse(error.status, error.detail.code, error.detail.message);
+      return errorResponse(502, "invalid_method_aware_response", "Frontend 无法验证 Core 返回的方法规划数据。");
+    }
   }
 
   return Response.json(payload, {

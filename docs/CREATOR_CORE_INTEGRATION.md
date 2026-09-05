@@ -56,6 +56,30 @@ likewise come only from successful Core responses.
 
 ## UI states
 
+### Wave 2A method-aware transport boundary
+
+The four additional GET/POST run resources are `execution-method-plan`,
+`method-aware-input-plan`, `method-aware-video-route`, and
+`explicit-audio-requirement-route`. Eight typed operations rebuild exact public
+commands; four parsers validate complete public success DTOs. There are zero product
+UI callsites. The schema and conditional request fields are audited against the
+unchanged `e21789d265c4e936b0e0b29921746a4c205889b8` Core pin.
+
+Speech audio intents carry their own matching source spans. Deterministic beats
+carry `postprocessRequirementKey`; other classes do not. Core alone resolves current
+upstream plans, asset digests and opaque rights/voice bindings. GET permits only the
+three project scope refs and optional `versionRef` after browser scope stripping.
+POST performs the same stripping before closed field validation. Successful
+responses are parsed before the Adapter returns them and before the client resolves.
+Private fields, unknown keys, incorrect mappings or counts and true fallback/runtime
+flags fail closed. Existing Core errors preserve status/code.
+
+See the [Wave 2A record](status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md)
+for exact boundaries. This transport layer does not add Storyboard/Generation/Audio
+pages, runtime execution, Provider selection or publication capability.
+
+### Existing product truth states
+
 - `connected`: the exact 19-item public capability contract has passed validation.
 - `disconnected`: Core cannot be reached; no fixture fallback is allowed.
 - `authentication_required`: the server credential is missing, invalid, or disabled;

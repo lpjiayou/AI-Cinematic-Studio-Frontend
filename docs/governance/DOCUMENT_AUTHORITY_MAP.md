@@ -111,6 +111,7 @@ cannot authorize execution.
 | [`docs/status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md`](../status/FRONTEND_V3_WAVE_1A_ACCEPTANCE_2026-09-04.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
 | [`docs/status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md`](../status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
 | [`docs/status/FRONTEND_V3_WAVE_1C_ACCEPTANCE_2026-09-05.md`](../status/FRONTEND_V3_WAVE_1C_ACCEPTANCE_2026-09-05.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
+| [`docs/status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md`](../status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
 
 ## CAPABILITY_MATRIX
 
