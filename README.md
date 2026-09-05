@@ -83,6 +83,7 @@ FRONTEND_V3_WAVE_1A=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_WAVE_1A_OBJECT_COUNT=9
 FRONTEND_V3_WAVE_1B=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_WAVE_1C=IMPLEMENTED_AND_VERIFIED
+FRONTEND_V3_WAVE_2A=IMPLEMENTED_AND_VERIFIED
 FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=6
 FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=10
 FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
@@ -118,6 +119,10 @@ Wave 1B's route, data, shell, navigation, and execution boundaries are recorded 
 Wave 1C's page, route, mutation, read-only authority, and redirect boundaries are
 recorded in the
 [Wave 1C acceptance](docs/status/FRONTEND_V3_WAVE_1C_ACCEPTANCE_2026-09-05.md).
+Wave 2A adds four closed method-aware Adapter resources, eight typed operations,
+and four runtime parsers, with zero product UI callsites. See the
+[Wave 2A acceptance](docs/status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md)
+for the pinned contract, authorized field corrections and verification boundary.
 
 ## Documentation
 
@@ -159,11 +164,12 @@ variables remain server-only; never add a `NEXT_PUBLIC_*` equivalent.
 ## Next legal project boundary
 
 ```text
-NEXT_TASK=ACS-FRONTEND-WAVE-2A-METHOD-AWARE-ADAPTER-AND-CONTRACTS
+NEXT_TASK=ACS-FRONTEND-WAVE-2B-STORYBOARD-AND-METHOD-PLAN-READ-ONLY
 INDEPENDENT_M12_BOUNDARY=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
 ```
 
-Wave 2A requires separate authorization. Wave 1C does not implement method-aware
-Adapter resources, media runtime, reviewed import, identity writes, or publication.
+Wave 2B requires separate authorization. Wave 2A adds Adapter/contracts only;
+method-aware UI, media runtime, reviewed import, identity writes and publication
+remain outside this implementation.
 The independent M12 handoff/preflight boundary also grants no M12-C3/C4, A100, model,
 Provider/GPU, M13 Extension G0, or publication authority.

@@ -264,3 +264,31 @@ FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
 FRONTEND_V3_REDESIGN_COMPLETE=false
 
 NEXT_TASK=ACS-FRONTEND-WAVE-2A-METHOD-AWARE-ADAPTER-AND-CONTRACTS
+
+## Wave 2A implementation status — 2026-09-05
+
+The [Wave 2A record](../status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md)
+adds four method-aware Adapter resources, eight typed operations and four response
+parsers. The authorized request corrections preserve speech source spans and the
+deterministic event's postprocess requirement key at the exact Core pin. Only the
+Adapter hash in the existing Wave 1C gate is synchronized; all other assertions and
+protected hashes remain intact. Prior wave counts above describe those wave snapshots.
+
+```text
+FRONTEND_V3_WAVE_2A=IMPLEMENTED_AND_VERIFIED
+METHOD_AWARE_ADAPTER_RESOURCE_COUNT=4
+METHOD_AWARE_TYPED_CLIENT_OPERATION_COUNT=8
+METHOD_AWARE_RUNTIME_VALIDATOR_COUNT=4
+METHOD_AWARE_UI_CALLSITE_COUNT=0
+METHOD_AWARE_UI=NOT_STARTED
+FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=6
+FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=10
+FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
+FRONTEND_V3_REDESIGN_COMPLETE=false
+M12_FRONTEND_EXECUTION=BLOCKED
+M13_FRONTEND_PRODUCT_SURFACE=INCOMPLETE
+NEXT_TASK=ACS-FRONTEND-WAVE-2B-STORYBOARD-AND-METHOD-PLAN-READ-ONLY
+```
+
+This wave changes no page, navigation or canonical route. Method-aware UI, M12 runtime
+and M13 product surfaces remain separate authorization boundaries. Wave 2B is not started.
