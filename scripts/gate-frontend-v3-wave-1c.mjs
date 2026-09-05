@@ -245,6 +245,21 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   const workspaceStates = {};
   const measuredGeometry = {};
   const drawerFocusRestore = {};
+  const scriptJobCenterUnsavedGuard = {
+    modalOpened: false,
+    navigationBlocked: false,
+    draftPreserved: false,
+    focusRestored: false,
+  };
+  const scriptMobileProjectNavigationGuard = {
+    drawerOpenDoesNotPrompt: false,
+    routeLinkTriggersPrompt: false,
+    navigationBlocked: false,
+    draftPreserved: false,
+    modalFocusRestoredToRouteLink: false,
+    drawerCloseFocusRestoredToTrigger: false,
+    mutationRequestCount: 0,
+  };
   const unsavedGuardResult = {
     desktopModalActions: [],
     desktopStayFocusRestored: false,
@@ -370,6 +385,26 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     await unsavedDialog.waitFor({ state: "detached" });
     unsavedGuardResult.desktopStayFocusRestored = await focusIs(page, storyLink);
     assert(unsavedGuardResult.desktopStayFocusRestored, "desktop unsaved guard did not restore focus");
+    const jobCenterDraft = await desktopSynopsis.inputValue();
+    const desktopJobCenter = page.locator('[data-wave-region="job-shelf-fixed"]').getByRole("button", { name: "打开任务中心", exact: true });
+    await desktopJobCenter.click();
+    await unsavedDialog.waitFor({ state: "visible" });
+    scriptJobCenterUnsavedGuard.modalOpened = await unsavedDialog.isVisible();
+    scriptJobCenterUnsavedGuard.navigationBlocked = new URL(page.url()).pathname === canonicalRoutes.script;
+    assert(scriptJobCenterUnsavedGuard.navigationBlocked, "Job Center bypassed the Script unsaved guard");
+    for (const label of ["保存并继续", "放弃修改并继续", "留在当前页面"]) {
+      assert(await unsavedDialog.getByRole("button", { name: label, exact: true }).count() === 1, `Job Center guard misses ${label}`);
+    }
+    assert(mutationRequests.length === 0, "Job Center guard issued a mutation");
+    await unsavedDialog.getByRole("button", { name: "留在当前页面", exact: true }).click();
+    await unsavedDialog.waitFor({ state: "detached" });
+    await page.waitForFunction((element) => document.activeElement === element, await desktopJobCenter.elementHandle());
+    scriptJobCenterUnsavedGuard.focusRestored = await focusIs(page, desktopJobCenter);
+    scriptJobCenterUnsavedGuard.draftPreserved = await desktopSynopsis.inputValue() === jobCenterDraft;
+    assert(scriptJobCenterUnsavedGuard.focusRestored, "Job Center guard did not restore its trigger focus");
+    assert(scriptJobCenterUnsavedGuard.draftPreserved, "Job Center guard lost the Script draft");
+    assert(new URL(page.url()).pathname === canonicalRoutes.script, "Job Center guard navigated after staying");
+    assert(mutationRequests.length === 0, "Job Center stay issued a mutation");
     await desktopSynopsis.fill(originalSynopsis);
     await page.locator('[data-script-dirty="false"]').waitFor({ state: "visible" });
 
@@ -441,17 +476,56 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     const mobileSynopsis = page.getByRole("textbox", { name: "故事梗概" });
     const mobileOriginalSynopsis = await mobileSynopsis.inputValue();
     await mobileSynopsis.fill(`${mobileOriginalSynopsis}（移动端未保存验证）`);
+    const mobileDraft = await mobileSynopsis.inputValue();
     const mobileNavigationTrigger = page.getByRole("button", { name: "打开项目导航" });
     await mobileNavigationTrigger.click();
+    const mobileProjectDrawer = page.getByRole("dialog", { name: "项目导航", exact: true });
+    await mobileProjectDrawer.waitFor({ state: "visible" });
     const mobileGuardDialog = page.getByRole("dialog", { name: "离开前保存修改？" });
+    assert(await page.getByRole("dialog").count() === 1, "opening project navigation must open only one Drawer");
+    scriptMobileProjectNavigationGuard.drawerOpenDoesNotPrompt = await mobileGuardDialog.count() === 0;
+    assert(scriptMobileProjectNavigationGuard.drawerOpenDoesNotPrompt, "opening the project Drawer incorrectly prompts to save");
+    assert(new URL(page.url()).pathname === canonicalRoutes.script, "opening the project Drawer navigated");
+    assert(await mobileSynopsis.inputValue() === mobileDraft, "opening the project Drawer lost the draft");
+    assert(mutationRequests.length === 0, "opening the project Drawer issued a mutation");
+
+    const mobileOverviewLink = mobileProjectDrawer.locator('[data-destination-id="overview"]');
+    assert(await mobileOverviewLink.getAttribute("href") === `${projectRoot}/overview`, "mobile overview link targets the wrong project");
+    await mobileOverviewLink.click();
     await mobileGuardDialog.waitFor({ state: "visible" });
-    unsavedGuardResult.mobileModalCount = await page.getByRole("dialog").count();
+    scriptMobileProjectNavigationGuard.routeLinkTriggersPrompt = await mobileGuardDialog.isVisible();
+    scriptMobileProjectNavigationGuard.navigationBlocked = new URL(page.url()).pathname === canonicalRoutes.script;
+    assert(scriptMobileProjectNavigationGuard.navigationBlocked, "mobile route link navigated before a guard decision");
+    assert(await mobileSynopsis.inputValue() === mobileDraft, "mobile route guard lost the draft");
+    assert(mutationRequests.length === 0, "mobile route guard issued a mutation");
+    for (const label of ["保存并继续", "放弃修改并继续", "留在当前页面"]) {
+      assert(await mobileGuardDialog.getByRole("button", { name: label, exact: true }).count() === 1, `mobile route guard misses ${label}`);
+    }
+    unsavedGuardResult.mobileModalCount = await mobileGuardDialog.count();
     assert(unsavedGuardResult.mobileModalCount === 1, "mobile Script guard requires exactly one dialog");
     await page.screenshot({ path: path.join(artifactRoot, screenshotNames[5]), fullPage: true });
     await mobileGuardDialog.getByRole("button", { name: "留在当前页面", exact: true }).click();
     await mobileGuardDialog.waitFor({ state: "detached" });
-    unsavedGuardResult.mobileStayFocusRestored = await focusIs(page, mobileNavigationTrigger);
+    assert(await mobileProjectDrawer.isVisible(), "staying closed the project Drawer");
+    await page.waitForFunction((element) => document.activeElement === element, await mobileOverviewLink.elementHandle());
+    unsavedGuardResult.mobileStayFocusRestored = await focusIs(page, mobileOverviewLink);
     assert(unsavedGuardResult.mobileStayFocusRestored, "mobile Script guard did not restore focus");
+    scriptMobileProjectNavigationGuard.modalFocusRestoredToRouteLink = unsavedGuardResult.mobileStayFocusRestored;
+    scriptMobileProjectNavigationGuard.draftPreserved = await mobileSynopsis.inputValue() === mobileDraft;
+    assert(scriptMobileProjectNavigationGuard.draftPreserved, "mobile stay lost the draft");
+    assert(await page.locator('[data-script-dirty="true"]').count() === 1, "mobile stay cleared dirty state");
+    assert(new URL(page.url()).pathname === canonicalRoutes.script, "mobile stay navigated");
+    assert(mutationRequests.length === 0, "mobile stay issued a mutation");
+
+    await page.keyboard.press("Escape");
+    await mobileProjectDrawer.waitFor({ state: "detached" });
+    await page.waitForFunction((element) => document.activeElement === element, await mobileNavigationTrigger.elementHandle());
+    scriptMobileProjectNavigationGuard.drawerCloseFocusRestoredToTrigger = await focusIs(page, mobileNavigationTrigger);
+    assert(scriptMobileProjectNavigationGuard.drawerCloseFocusRestoredToTrigger, "closing the project Drawer did not restore its own trigger");
+    assert(await mobileGuardDialog.count() === 0, "closing the project Drawer incorrectly prompts to save");
+    assert(new URL(page.url()).pathname === canonicalRoutes.script, "closing the project Drawer navigated");
+    scriptMobileProjectNavigationGuard.mutationRequestCount = mutationRequests.length;
+    assert(scriptMobileProjectNavigationGuard.mutationRequestCount === 0, "closing the project Drawer issued a mutation");
     await mobileSynopsis.fill(mobileOriginalSynopsis);
     assert(!(await hasHorizontalOverflow(page)), "mobile Script has horizontal overflow");
     measuredGeometry.mobileScript390 = { horizontalOverflow: false };
@@ -511,6 +585,8 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
       projectNavigationOrder,
       measuredGeometry,
       unsavedGuardResult,
+      scriptJobCenterUnsavedGuard,
+      scriptMobileProjectNavigationGuard,
       drawerFocusRestore,
       requestFailureSummary,
       expectedNextRscAborts,
@@ -529,6 +605,10 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result, null, 2));
     console.log("WAVE_1C_SCREENSHOT_COUNT=7");
+    console.log("SCRIPT_JOB_CENTER_UNSAVED_GUARD=PASS");
+    console.log(`SCRIPT_JOB_CENTER_NAVIGATION_BLOCKED=${scriptJobCenterUnsavedGuard.navigationBlocked}`);
+    console.log(`SCRIPT_DRAFT_PRESERVED=${scriptJobCenterUnsavedGuard.draftPreserved}`);
+    console.log(`SCRIPT_GUARD_FOCUS_RESTORED=${scriptJobCenterUnsavedGuard.focusRestored}`);
     console.log(`WAVE_1C_EVIDENCE_RESULT_SHA256=${sha256File(resultPath)}`);
   } catch (error) {
     const failure = {

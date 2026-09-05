@@ -197,6 +197,7 @@ describe("StoryWorkspaceV3", () => {
     expect(await screen.findByText("候选 · 尚未写入系列规划 · 需要人工确认")).toBeVisible();
     expect(core.request).toHaveBeenCalledWith("series-plan-candidates", {
       method: "POST",
+      signal: expect.any(AbortSignal),
       body: {
         projectRef: "private-project-ref",
         seriesRef: "private-series-ref",
@@ -214,6 +215,7 @@ describe("StoryWorkspaceV3", () => {
       "series-plans/confirm-candidate",
       {
         method: "POST",
+        signal: expect.any(AbortSignal),
         body: {
           projectRef: "private-project-ref",
           seriesRef: "private-series-ref",

@@ -19,7 +19,7 @@ cannot authorize execution.
 | `ACCEPTED_DECISION` | 4 | no |
 | `NORMATIVE_ARCHITECTURE` | 0 | no |
 | `NORMATIVE_CONTRACT` | 53 | no |
-| `CURRENT_STATUS` | 5 | yes |
+| `CURRENT_STATUS` | 7 | yes |
 | `CAPABILITY_MATRIX` | 0 | yes |
 | `OPERATIONAL_RUNBOOK` | 3 | no |
 | `IMPLEMENTATION_EVIDENCE` | 4 | no |
@@ -112,6 +112,7 @@ cannot authorize execution.
 | [`docs/status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md`](../status/FRONTEND_V3_WAVE_1B_ACCEPTANCE_2026-09-04.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
 | [`docs/status/FRONTEND_V3_WAVE_1C_ACCEPTANCE_2026-09-05.md`](../status/FRONTEND_V3_WAVE_1C_ACCEPTANCE_2026-09-05.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
 | [`docs/status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md`](../status/FRONTEND_V3_WAVE_2A_ACCEPTANCE_2026-09-05.md) | `CURRENT` | Frontend Product / Repository Governance Owner |
+| [`docs/status/FRONTEND_WORKSPACE_STATE_INTEGRITY_CLOSURE_2026-09-05.md`](../status/FRONTEND_WORKSPACE_STATE_INTEGRITY_CLOSURE_2026-09-05.md) | `CURRENT` | Frontend Architecture / Script / Story / Repository Governance Owner |
 
 ## CAPABILITY_MATRIX
 

@@ -173,11 +173,15 @@ function installReads({
   seriesValue?: CreatorSeries;
   workspace?: ReturnType<typeof scriptWorkspace> | { bootstrap: Record<string, unknown>; script: null; versions: [] };
 } = {}) {
-  core.request.mockImplementation(async (path: string, init?: { method?: string }) => {
+  core.request.mockImplementation(async (path: string, init?: { method?: string; body?: { content?: { synopsis: string } } }) => {
     if (path === "projects/private-project-ref") return { ok: true, project };
     if (path === "series/private-series-ref") return { ok: true, series: seriesValue };
     if (path.startsWith("script-workspaces?")) return { ok: true, workspace };
     if (path === "episodes" && init?.method === "POST") return { ok: true, episode: episodes[0] };
+    if (path === "script-versions/manual" && init?.method === "POST") {
+      workspace = scriptWorkspace([...workspace.versions, { ...secondVersion, synopsis: init.body!.content!.synopsis }]);
+      return { ok: true, script: workspace.script };
+    }
     if (path.startsWith("script-versions/") && init?.method === "POST") {
       return { ok: true, script: scriptWorkspace().script, scriptVersion: firstVersion };
     }
@@ -238,6 +242,7 @@ describe("ScriptStudioV3", () => {
     await user.click(screen.getByRole("button", { name: "建立 Episode" }));
     await waitFor(() => expect(core.request).toHaveBeenCalledWith("episodes", {
       method: "POST",
+      signal: expect.any(AbortSignal),
       body: {
         seriesRef: "private-series-ref",
         creativePlanRef: "confirmed-plan-input",
@@ -257,6 +262,7 @@ describe("ScriptStudioV3", () => {
     await user.click(screen.getByRole("button", { name: "生成第一版剧本" }));
     await waitFor(() => expect(core.request).toHaveBeenCalledWith("script-versions/generate", {
       method: "POST",
+      signal: expect.any(AbortSignal),
       body: { seriesRef: "private-series-ref", episodeRef: "private-episode-one" },
     }));
   });
@@ -280,6 +286,7 @@ describe("ScriptStudioV3", () => {
 
     await waitFor(() => expect(core.request).toHaveBeenCalledWith("script-versions/manual", {
       method: "POST",
+      signal: expect.any(AbortSignal),
       body: {
         seriesRef: "private-series-ref",
         episodeRef: "private-episode-one",
@@ -307,6 +314,7 @@ describe("ScriptStudioV3", () => {
     await user.click(confirm);
     await waitFor(() => expect(core.request).toHaveBeenCalledWith("script-versions/confirm", {
       method: "POST",
+      signal: expect.any(AbortSignal),
       body: {
         seriesRef: "private-series-ref",
         episodeRef: "private-episode-one",

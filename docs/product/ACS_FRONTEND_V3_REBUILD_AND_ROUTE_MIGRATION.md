@@ -180,7 +180,8 @@ FRONTEND_V3_REDESIGN_COMPLETE=true.
 
 ## Frozen implementation sequence
 
-Wave numbers and letters define serial merge order, not present authority.
+Wave numbers and letters define the original wave order, not present authority.
+The 2026-09-05 authorized closure sequence below takes precedence after Wave 2A.
 
 | Wave | Single responsibility | Gate / stop boundary |
 | --- | --- | --- |
@@ -189,6 +190,9 @@ Wave numbers and letters define serial merge order, not present authority.
 | Wave 1B | Six global routes, Project Overview, target project navigation, and honest blocked routes | Every clickable entry resolves; no fake executable capability |
 | Wave 1C | Story, Script, and Character new V3 trees and canonical routes | Correct data logic may be reused; old page body may not; old URLs redirect only after acceptance |
 | Wave 2A | Four method-aware Adapter and TypeScript contract connections | Closed-world DTO/allowlist; browser cannot select method/Provider |
+| Pre-Wave 1D: Workspace State Integrity | Script saved baseline, one unsaved navigation guard, Story client scope isolation | F4 Core candidate-source binding remains incomplete |
+| Pre-Wave 1D: Production Truth Closure | Separate subsequent authorization | Not started by workspace integrity closure |
+| Rewritten Wave 1D | Separate rewritten authorization after Production Truth Closure | Old Wave 1D command superseded and unexecuted |
 | Wave 2B | Storyboard Workspace | Server method plan read-only; stale/foreign/conflict fail closed |
 | Wave 2C | Generation Studio, candidate compare/select/admit, and history entry | No legacy new write, fallback, or unconditional video/audio request |
 | Wave 3A | Audio requirement read and blocked-first Audio Studio | SILENCE explicit; no runtime execution control |
@@ -292,3 +296,33 @@ NEXT_TASK=ACS-FRONTEND-WAVE-2B-STORYBOARD-AND-METHOD-PLAN-READ-ONLY
 
 This wave changes no page, navigation or canonical route. Method-aware UI, M12 runtime
 and M13 product surfaces remain separate authorization boundaries. Wave 2B is not started.
+
+
+## Workspace state integrity sequence revision — 2026-09-05
+
+The [workspace state integrity record](../status/FRONTEND_WORKSPACE_STATE_INTEGRITY_CLOSURE_2026-09-05.md)
+closes the Script save-overwrite and navigation-bypass defects and Story's frontend
+scope-contamination vector. The authorized mobile Gate now distinguishes opening a
+Drawer from following its route link, and verifies each focus return target separately.
+Other Gate assertions, seven screenshots and zero product mutations are preserved.
+This is a bounded correction within the existing V3 component trees, with no visual
+redesign, canonical route change or method-aware UI connection.
+
+```text
+FRONTEND_WORKSPACE_STATE_INTEGRITY=IMPLEMENTED_AND_VERIFIED
+F1_SCRIPT_SAVE_OVERWRITE=CLOSED
+F2_UNSAVED_NAVIGATION_BYPASS=CLOSED
+F4_FRONTEND_VECTOR_CLOSED=true
+F4_CORE_CANDIDATE_SOURCE_BINDING_COMPLETE=false
+MOBILE_GATE_ASSERTION_CONFLICT_RESOLVED=true
+OLD_WAVE_1D_COMMAND=SUPERSEDED_NOT_EXECUTED
+FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
+FRONTEND_V3_REDESIGN_COMPLETE=false
+FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=6
+FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=10
+NEXT_TASK=ACS-PRE-WAVE-1D-FRONTEND-PRODUCTION-TRUTH-CLOSURE
+```
+
+This sequence revision supersedes the historical next-task pointers above, without
+changing the accepted IA or reclassifying completed wave evidence. Production Truth
+Closure, rewritten Wave 1D and Wave 2B remain separate, unstarted authorization boundaries.

@@ -1840,6 +1840,24 @@
       "lastReviewedAt": "2026-09-02",
       "linkedFromIndex": true,
       "notes": "Navigation/reference only; follow the linked source for authority."
+    },
+    {
+      "path": "docs/status/FRONTEND_WORKSPACE_STATE_INTEGRITY_CLOSURE_2026-09-05.md",
+      "repository": "Frontend",
+      "documentClass": "CURRENT_STATUS",
+      "status": "CURRENT",
+      "owner": "Frontend Architecture / Script / Story / Repository Governance Owner",
+      "authoritativeFor": [
+        "bounded Script save and unsaved navigation integrity plus Story frontend scope isolation"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": true,
+      "historicalMutationPolicy": "UPDATE_WITH_EVIDENCE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-05",
+      "linkedFromIndex": true,
+      "notes": "F1/F2 and F4 frontend vector only; Core candidate-source binding remains incomplete. Records the authorized mobile Gate clarification and superseded unexecuted old Wave 1D command."
     }
   ]
 }

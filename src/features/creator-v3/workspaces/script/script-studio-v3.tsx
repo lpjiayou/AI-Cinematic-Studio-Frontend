@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ACSBadge,
@@ -20,6 +20,7 @@ import type {
 } from "@/features/core-integration";
 import { CreatorProjectShell } from "../../shell";
 import {
+  installScriptHistoryGuard,
   internalNavigationHref,
   protectScriptBeforeUnload,
 } from "./script-unsaved-guard";
@@ -29,7 +30,6 @@ import styles from "./script-studio-v3.module.css";
 type PendingNavigation =
   | { kind: "episode"; episodeRef: string }
   | { kind: "href"; href: string }
-  | { kind: "overlay"; overlay: Exclude<WorkbenchOverlay, null> }
   | { kind: "back" };
 
 function ReadFailure({
@@ -223,7 +223,7 @@ function ScriptReadyCanvas({
   requestNavigation,
 }: {
   workspace: ReturnType<typeof useScriptWorkspaceV3>;
-  requestNavigation: (pending: PendingNavigation) => void;
+  requestNavigation: (pending: PendingNavigation, trigger: HTMLElement | null) => void;
 }) {
   const { state } = workspace;
   const [mode, setMode] = useState<"edit" | "compare">("edit");
@@ -250,8 +250,7 @@ function ScriptReadyCanvas({
               value={state.episodeRef ?? ""}
               onChange={(event) => {
                 const episodeRef = event.target.value;
-                if (workspace.dirty) requestNavigation({ kind: "episode", episodeRef });
-                else workspace.selectEpisode(episodeRef);
+                requestNavigation({ kind: "episode", episodeRef }, event.currentTarget);
               }}
             >
               {state.series.episodes.map((episode) => (
@@ -274,8 +273,7 @@ function ScriptReadyCanvas({
               value={state.episodeRef ?? ""}
               onChange={(event) => {
                 const episodeRef = event.target.value;
-                if (workspace.dirty) requestNavigation({ kind: "episode", episodeRef });
-                else workspace.selectEpisode(episodeRef);
+                requestNavigation({ kind: "episode", episodeRef }, event.currentTarget);
               }}
             >
               {state.series.episodes.map((episode) => (
@@ -407,7 +405,7 @@ function ScriptReadyCanvas({
                 onClick={() => void workspace.saveManualVersion()}
               >保存修订</ACSButton>
               <ACSButton
-                disabled={workspace.dirty || workspace.confirmed || workspace.operation !== "idle"}
+                disabled={!workspace.canConfirm}
                 loading={workspace.operation === "confirming"}
                 onClick={() => void workspace.confirmVersion()}
               >确认版本</ACSButton>
@@ -473,101 +471,116 @@ function scriptEvidence(
   ];
 }
 
+type NavigationRequest = {
+  intent: PendingNavigation;
+  trigger: HTMLElement | null;
+  scopeKey: string | null;
+};
+
 export function ScriptStudioV3({ projectRef }: { projectRef: string }) {
   const router = useRouter();
   const workspace = useScriptWorkspaceV3(projectRef);
-  const [pendingNavigation, setPendingNavigation] = useState<PendingNavigation | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<NavigationRequest | null>(null);
+  const pendingRef = useRef<NavigationRequest | null>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const overlayTriggerRef = useRef<HTMLElement | null>(null);
   const [shellOverlay, setShellOverlay] = useState<WorkbenchOverlay>(null);
-  const bypassBackGuard = useRef(false);
-  const interceptedOverlayTrigger = useRef<HTMLElement | null>(null);
-  const dirtyRef = useRef(workspace.dirty);
+  const [owner, setOwner] = useState(projectRef);
+  const historyGuard = useRef<ReturnType<typeof installScriptHistoryGuard> | null>(null);
+  if (owner !== projectRef) {
+    setOwner(projectRef); setPendingNavigation(null); setShellOverlay(null);
+  }
+  useLayoutEffect(() => { pendingRef.current = null; }, [projectRef]);
+
+  const stay = useCallback(() => {
+    restoreFocusRef.current = pendingRef.current?.trigger ?? null;
+    pendingRef.current = null;
+    setPendingNavigation(null);
+  }, []);
+  useEffect(() => {
+    if (pendingNavigation || !restoreFocusRef.current) return;
+    const trigger = restoreFocusRef.current;
+    restoreFocusRef.current = null;
+    // Run after the retained Drawer's own overlay lifecycle has committed.
+    const frame = window.requestAnimationFrame(() => { if (trigger.isConnected) trigger.focus(); });
+    return () => window.cancelAnimationFrame(frame);
+  }, [pendingNavigation]);
+  const changeOverlay = useCallback((overlay: WorkbenchOverlay) => {
+    if (overlay !== null) {
+      overlayTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
+    setShellOverlay(overlay);
+    if (overlay === null) window.requestAnimationFrame(() => overlayTriggerRef.current?.focus());
+  }, []);
+
+  function navigate(intent: PendingNavigation) {
+    pendingRef.current = null; setPendingNavigation(null);
+    if (intent.kind === "episode") workspace.selectEpisode(intent.episodeRef);
+    else if (intent.kind === "href") {
+      historyGuard.current?.dispose();
+      setShellOverlay(null);
+      router.push(intent.href);
+    } else historyGuard.current?.leave();
+  }
+
+  function requestWorkspaceNavigation(intent: PendingNavigation, trigger: HTMLElement | null) {
+    if (intent.kind === "episode" && intent.episodeRef === workspace.selectedEpisode?.episodeRef) return;
+    if (pendingRef.current) return;
+    if (!workspace.dirty && workspace.operation !== "saving") { navigate(intent); return; }
+    const pending = { intent, trigger, scopeKey: workspace.scopeKey };
+    pendingRef.current = pending;
+    trigger?.focus();
+    setPendingNavigation(pending);
+  }
+  const requestNavigationRef = useRef(requestWorkspaceNavigation);
+  useLayoutEffect(() => { requestNavigationRef.current = requestWorkspaceNavigation; });
 
   useEffect(() => {
-    dirtyRef.current = workspace.dirty;
-  }, [workspace.dirty]);
-
-  useEffect(() => {
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      protectScriptBeforeUnload(event, workspace.dirty);
-    };
+    const onBeforeUnload = (event: BeforeUnloadEvent) => { protectScriptBeforeUnload(event, workspace.dirty); };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [workspace.dirty]);
 
   useEffect(() => {
-    const guardState = { ...window.history.state, acsScriptUnsavedGuard: true };
-    window.history.pushState(guardState, "", window.location.href);
-    const onPopState = () => {
-      if (bypassBackGuard.current) {
-        bypassBackGuard.current = false;
-        window.history.back();
-        return;
-      }
-      if (dirtyRef.current) {
-        window.history.pushState(guardState, "", window.location.href);
-        setPendingNavigation({ kind: "back" });
-      } else {
-        window.history.back();
-      }
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+    const guard = installScriptHistoryGuard(window, () => requestNavigationRef.current(
+      { kind: "back" }, document.activeElement instanceof HTMLElement ? document.activeElement : null,
+    ));
+    historyGuard.current = guard;
+    return guard.dispose;
+  }, [projectRef]);
 
-  function navigate(pending: PendingNavigation) {
-    setPendingNavigation(null);
-    if (pending.kind === "episode") {
-      workspace.selectEpisode(pending.episodeRef);
-    } else if (pending.kind === "href") {
-      router.push(pending.href);
-    } else if (pending.kind === "overlay") {
-      setShellOverlay(pending.overlay);
-    } else {
-      bypassBackGuard.current = true;
-      window.history.back();
-    }
-  }
+  useEffect(() => {
+    if (!pendingNavigation) return;
+    // An Escape for the Modal must not also close the underlying Drawer.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault(); event.stopImmediatePropagation(); stay();
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, [pendingNavigation, stay]);
 
   function captureNavigation(event: MouseEvent<HTMLDivElement>) {
-    if (!workspace.dirty || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const element = event.target instanceof Element ? event.target : null;
-    const button = element?.closest("button");
-    const buttonLabel = button?.getAttribute("aria-label");
-    const requestedOverlay =
-      buttonLabel === "打开项目导航"
-        ? "project-navigation"
-        : buttonLabel === "打开全局导航"
-          ? "global-navigation"
-          : null;
-    if (requestedOverlay) {
-      event.preventDefault();
-      event.stopPropagation();
-      interceptedOverlayTrigger.current = button ?? null;
-      setPendingNavigation({ kind: "overlay", overlay: requestedOverlay });
-      return;
-    }
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const href = internalNavigationHref(event.target, window.location.origin);
     if (!href) return;
-    const current = `${window.location.pathname}${window.location.search}`;
     const next = new URL(href, window.location.origin);
-    if (`${next.pathname}${next.search}` === current && next.hash) return;
-    event.preventDefault();
-    event.stopPropagation();
-    setPendingNavigation({ kind: "href", href });
+    if (`${next.pathname}${next.search}` === `${window.location.pathname}${window.location.search}`) return;
+    event.preventDefault(); event.stopPropagation();
+    const trigger = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+    requestWorkspaceNavigation({ kind: "href", href }, trigger);
   }
 
   async function saveAndContinue() {
-    if (!pendingNavigation) return;
-    const pending = pendingNavigation;
-    const saved = await workspace.saveManualVersion();
-    if (saved) navigate(pending);
+    const pending = pendingRef.current;
+    if (!pending || pending.scopeKey !== workspace.scopeKey) return;
+    const saved = workspace.dirty ? await workspace.saveManualVersion() : workspace.operation === "idle";
+    if (saved && pendingRef.current === pending) navigate(pending.intent);
   }
-
   function discardAndContinue() {
-    if (!pendingNavigation) return;
-    const pending = pendingNavigation;
-    workspace.discardDraft();
-    navigate(pending);
+    const pending = pendingRef.current;
+    if (!pending || pending.scopeKey !== workspace.scopeKey) return;
+    workspace.discardDraft(); navigate(pending.intent);
   }
 
   const project: CreatorProject | null = projectFromWorkspace(workspace);
@@ -583,14 +596,14 @@ export function ScriptStudioV3({ projectRef }: { projectRef: string }) {
   } else if (workspace.state.status === "error") {
     primaryCanvas = <div className={styles.centerState}><ReadFailure status="error" title="剧本工作区无法读取" message={workspace.state.error.message} refresh={workspace.refresh} /></div>;
   } else {
-    primaryCanvas = <ScriptReadyCanvas workspace={workspace} requestNavigation={setPendingNavigation} />;
+    primaryCanvas = <ScriptReadyCanvas workspace={workspace} requestNavigation={requestWorkspaceNavigation} />;
   }
 
   const ready = workspace.state.status === "ready" ? workspace.state : null;
   const versionLabel = workspace.latest ? `剧本 v${workspace.latest.versionNumber}` : "剧本尚未生成";
   const seriesLabel = ready?.series.title || (ready ? "已绑定系列" : "系列上下文待核验");
   const episodeLabel = workspace.selectedEpisode?.title ?? (ready ? "尚未建立分集" : "分集上下文待核验");
-  const modalIsEpisode = pendingNavigation?.kind === "episode";
+  const modalIsEpisode = pendingNavigation?.intent.kind === "episode";
 
   return (
     <>
@@ -600,9 +613,7 @@ export function ScriptStudioV3({ projectRef }: { projectRef: string }) {
         activeDestinationId="script"
         primaryCanvas={primaryCanvas}
         contextBar={{
-          seriesLabel,
-          episodeLabel,
-          versionLabel,
+          seriesLabel, episodeLabel, versionLabel,
           versionStateText: workspace.confirmed ? "当前版本已确认" : workspace.latest ? "当前版本尚未确认" : "尚未生成",
           readinessSummary: "剧本版本状态不代表分镜或媒体生产已开放",
           readinessState: workspace.confirmed ? "available" : "unverified",
@@ -617,17 +628,14 @@ export function ScriptStudioV3({ projectRef }: { projectRef: string }) {
         contentLabel="剧本主要画布"
         authorityLabel="剧本授权与证据"
         onNavigationCapture={captureNavigation}
+        onRequestNavigation={(href, trigger) => requestWorkspaceNavigation({ kind: "href", href }, trigger)}
         activeOverlay={shellOverlay}
-        onActiveOverlayChange={(overlay) => {
-          setShellOverlay(overlay);
-          if (overlay === null && interceptedOverlayTrigger.current) {
-            window.requestAnimationFrame(() => interceptedOverlayTrigger.current?.focus());
-          }
-        }}
+        onActiveOverlayChange={changeOverlay}
+        overlayReturnFocusRef={overlayTriggerRef}
       />
       <ACSModal
         open={pendingNavigation !== null}
-        onClose={() => setPendingNavigation(null)}
+        onClose={stay}
         title={modalIsEpisode ? "切换分集前保存修改？" : "离开前保存修改？"}
         description="当前故事梗概包含未保存修改。"
         dismissOnBackdrop={false}
@@ -640,13 +648,16 @@ export function ScriptStudioV3({ projectRef }: { projectRef: string }) {
             <ACSButton variant="secondary" disabled={workspace.operation !== "idle"} onClick={discardAndContinue}>
               {modalIsEpisode ? "放弃修改并切换" : "放弃修改并继续"}
             </ACSButton>
-            <ACSButton variant="ghost" disabled={workspace.operation !== "idle"} onClick={() => setPendingNavigation(null)}>
+            <ACSButton variant="ghost" disabled={workspace.operation !== "idle"} onClick={stay}>
               {modalIsEpisode ? "留在当前分集" : "留在当前页面"}
             </ACSButton>
           </div>
         )}
       >
-        <p>保存失败时会保留当前页面和修改；放弃修改只恢复当前最新版本的故事梗概。</p>
+        <p>保存失败时会保留当前页面和修改；放弃修改只恢复已确认保存的故事梗概。</p>
+        {pendingNavigation && (workspace.operationError || workspace.operationMessage === "保存期间还有新的未保存修改。") ? (
+          <p role="alert">{workspace.operationError?.message ?? workspace.operationMessage}</p>
+        ) : null}
       </ACSModal>
     </>
   );
