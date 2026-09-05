@@ -70,6 +70,7 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   const requestErrors = [];
   const httpErrors = [];
   const mutationRequests = [];
+  const historicalReadRequests = [];
 
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -85,6 +86,9 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
   });
   page.on("request", (request) => {
+    if (request.method() === "GET" && /\/api\/creator\/episode-production-runs\/[^/]+\/(assets|media)$/.test(new URL(request.url()).pathname)) {
+      historicalReadRequests.push(request.url());
+    }
     if (request.method() !== "GET") {
       mutationRequests.push(`${request.method()} ${request.url()}`);
     }
@@ -93,8 +97,13 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   const evidence = {};
   try {
     await page.goto(route("production?stage=assets"), { waitUntil: "networkidle" });
-    await page.getByRole("heading", { name: "资产需求与媒体任务", exact: true }).waitFor({ timeout: 120_000 });
+    await page.getByRole("heading", { name: "历史资产与媒体证据", exact: true }).waitFor({ timeout: 120_000 });
     await waitForControlPlane(page);
+    assert(await page.getByText("历史兼容", { exact: true }).isVisible(), "historical compatibility label is missing");
+    assert(await page.getByText("只读", { exact: true }).isVisible(), "historical read-only label is missing");
+    assert((await page.getByRole("button", { name: /^(解析镜头资产需求|解析资产|执行本地媒体任务|执行媒体任务)$/ }).count()) === 0, "legacy asset/media write action is exposed");
+    assert(historicalReadRequests.some((url) => url.endsWith("/assets")), "historical assets GET is missing");
+    assert(historicalReadRequests.some((url) => url.endsWith("/media")), "historical media GET is missing");
     assert((await page.getByRole("row").count()) === 9, "expected one header and eight historical media rows");
     assert((await page.getByText("候选链 · 4 个候选", { exact: true }).count()) === 1, "candidate count is not rendered");
     assert((await page.getByText("运行时不可推进生产状态", { exact: true }).count()) === 1, "runtime isolation is not rendered");
@@ -104,6 +113,10 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     await page.screenshot({ path: path.join(artifactRoot, "production-assets.png"), fullPage: true });
 
     await page.goto(route("post"), { waitUntil: "networkidle" });
+    evidence.legacyAssetsPostCount = mutationRequests.filter((item) => item.startsWith("POST ") && item.endsWith("/assets")).length;
+    evidence.legacyMediaPostCount = mutationRequests.filter((item) => item.startsWith("POST ") && item.endsWith("/media")).length;
+    assert(evidence.legacyAssetsPostCount === 0, "Production issued a legacy assets POST");
+    assert(evidence.legacyMediaPostCount === 0, "Production issued a legacy media POST");
     await page.getByRole("heading", { name: "先看片，再决定是否生成母版", exact: true }).waitFor({ timeout: 120_000 });
     await waitForControlPlane(page);
     assert((await page.getByRole("button", { name: "生成预览并运行质检" }).count()) === 0, "legacy preview action is exposed");
@@ -148,6 +161,10 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
         admittedCount: 0,
         masterCreated: false,
         exportCreated: false,
+        historicalAssetMediaReadOnly: true,
+        historicalReadRequests,
+        legacyAssetsPostCount: evidence.legacyAssetsPostCount,
+        legacyMediaPostCount: evidence.legacyMediaPostCount,
       },
       mutationRequests,
       consoleErrors,

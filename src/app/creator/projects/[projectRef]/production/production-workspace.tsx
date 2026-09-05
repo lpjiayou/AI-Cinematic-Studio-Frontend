@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ACSBadge, ACSButton } from "@/components";
 import {
   CreatorClientError,
@@ -24,6 +24,7 @@ import {
 } from "@/features/core-integration";
 import { LOCAL_PROJECT_CLIENT_KEYS } from "@/features/project-data";
 import { projectRoute } from "@/lib/project-navigation";
+import { productionTruthHold } from "./production-truth";
 import styles from "./production-workspace.module.css";
 
 export type ProductionWorkspaceStage = "shots" | "assets" | "review" | "delivery";
@@ -402,25 +403,16 @@ function AssetWorkspace({
   assetPlan,
   media,
   run,
-  busy,
-  actionsAllowed,
-  onResolveAssets,
-  onExecuteMedia,
 }: {
   assetPlan: AssetPlanBundleEnvelope | null;
   media: MediaBundleEnvelope | null;
   run: CreatorEpisodeProductionRun;
-  busy: boolean;
-  actionsAllowed: boolean;
-  onResolveAssets: () => void;
-  onExecuteMedia: () => void;
 }) {
   if (!assetPlan) {
     return (
-      <EmptyStage title="资产计划尚未建立" description="镜头图完成后，Core 才能解析权威资产与每镜视频、音频生成请求。">
-        <ACSButton disabled={!actionsAllowed || run.state !== "SHOTS_COMPILED"} loading={busy} onClick={onResolveAssets}>
-          解析镜头资产需求
-        </ACSButton>
+      <EmptyStage title="新的资产与生成流程尚未在此页面开放" description="旧资产解析写入口已关闭；新的方法规划和输入解析由后续 Storyboard / Generation Studio 承担。当前页面不能创建新的资产计划或媒体任务。">
+        <div><ACSBadge tone="neutral">历史兼容</ACSBadge> <ACSBadge tone="neutral">只读</ACSBadge></div>
+        <Link className={styles.primaryLink} href={`${projectRoute(run.projectRef, "overview")}#destination-storyboard`}>返回项目概览</Link>
       </EmptyStage>
     );
   }
@@ -430,11 +422,11 @@ function AssetWorkspace({
     <section className={styles.canvasSection} aria-labelledby="asset-workspace-title">
       <header className={styles.sectionHeader}>
         <div>
-          <p>ASSET RESOLUTION & EXECUTION</p>
-          <h2 id="asset-workspace-title">资产需求与媒体任务</h2>
-          <span>解析结果与执行结果分开呈现；未选择真实 Provider 时不会声称已调用外部生成服务。</span>
+          <p>HISTORICAL ASSETS & MEDIA</p>
+          <h2 id="asset-workspace-title">历史资产与媒体证据</h2>
+          <span>保留已有资产需求、生成请求和任务证据。当前页面不创建资产计划、不提交媒体任务，也不重新执行历史任务。</span>
         </div>
-        <ACSBadge dot tone={media ? "success" : "warning"}>{media ? "媒体已验证" : "等待执行"}</ACSBadge>
+        <div><ACSBadge tone="neutral">历史兼容</ACSBadge> <ACSBadge tone="neutral">只读</ACSBadge></div>
       </header>
       <div className={styles.metricGrid}>
         <article><span>资产需求</span><strong>{numberValue(summary.requirements)}</strong><small>权威引用与媒体需求</small></article>
@@ -445,12 +437,9 @@ function AssetWorkspace({
       {!media ? (
         <div className={styles.inlineAction}>
           <div>
-            <strong>资产计划已通过，可提交单集媒体执行</strong>
-            <span>当前 Core 的确定性本地适配器使用 CPU FFmpeg；不会标记为 GPU 或外部 Provider 成功。</span>
+            <strong>此历史资产计划没有已记录的媒体执行证据</strong>
+            <span>旧媒体执行写入口已关闭，本页不会补写或重新执行。</span>
           </div>
-          <ACSButton disabled={!actionsAllowed || run.state !== "ASSETS_READY"} loading={busy} onClick={onExecuteMedia}>
-            执行本地媒体任务
-          </ACSButton>
         </div>
       ) : null}
       <div className={styles.jobTable} role="table" aria-label="媒体任务">
@@ -469,6 +458,16 @@ function AssetWorkspace({
           );
         })}
       </div>
+      <details className={styles.evidenceDetails}>
+        <summary>查看历史资产与媒体证据</summary>
+        <dl>
+          <div><dt>资产计划摘要</dt><dd>{assetPlan.assetResolutionManifest.payloadDigest}</dd></div>
+          {media ? <div><dt>媒体证据摘要</dt><dd>{media.mediaManifest.payloadDigest}</dd></div> : null}
+          {assetPlan.assetRequirements.map((item, index) => <div key={`requirement-${index}`}><dt>历史资产需求</dt><dd>{textValue(item.assetRequirementRef)}</dd></div>)}
+          {assetPlan.generationRequests.map((item, index) => <div key={`request-${index}`}><dt>历史生成请求</dt><dd>{textValue(item.generationRequestRef)}</dd></div>)}
+          {(media?.assetVersions ?? []).map((item, index) => <div key={`asset-${index}`}><dt>历史媒体版本</dt><dd>{textValue(item.assetVersionRef)}</dd></div>)}
+        </dl>
+      </details>
     </section>
   );
 }
@@ -632,13 +631,12 @@ function NextAction({
   stateProjectionError,
   actionsAllowed,
   controlPlaneConflict,
+  truthHold,
   readiness,
   readinessAvailable,
   readinessLoading,
   stage,
   busy,
-  onResolveAssets,
-  onExecuteMedia,
   onPreview,
 }: {
   run: CreatorEpisodeProductionRun;
@@ -646,13 +644,12 @@ function NextAction({
   stateProjectionError: { code: string; message: string } | null;
   actionsAllowed: boolean;
   controlPlaneConflict: boolean;
+  truthHold: ReturnType<typeof productionTruthHold>;
   readiness: ProductionReadinessEnvelope["readiness"] | null;
   readinessAvailable: boolean;
   readinessLoading: boolean;
   stage: ProductionWorkspaceStage;
   busy: boolean;
-  onResolveAssets: () => void;
-  onExecuteMedia: () => void;
   onPreview: () => void;
 }) {
   let title = "核对当前链路";
@@ -661,10 +658,10 @@ function NextAction({
   if (!actionsAllowed) {
     title = controlPlaneConflict
       ? "控制面事实不一致"
-      : "等待控制面状态核对";
+      : truthHold[0]?.title ?? "等待控制面状态核对";
     description = controlPlaneConflict
       ? "运行列表与四轴投影并非同一生产事实；所有生产动作保持冻结，直到重新读取后完全一致。"
-      : "尚未取得与当前运行一致的四轴状态投影；所有生产动作保持冻结。";
+      : truthHold[0]?.description ?? "尚未取得与当前运行一致的四轴状态投影；所有生产动作保持冻结。";
   } else if (run.state === "ROOTS_READY") {
     title = "连接 M6 权限与身份引用";
     description = "需要外部权限裁决和角色身份参考；系统不会按名称推断引用。";
@@ -674,13 +671,13 @@ function NextAction({
     description = "为已确认剧本场景提供地点与道具 Ref 后，Core 才能编译 Shot Graph。";
     action = <Link className={styles.secondaryLink} href={projectRoute(run.projectRef, "content/script")}>打开已确认剧本</Link>;
   } else if (run.state === "SHOTS_COMPILED") {
-    title = "解析资产需求";
-    description = "从镜头图建立权威资产引用和视频、音频生成请求。";
-    action = <ACSButton loading={busy} onClick={onResolveAssets} size="small">解析资产</ACSButton>;
+    title = "等待新的分镜与方法规划界面";
+    description = "旧资产解析写入口已经关闭。当前镜头图可作为历史证据读取；新的执行方法与输入需求将在后续分镜工作台中由服务器计划展示。";
+    action = <Link className={styles.secondaryLink} href={`${projectRoute(run.projectRef, "overview")}#destination-storyboard`}>返回项目概览</Link>;
   } else if (run.state === "ASSETS_READY") {
-    title = "执行单集媒体任务";
-    description = "提交 V4 执行边界，并独立验证返回的本地媒体证据。";
-    action = <ACSButton loading={busy} onClick={onExecuteMedia} size="small">执行媒体任务</ACSButton>;
+    title = "历史资产计划已存在";
+    description = "旧媒体执行写入口已经关闭。当前记录保持只读；新的媒体执行路径将由 method-aware Generation Studio 承担。";
+    action = <Link className={styles.secondaryLink} href={`${projectRoute(run.projectRef, "overview")}#destination-generation`}>查看生成开放条件</Link>;
   } else if (run.state === "MEDIA_READY") {
     title = "生成预览并质检";
     description = "合成时间线、生成预览并运行六项确定性机器检查。";
@@ -855,10 +852,12 @@ export function ConnectedProductionWorkspace({
       stateProjection &&
       !controlPlaneMatchesRun(selectedRun, stateProjection),
   );
+  const truthHold = productionTruthHold(stateProjection);
   const productionActionsAllowed = Boolean(
     selectedRun &&
       stateProjection &&
-      !controlPlaneConflict,
+      !controlPlaneConflict &&
+      truthHold.length === 0,
   );
   const finalizationAllowed = Boolean(
     productionActionsAllowed &&
@@ -867,6 +866,21 @@ export function ConnectedProductionWorkspace({
       (selectedRun.state !== "APPROVAL_READY" ||
         realMediaApprovalIsCurrent(stateProjection)),
   );
+  const latestActionTruth = useRef<{
+    run: CreatorEpisodeProductionRun | null;
+    projection: K2ProductionStateProjectionEnvelope | null;
+    actionsAllowed: boolean;
+    finalizationAllowed: boolean;
+    holdTitle: string | undefined;
+  } | null>(null);
+  useLayoutEffect(() => {
+    latestActionTruth.current = {
+      run: selectedRun, projection: stateProjection,
+      actionsAllowed: productionActionsAllowed, finalizationAllowed,
+      holdTitle: productionTruthHold(stateProjection)[0]?.title,
+    };
+    return () => { latestActionTruth.current = null; };
+  }, [selectedRun, stateProjection, productionActionsAllowed, finalizationAllowed]);
   const productionReadinessAvailable =
     connection.status === "connected" &&
     connection.capabilities.some((capability) =>
@@ -980,29 +994,31 @@ export function ConnectedProductionWorkspace({
     setRevision((value) => value + 1);
   }
 
-  async function execute(resource: "assets" | "media" | "preview", successMessage: string) {
-    if (!selectedRun || busy) return;
-    if (!productionActionsAllowed) {
-      setOperationMessage("控制面状态尚未与当前运行形成一致证据，生产动作已冻结。");
-      return;
+  function mutationIsBlocked() {
+    const latest = latestActionTruth.current;
+    if (!productionActionsAllowed || !latest?.actionsAllowed ||
+      latest.run !== selectedRun || latest.projection !== stateProjection) {
+      setOperationMessage(latest?.holdTitle
+        ? `${latest.holdTitle}。生产动作已冻结，请重新读取事实。`
+        : "控制面状态尚未与当前运行形成一致证据，生产动作已冻结。");
+      return true;
     }
+    return false;
+  }
+
+  async function executePreview() {
+    if (!selectedRun || busy) return;
+    if (mutationIsBlocked()) return;
     setBusy(true);
     setOperationMessage(null);
     try {
       const base = `episode-production-runs/${encodeURIComponent(selectedRun.productionRunRef)}`;
-      const idempotencyKey = `g7-${resource}-${selectedRun.payloadDigest.slice(0, 24)}-v1`;
-      if (resource === "preview") {
-        await creatorRequest<PreviewMutationEnvelope>(`${base}/${resource}`, {
-          method: "POST",
-          body: { idempotencyKey },
-        });
-      } else {
-        await creatorRequest<Record<string, unknown> & { ok: true }>(`${base}/${resource}`, {
-          method: "POST",
-          body: { idempotencyKey },
-        });
-      }
-      setOperationMessage(successMessage);
+      const idempotencyKey = `g7-preview-${selectedRun.payloadDigest.slice(0, 24)}-v1`;
+      await creatorRequest<PreviewMutationEnvelope>(`${base}/preview`, {
+        method: "POST",
+        body: { idempotencyKey },
+      });
+      setOperationMessage("预览已合成，机器质检已完成。");
       reloadRuns();
     } catch (error: unknown) {
       const detail = errorDetail(error);
@@ -1014,11 +1030,8 @@ export function ConnectedProductionWorkspace({
 
   async function finalize() {
     if (!selectedRun || busy) return;
-    if (!productionActionsAllowed) {
-      setOperationMessage("控制面状态尚未与当前运行形成一致证据，母版生成已冻结。");
-      return;
-    }
-    if (!finalizationAllowed) {
+    if (mutationIsBlocked()) return;
+    if (!finalizationAllowed || !latestActionTruth.current?.finalizationAllowed) {
       setOperationMessage("最新真实视频修订尚未同时满足视觉 QC 与准入条件，母版生成已冻结。");
       return;
     }
@@ -1134,6 +1147,17 @@ export function ConnectedProductionWorkspace({
         <RunNavigator onSelect={selectRun} run={selectedRun} runs={runs} selectedRunRef={selectedRun.productionRunRef} />
         <div className={styles.canvas}>
           {loadingBundles ? <div className={styles.loadingOverlay}>正在核对最新版本与血缘…</div> : null}
+          {!controlPlaneConflict && truthHold.length > 0 ? (
+            <section className={styles.emptyStage} aria-label="生产动作已冻结">
+              <p>生产动作已冻结</p>
+              {truthHold.map((reason) => <div key={reason.title}><h2>{reason.title}</h2><p>{reason.description}</p></div>)}
+              <div className={styles.emptyActions}>
+                <ACSButton onClick={reloadRuns} variant="secondary">重新读取事实</ACSButton>
+                <Link className={styles.primaryLink} href={projectRoute(projectRef, "overview")}>返回项目概览</Link>
+                <Link className={styles.secondaryLink} href={`${projectRoute(projectRef, "production")}?stage=assets#asset-workspace-title`}>查看历史证据</Link>
+              </div>
+            </section>
+          ) : null}
           {controlPlaneConflict ? (
             <EmptyStage
               title="控制面事实不一致，生产动作已冻结"
@@ -1144,12 +1168,8 @@ export function ConnectedProductionWorkspace({
           ) : initialStage === "shots" ? <ShotWorkspace bundle={shotGraph} run={selectedRun} /> : null}
           {!controlPlaneConflict && initialStage === "assets" ? (
             <AssetWorkspace
-              actionsAllowed={productionActionsAllowed}
               assetPlan={assetPlan}
-              busy={busy}
               media={media}
-              onExecuteMedia={() => void execute("media", "媒体任务已执行并通过证据校验。")}
-              onResolveAssets={() => void execute("assets", "资产需求与生成请求已建立。")}
               run={selectedRun}
             />
           ) : null}
@@ -1164,7 +1184,7 @@ export function ConnectedProductionWorkspace({
               onAcknowledgedChange={setAcknowledged}
               onDraftChange={updateApproval}
               onFinalize={() => void finalize()}
-              onPreview={() => void execute("preview", "预览已合成，机器质检已完成。")}
+              onPreview={() => void executePreview()}
               run={selectedRun}
             />
           ) : null}
@@ -1174,9 +1194,8 @@ export function ConnectedProductionWorkspace({
           busy={busy}
           actionsAllowed={productionActionsAllowed}
           controlPlaneConflict={controlPlaneConflict}
-          onExecuteMedia={() => void execute("media", "媒体任务已执行并通过证据校验。")}
-          onPreview={() => void execute("preview", "预览已合成，机器质检已完成。")}
-          onResolveAssets={() => void execute("assets", "资产需求与生成请求已建立。")}
+          truthHold={truthHold}
+          onPreview={() => void executePreview()}
           readiness={readiness}
           readinessAvailable={productionReadinessAvailable}
           readinessLoading={loadingBundles}

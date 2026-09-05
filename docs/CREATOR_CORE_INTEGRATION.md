@@ -42,8 +42,8 @@ the runtime credential registry and maps the credential to exactly one workspace
 | M4 | Project center and context | `projects`, `project-contexts` | authoritative Core collection and detail |
 | M5 | Story World / series planning | `series-planning-workspaces`, `series-plan-*` | candidate then explicit human confirmation |
 | M6 | Story World / character continuity | `series-intelligence-workspaces`, `series-intelligence/*` | accepted surface; fail closed when external authorities are absent |
-| M7–M9 | K2 production workspace | `episode-production-runs/shot-graph`, `assets` | deterministic `local_evidence_only`; never presented as provider output |
-| M10–M11 | K2 production readiness | `episode-production-runs/production-readiness`, `media` | `production_policy_required`; historical K2 image/video evidence does not establish a general or publishable product |
+| M7–M9 | K2 historical production workspace | GET `episode-production-runs/shot-graph`, `assets` | read-only `local_evidence_only`; legacy assets product POST removed |
+| M10–M11 | K2 production readiness and historical media | GET `episode-production-runs/production-readiness`, `media` | `production_policy_required`; legacy media product POST removed; historical evidence does not establish a complete or publishable product |
 | M12 | Core audio domain and runtime protocol | no complete Frontend audio product surface verified | `not_open`; runtimes are not installed and Runtime G0 is not complete |
 | M13 | Preview/composition/render-candidate backend | existing preview/finalize/delivery mappings do not expose a complete Timeline Studio, Effect Inspector or RenderCandidate review product | `local_evidence_only`; Core base backend is accepted, Frontend product surface is incomplete, and Extension G0 is not authorized |
 | M14–M15 | QC/Approval and Master/Export | no accepted complete product integration | `not_open`; M13 candidates remain non-publishing and cannot become Master/Export |
@@ -55,6 +55,20 @@ mints a source-plan identity. Project, Series, Episode, Script and version refer
 likewise come only from successful Core responses.
 
 ## UI states
+
+### Production history and stale truth
+
+The [Production Truth Closure](status/FRONTEND_PRODUCTION_TRUTH_CLOSURE_2026-09-05.md)
+retains historical assets/media GET, manifests and jobs while removing both legacy
+product write paths. Core's historical exact replay remains compatible and is never
+initiated by this UI. The future method-aware workspaces are not connected.
+
+The closed state-projection contract accepts activeRevision STALE_BLOCKED and visual
+QC STALE/STALE_BLOCKED from the existing Core pin. Scope, authority, candidate/ref/count
+and publication invariants remain strict. Valid stale truth receives a specific user
+explanation, freezes Preview/Finalize at both UI and handler boundaries, and preserves
+refresh, history and safe navigation. It is distinct from a protocol error or a genuine
+control-plane conflict; V4 runtime cannot advance V5 production.
 
 ### Wave 2A method-aware transport boundary
 

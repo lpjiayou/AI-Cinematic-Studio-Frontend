@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { productionTruthProjection } from "./state-projection-test-fixtures";
 import {
   K2_REAL_IMAGE_READ_RESOURCES,
   K2_REAL_VIDEO_READ_RESOURCES,
@@ -627,6 +628,84 @@ const realVideoPostAdmissionRejectedRevision = {
 describe("K2 control-plane browser client", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it.each([
+    ["active revision STALE_BLOCKED", "stale-revision"],
+    ["visual QC STALE", "stale-qc"],
+    ["visual QC STALE_BLOCKED", "stale-revision"],
+  ] as const)("I3 accepts legal %s from the pinned Core", async (_label, kind) => {
+    const payload = productionTruthProjection(kind, "REAL_VIDEO_READY", "run 1");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json(payload));
+    await expect(getK2ProductionStateProjection("run 1")).resolves.toEqual(payload);
+  });
+
+  it.each(["active", "not-recorded", "ambiguous"] as const)("I3 preserves legal %s projections", async (kind) => {
+    const payload = productionTruthProjection(kind);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json(payload));
+    await expect(getK2ProductionStateProjection(payload.productionRunRef)).resolves.toEqual(payload);
+  });
+
+  const staleMutations: Array<[string, (p: ReturnType<typeof productionTruthProjection>) => unknown]> = [
+    ["unknown active state", (p) => ({ ...p, activeRevision: { ...p.activeRevision, state: "FUTURE" } })],
+    ["unknown QC state", (p) => ({ ...p, visualQcState: { ...p.visualQcState, state: "FUTURE" } })],
+    ["null active ref", (p) => ({ ...p, activeRevision: { ...p.activeRevision, revisionRef: null } })],
+    ["blank active ref", (p) => ({ ...p, activeRevision: { ...p.activeRevision, revisionRef: " " } })],
+    ["lifecycle revision mismatch", (p) => ({ ...p, candidateLifecycle: { ...p.candidateLifecycle, activeRevisionRef: "foreign-revision" } })],
+    ["QC revision mismatch", (p) => ({ ...p, visualQcState: { ...p.visualQcState, activeRevisionRef: "foreign-revision" } })],
+    ["foreign candidate revision", (p) => ({ ...p, candidates: [{ ...p.candidates[0], revisionRef: "foreign" }, ...p.candidates.slice(1)] })],
+    ["candidate count mismatch", (p) => ({ ...p, visualQcState: { ...p.visualQcState, candidateCount: 99 } })],
+    ["candidate view count mismatch", (p) => ({ ...p, candidates: [] })],
+    ["candidate ref mismatch", (p) => ({ ...p, activeRevision: { ...p.activeRevision, candidateRefs: ["foreign", "candidate-current-2"] } })],
+    ["duplicate candidate refs", (p) => ({ ...p, activeRevision: { ...p.activeRevision, candidateRefs: ["candidate-current-1", "candidate-current-1"] } })],
+    ["decision count mismatch", (p) => ({ ...p, visualQcState: { ...p.visualQcState, decisionCount: 99 } })],
+    ["zero expected count", (p) => ({ ...p, visualQcState: { ...p.visualQcState, expectedCandidateCount: 0 } })],
+    ["fractional expected count", (p) => ({ ...p, visualQcState: { ...p.visualQcState, expectedCandidateCount: 2.5 } })],
+    ["foreign workspace", (p) => ({ ...p, candidateLifecycle: { ...p.candidateLifecycle, workspaceRef: "foreign" } })],
+    ["foreign run", (p) => ({ ...p, productionRunRef: "foreign" })],
+    ["foreign lifecycle run", (p) => ({ ...p, candidateLifecycle: { ...p.candidateLifecycle, productionRunRef: "foreign" } })],
+    ["divergent production state", (p) => ({ ...p, productionProjection: { ...p.productionProjection, state: "ROOTS_READY" } })],
+    ["mutable root", (p) => ({ ...p, rootState: { ...p.rootState, mutable: true } })],
+    ["wrong root authority", (p) => ({ ...p, rootState: { ...p.rootState, authority: "V4" } })],
+    ["wrong production authority", (p) => ({ ...p, productionProjection: { ...p.productionProjection, authority: "V4" } })],
+    ["wrong runtime authority", (p) => ({ ...p, runtimeState: { ...p.runtimeState, authority: "V5" } })],
+    ["wrong active authority", (p) => ({ ...p, activeRevision: { ...p.activeRevision, authority: "V4" } })],
+    ["wrong QC authority", (p) => ({ ...p, visualQcState: { ...p.visualQcState, authority: "V4" } })],
+    ["wrong AssetVersion authority", (p) => ({ ...p, invariants: { ...p.invariants, assetVersionAuthority: "V4" } })],
+    ["runtime advances production", (p) => ({ ...p, invariants: { ...p.invariants, runtimeDoesNotAdvanceProduction: false } })],
+    ["QC advances production", (p) => ({ ...p, invariants: { ...p.invariants, visualQcDoesNotAdvanceProduction: false } })],
+    ["top-level publication", (p) => ({ ...p, publicationAllowed: true })],
+    ["lifecycle publication", (p) => ({ ...p, candidateLifecycle: { ...p.candidateLifecycle, publicationAllowed: true } })],
+    ["invariant publication", (p) => ({ ...p, invariants: { ...p.invariants, publicationAllowed: true } })],
+    ["unknown activation state", (p) => ({ ...p, activeRevision: { ...p.activeRevision, activationState: "FUTURE" } })],
+    ["unknown media kind", (p) => ({ ...p, activeRevision: { ...p.activeRevision, mediaKind: "AUDIO" } })],
+  ];
+  describe.each(["stale-revision", "stale-qc"] as const)("I3 %s invariants", (kind) => {
+    it.each(staleMutations)("rejects %s", async (_label, mutate) => {
+      const original = productionTruthProjection(kind);
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json(mutate(original)));
+      await expect(getK2ProductionStateProjection(original.productionRunRef)).rejects.toMatchObject({
+        status: 502, detail: { code: "state_projection_contract_mismatch" },
+      });
+    });
+  });
+
+  it.each([undefined, "CURRENT"])("I3 requires STALE activation for a blocked revision (%s)", async (activationState) => {
+    const payload = productionTruthProjection("stale-revision");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ...payload, activeRevision: { ...payload.activeRevision, activationState } }));
+    await expect(getK2ProductionStateProjection(payload.productionRunRef)).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("I3 rejects QC STALE without a stale candidate", async () => {
+    const payload = productionTruthProjection("active");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ...payload, visualQcState: { ...payload.visualQcState, state: "STALE" } }));
+    await expect(getK2ProductionStateProjection(payload.productionRunRef)).rejects.toMatchObject({ status: 502 });
+  });
+
+  it.each(["active", "stale-revision"] as const)("I3 rejects incoherent blocked-QC pairing for %s", async (kind) => {
+    const payload = productionTruthProjection(kind);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ...payload, visualQcState: { ...payload.visualQcState, state: kind === "active" ? "STALE_BLOCKED" : "PASS" } }));
+    await expect(getK2ProductionStateProjection(payload.productionRunRef)).rejects.toMatchObject({ status: 502 });
   });
 
   it("reads and validates the exact four-axis state projection", async () => {

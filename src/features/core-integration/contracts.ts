@@ -549,7 +549,7 @@ export type K2ProductionStateProjectionEnvelope = {
     jobCount?: number;
   };
   visualQcState: {
-    state: "BLOCKED_AMBIGUOUS" | "NOT_RECORDED" | "IN_PROGRESS" | "FAIL" | "PASS";
+    state: "BLOCKED_AMBIGUOUS" | "NOT_RECORDED" | "IN_PROGRESS" | "FAIL" | "PASS" | "STALE" | "STALE_BLOCKED";
     authority: "V5_CANONICAL_APPEND_ONLY";
     activeRevisionRef: string | null;
     candidateCount: number;
@@ -558,11 +558,16 @@ export type K2ProductionStateProjectionEnvelope = {
     decisions: unknown[];
   };
   activeRevision: {
-    state: "ACTIVE" | "NOT_RECORDED" | "BLOCKED_AMBIGUOUS";
-    revisionRef: string | null;
     authority: "V5_CANONICAL_APPEND_ONLY";
     candidateRevisionRefs?: string[];
-  };
+    mediaKind?: "IMAGE" | "VIDEO";
+    candidateRefs?: string[];
+    activationState?: "CURRENT" | "STALE";
+  } & (
+    | { state: "ACTIVE"; revisionRef: string }
+    | { state: "STALE_BLOCKED"; revisionRef: string; activationState: "STALE" }
+    | { state: "NOT_RECORDED" | "BLOCKED_AMBIGUOUS"; revisionRef: null }
+  );
   candidateLifecycle: K2CandidateLifecycleProjection;
   candidates: unknown[];
   invariants: {

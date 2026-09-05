@@ -143,16 +143,17 @@ function candidateViewsMatch(
   });
 }
 
-function isActiveRevisionState(state: unknown, revisionRef: unknown) {
+function isActiveRevisionState(state: unknown, revisionRef: unknown, activationState: unknown) {
   return (
     (state === "ACTIVE" && isNonEmptyRef(revisionRef)) ||
+    (state === "STALE_BLOCKED" && isNonEmptyRef(revisionRef) && activationState === "STALE") ||
     ((state === "NOT_RECORDED" || state === "BLOCKED_AMBIGUOUS") &&
       revisionRef === null)
   );
 }
 
 function isVisualQcState(value: unknown) {
-  return ["BLOCKED_AMBIGUOUS", "NOT_RECORDED", "IN_PROGRESS", "FAIL", "PASS"].includes(
+  return ["BLOCKED_AMBIGUOUS", "NOT_RECORDED", "IN_PROGRESS", "FAIL", "PASS", "STALE", "STALE_BLOCKED"].includes(
     value as string,
   );
 }
@@ -442,8 +443,11 @@ function isStateProjection(
     isVisualQcState(visualQcState.state) &&
     visualQcState.authority === "V5_CANONICAL_APPEND_ONLY" &&
     isRecord(activeRevision) &&
-    isActiveRevisionState(activeRevision.state, activeRevision.revisionRef) &&
+    isActiveRevisionState(activeRevision.state, activeRevision.revisionRef, activeRevision.activationState) &&
     activeRevision.authority === "V5_CANONICAL_APPEND_ONLY" &&
+    (activeRevision.activationState === undefined ||
+      activeRevision.activationState === "CURRENT" || activeRevision.activationState === "STALE") &&
+    (activeRevision.mediaKind === undefined || activeRevision.mediaKind === "IMAGE" || activeRevision.mediaKind === "VIDEO") &&
     isRecord(invariants) &&
     invariants.runtimeDoesNotAdvanceProduction === true &&
     invariants.visualQcDoesNotAdvanceProduction === true &&
@@ -467,7 +471,19 @@ function isStateProjection(
       value.candidates,
       candidateLifecycle.candidates,
       activeRevision.revisionRef,
-    )
+    ) &&
+    (activeRevision.candidateRefs === undefined ||
+      (isStringArray(activeRevision.candidateRefs) &&
+        new Set(activeRevision.candidateRefs).size === activeRevision.candidateRefs.length &&
+        activeRevision.candidateRefs.length === candidateLifecycle.candidates.length &&
+        activeRevision.candidateRefs.every((ref) =>
+          candidateLifecycle.candidates.some((candidate) => isRecord(candidate) && candidate.candidateRef === ref),
+        ))) &&
+    // Core _visual prioritizes an expired activation over all historical QC.
+    ((activeRevision.state === "STALE_BLOCKED") === (visualQcState.state === "STALE_BLOCKED")) &&
+    (visualQcState.state !== "STALE" ||
+      (activeRevision.state === "ACTIVE" &&
+        candidateLifecycle.candidates.some((candidate) => isRecord(candidate) && candidate.visualQcState === "STALE")))
   );
 }
 

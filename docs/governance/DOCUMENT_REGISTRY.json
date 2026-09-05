@@ -1858,6 +1858,24 @@
       "lastReviewedAt": "2026-09-05",
       "linkedFromIndex": true,
       "notes": "F1/F2 and F4 frontend vector only; Core candidate-source binding remains incomplete. Records the authorized mobile Gate clarification and superseded unexecuted old Wave 1D command."
+    },
+    {
+      "path": "docs/status/FRONTEND_PRODUCTION_TRUTH_CLOSURE_2026-09-05.md",
+      "repository": "Frontend",
+      "documentClass": "CURRENT_STATUS",
+      "status": "CURRENT",
+      "owner": "Frontend Architecture / Production Workspace / Core Integration Owner",
+      "authoritativeFor": [
+        "bounded legacy G4/G5 product write removal and legal stale projection compatibility"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": true,
+      "historicalMutationPolicy": "UPDATE_WITH_EVIDENCE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-05",
+      "linkedFromIndex": true,
+      "notes": "I2/I3 only; retains historical GET and Core exact replay. Records the separately authorized two-hash Wave 1C synchronization; no method-aware UI, Core, visual or route changes."
     }
   ]
 }
