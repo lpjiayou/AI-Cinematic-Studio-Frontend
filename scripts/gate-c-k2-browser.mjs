@@ -74,6 +74,7 @@ async function captureReflow(page, width, label) {
   const expectedAbortedRequests = [];
   const httpErrors = [];
   const mutationRequests = [];
+  const historicalReadRequests = [];
 
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -96,6 +97,9 @@ async function captureReflow(page, width, label) {
     if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
   });
   page.on("request", (request) => {
+    if (request.method() === "GET" && /\/api\/creator\/episode-production-runs\/[^/]+\/(assets|media)$/.test(new URL(request.url()).pathname)) {
+      historicalReadRequests.push(request.url());
+    }
     if (request.method() !== "POST" || !request.url().includes("/api/creator/episode-production-runs/")) return;
     let payload = null;
     try {
@@ -116,12 +120,25 @@ async function captureReflow(page, width, label) {
     await page.screenshot({ path: path.join(artifactRoot, "shots-1920.png"), fullPage: false });
 
     await page.goto(`${baseUrl}/creator/projects/${projectRef}/production?stage=assets`, { waitUntil: "networkidle" });
-    await waitForHeading(page, "资产需求与媒体任务");
+    await waitForHeading(page, "历史资产与媒体证据");
+    assert(await page.getByText("历史兼容", { exact: true }).isVisible(), "historical compatibility label is missing");
+    assert(await page.getByText("只读", { exact: true }).isVisible(), "historical read-only label is missing");
+    assert((await page.getByRole("button", { name: /^(解析镜头资产需求|解析资产|执行本地媒体任务|执行媒体任务)$/ }).count()) === 0, "legacy asset/media write action is exposed");
+    assert(historicalReadRequests.some((url) => url.endsWith("/assets")), "historical assets GET is missing");
+    assert(historicalReadRequests.some((url) => url.endsWith("/media")), "historical media GET is missing");
     assert((await page.getByRole("row").count()) === 9, "expected one header plus eight media job rows");
     assert((await page.getByText("CPU · LOCAL_EVIDENCE", { exact: true }).count()) === 8, "media evidence boundary is inaccurate");
     evidence.assets = await layoutEvidence(page, "assets-1920");
 
     await page.goto(`${baseUrl}/creator/projects/${projectRef}/post`, { waitUntil: "networkidle" });
+    evidence.legacyProduction = {
+      historicalAssetMediaReadOnly: true,
+      historicalReadRequests: [...historicalReadRequests],
+      legacyAssetsPostCount: mutationRequests.filter((item) => item.url.endsWith("/assets")).length,
+      legacyMediaPostCount: mutationRequests.filter((item) => item.url.endsWith("/media")).length,
+    };
+    assert(evidence.legacyProduction.legacyAssetsPostCount === 0, "Production issued a legacy assets POST");
+    assert(evidence.legacyProduction.legacyMediaPostCount === 0, "Production issued a legacy media POST");
     await waitForHeading(page, "等待合成预览与机器质检");
     assert(mutationRequests.filter((item) => item.url.endsWith("/preview")).length === 0, "preview executed automatically");
     await page.getByRole("button", { name: "生成预览并运行质检" }).click();
@@ -211,6 +228,7 @@ async function captureReflow(page, width, label) {
     assert(pageErrors.length === 0, `page errors: ${pageErrors.join(" | ")}`);
     assert(failedRequests.length === 0, `failed requests: ${failedRequests.join(" | ")}`);
     assert(httpErrors.length === 0, `HTTP errors: ${httpErrors.join(" | ")}`);
+    assert(mutationRequests.every((item) => !/\/(assets|media)$/.test(item.url)), "legacy asset/media POST occurred");
 
     const result = {
       ok: true,

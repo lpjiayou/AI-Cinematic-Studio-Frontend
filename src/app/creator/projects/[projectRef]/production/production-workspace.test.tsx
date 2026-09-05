@@ -1,6 +1,8 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ComponentProps, MouseEvent } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { productionTruthProjection } from "@/features/core-integration/state-projection-test-fixtures";
 import { ConnectedProductionWorkspace } from "./production-workspace";
 
 const coreMocks = vi.hoisted(() => ({
@@ -8,7 +10,22 @@ const coreMocks = vi.hoisted(() => ({
   stateProjection: vi.fn(),
   refresh: vi.fn(),
   capabilities: vi.fn(),
+  handlers: new Map<string, () => void>(),
 }));
+
+vi.mock("@/components", async () => {
+  const actual = await vi.importActual<typeof import("@/components")>("@/components");
+  return {
+    ...actual,
+    ACSButton: (props: ComponentProps<typeof actual.ACSButton>) => {
+      // Retain real button behavior while allowing a direct handler invocation.
+      if (typeof props.children === "string" && props.onClick) {
+        coreMocks.handlers.set(props.children, () => props.onClick?.({} as MouseEvent<HTMLButtonElement>));
+      }
+      return <actual.ACSButton {...props} />;
+    },
+  };
+});
 
 vi.mock("@/features/core-integration", async () => {
   const actual = await vi.importActual<typeof import("@/features/core-integration")>(
@@ -349,11 +366,13 @@ function approvalReadyProjection(
 }
 
 describe("ConnectedProductionWorkspace", () => {
+  afterEach(() => vi.restoreAllMocks());
   beforeEach(() => {
     coreMocks.request.mockReset();
     coreMocks.stateProjection.mockReset();
     coreMocks.refresh.mockReset();
     coreMocks.capabilities.mockReset();
+    coreMocks.handlers.clear();
     coreMocks.capabilities.mockReturnValue([
       {
         id: "M10",
@@ -363,6 +382,129 @@ describe("ConnectedProductionWorkspace", () => {
         requirements: ["M9"],
       },
     ]);
+  });
+
+  it.each(["SHOTS_COMPILED", "ASSETS_READY"] as const)("I2 removes legacy writes in %s", async (state) => {
+    const user = userEvent.setup();
+    installBundleMocks({ ...run, state });
+    render(<ConnectedProductionWorkspace initialStage="assets" projectRef="project-core-1" />);
+    await screen.findByRole("list", { name: "K2 四轴状态投影" });
+    const actions = screen.queryAllByRole("button", { name: /^(解析镜头资产需求|解析资产|执行本地媒体任务|执行媒体任务)$/ });
+    // A regressed visible action must also be unable to issue a legacy product POST.
+    if (actions[0]) await user.click(actions[0]);
+    const posts = coreMocks.request.mock.calls.filter(([path, init]) => /\/(assets|media)$/.test(String(path)) && init?.method === "POST");
+    expect({ visibleLegacyActions: actions.length, legacyProductPosts: posts.length }).toEqual({ visibleLegacyActions: 0, legacyProductPosts: 0 });
+  });
+
+  it("explains the closed legacy asset path when no historical plan exists", async () => {
+    installBundleMocks(run);
+    render(<ConnectedProductionWorkspace initialStage="assets" projectRef="project-core-1" />);
+    expect(await screen.findByRole("heading", { name: "新的资产与生成流程尚未在此页面开放" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "等待新的分镜与方法规划界面" })).toBeInTheDocument();
+    expect(screen.getByText("历史兼容", { exact: true })).toBeInTheDocument();
+    expect(screen.getByText("只读", { exact: true })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "返回项目概览" }).some((link) => link.getAttribute("href") === "/creator/projects/project-core-1/overview#destination-storyboard")).toBe(true);
+    expect(coreMocks.request.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+  });
+
+  it.each(["ASSETS_READY", "MEDIA_READY"] as const)("preserves read-only historical bundles in %s", async (state) => {
+    const user = userEvent.setup();
+    installBundleMocks({ ...run, state });
+    const request = coreMocks.request.getMockImplementation()!;
+    coreMocks.request.mockImplementation(async (path: string, init?: { method?: string }) => {
+      if (path.endsWith("/assets")) return { ...assetBundle, assetRequirements: [{ assetRequirementRef: "historical-requirement-1" }], generationRequests: [{ generationRequestRef: "historical-request-1" }] };
+      if (path.endsWith("/media")) return { ...mediaBundle, assetVersions: [{ assetVersionRef: "historical-media-version-1" }], jobs: [{ jobRef: "historical-job-1", status: "SUCCEEDED", taskType: "VIDEO" }] };
+      return request(path, init);
+    });
+    render(<ConnectedProductionWorkspace initialStage="assets" projectRef="project-core-1" />);
+    expect(await screen.findByRole("heading", { name: "历史资产与媒体证据" })).toBeInTheDocument();
+    expect(screen.getByText("历史兼容", { exact: true })).toBeInTheDocument();
+    expect(screen.getByText("只读", { exact: true })).toBeInTheDocument();
+    await user.click(screen.getByText("查看历史资产与媒体证据"));
+    expect(screen.getByText("historical-requirement-1")).toBeVisible();
+    expect(within(screen.getByText("查看历史资产与媒体证据").closest("details")!).getByText("historical-request-1")).toBeVisible();
+    expect(coreMocks.request).toHaveBeenCalledWith(expect.stringMatching(/\/assets$/), expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    if (state === "MEDIA_READY") {
+      expect(screen.getByText("historical-media-version-1")).toBeVisible();
+      expect(within(screen.getByRole("table", { name: "媒体任务" })).getAllByRole("row")).toHaveLength(2);
+      expect(coreMocks.request).toHaveBeenCalledWith(expect.stringMatching(/\/media$/), expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    } else {
+      expect(screen.getByRole("heading", { name: "历史资产计划已存在" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "查看生成开放条件" })).toHaveAttribute("href", "/creator/projects/project-core-1/overview#destination-generation");
+    }
+    expect(coreMocks.request.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+  });
+
+  describe.each(["stale-qc", "stale-revision"] as const)("I3 %s", (kind) => {
+    const title = kind === "stale-qc" ? "视觉质检基于旧候选" : "素材版本已经变化，需要重新审查";
+
+    it("accepts the public payload, blocks Preview at its handler, and allows refresh", async () => {
+      const user = userEvent.setup();
+      installBundleMocks({ ...run, state: "MEDIA_READY" });
+      const { getK2ProductionStateProjection } = await vi.importActual<typeof import("@/features/core-integration/browser-client")>("@/features/core-integration/browser-client");
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json(productionTruthProjection(kind)));
+      coreMocks.stateProjection.mockImplementation(() => getK2ProductionStateProjection(run.productionRunRef));
+      render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+      const hold = await screen.findByRole("region", { name: "生产动作已冻结" });
+      expect(within(hold).getByRole("heading", { name: title })).toBeInTheDocument();
+      if (kind === "stale-revision") expect(within(hold).getByRole("heading", { name: "当前修订已过期，质检保持阻断" })).toBeInTheDocument();
+      expect(screen.queryByText(/state_projection_contract_mismatch/)).not.toBeInTheDocument();
+      expect(screen.queryByText("生产状态冲突 · 动作已冻结")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "生成预览并运行质检" })).toBeDisabled();
+      expect(screen.queryByRole("button", { name: "生成预览" })).not.toBeInTheDocument();
+      expect(within(hold).getByRole("link", { name: "查看历史证据" })).toHaveAttribute("href", "/creator/projects/project-core-1/production?stage=assets#asset-workspace-title");
+      const previewHandler = coreMocks.handlers.get("生成预览并运行质检");
+      expect(previewHandler).toBeTypeOf("function");
+      await act(async () => { previewHandler!(); });
+      expect(screen.getByText(`${title}。生产动作已冻结，请重新读取事实。`)).toBeInTheDocument();
+      await user.click(within(hold).getByRole("button", { name: "重新读取事实" }));
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      expect(await screen.findByRole("region", { name: "生产动作已冻结" })).toBeInTheDocument();
+      expect(coreMocks.request.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+      expect(fetchMock.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+    });
+
+    it.each(["QC_READY", "APPROVAL_READY"] as const)("keeps historical Preview readable but withholds Finalize in %s", async (state) => {
+      installBundleMocks({ ...run, state });
+      coreMocks.stateProjection.mockResolvedValue(productionTruthProjection(kind, state));
+      render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+      expect(await screen.findByRole("region", { name: "生产动作已冻结" })).toBeInTheDocument();
+      expect(screen.getByLabelText("K2 单集预览")).toHaveAttribute("src", "/api/creator/episode-production-runs/episode-production-run-1/preview/content");
+      expect(screen.queryByRole("button", { name: "验证审批并生成不可变母版" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("textbox", { name: "创作方向审批引用" })).not.toBeInTheDocument();
+      expect(coreMocks.request.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+    });
+
+    it("keeps historical Delivery available without advancing stale truth", async () => {
+      installBundleMocks({ ...run, state: "MASTER_READY" });
+      coreMocks.stateProjection.mockResolvedValue(productionTruthProjection(kind, "MASTER_READY"));
+      render(<ConnectedProductionWorkspace initialStage="delivery" projectRef="project-core-1" />);
+      expect(await screen.findByRole("region", { name: "生产动作已冻结" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "下载本地 MP4" })).toHaveAttribute("href", "/api/creator/episode-production-runs/episode-production-run-1/exports/export-1/content");
+      expect(coreMocks.request.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+    });
+
+    it("blocks a previously captured Finalize handler after refreshed truth becomes stale", async () => {
+      const user = userEvent.setup();
+      installBundleMocks({ ...run, state: "QC_READY" });
+      coreMocks.stateProjection.mockResolvedValue(productionTruthProjection("active", "QC_READY"));
+      render(<ConnectedProductionWorkspace initialStage="review" projectRef="project-core-1" />);
+      const button = await screen.findByRole("button", { name: "验证审批并生成不可变母版" });
+      for (const approval of ["创作方向", "身份连续性", "技术质检", "最终母版"]) {
+        await user.type(screen.getByRole("textbox", { name: `${approval}审批引用` }), `approval-${approval}`);
+        await user.type(screen.getByRole("textbox", { name: `${approval}审批人引用` }), "actor-project-lead");
+      }
+      await user.click(screen.getByRole("checkbox"));
+      expect(button).toBeEnabled();
+      const finalizeHandler = coreMocks.handlers.get("验证审批并生成不可变母版");
+      expect(finalizeHandler).toBeTypeOf("function");
+      coreMocks.stateProjection.mockResolvedValue(productionTruthProjection(kind, "QC_READY"));
+      await user.click(screen.getByRole("button", { name: "刷新事实" }));
+      await screen.findByRole("region", { name: "生产动作已冻结" });
+      await act(async () => { finalizeHandler!(); });
+      expect(screen.getByText(`${title}。生产动作已冻结，请重新读取事实。`)).toBeInTheDocument();
+      expect(coreMocks.request.mock.calls.every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
+    });
   });
 
   it("keeps the accepted Core baseline usable when readiness is not advertised", async () => {

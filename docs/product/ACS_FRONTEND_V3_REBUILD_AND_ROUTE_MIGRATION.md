@@ -326,3 +326,34 @@ NEXT_TASK=ACS-PRE-WAVE-1D-FRONTEND-PRODUCTION-TRUTH-CLOSURE
 This sequence revision supersedes the historical next-task pointers above, without
 changing the accepted IA or reclassifying completed wave evidence. Production Truth
 Closure, rewritten Wave 1D and Wave 2B remain separate, unstarted authorization boundaries.
+
+## Production truth sequence revision — 2026-09-05
+
+The [Production Truth Closure](../status/FRONTEND_PRODUCTION_TRUTH_CLOSURE_2026-09-05.md)
+removes legacy G4/G5 product writes and preserves their historical GET evidence. Legal
+STALE and STALE_BLOCKED projections now have strict typed/runtime support, user-facing
+explanations and fail-closed production handlers. The two authorized Wave 1C source
+fingerprints are synchronized; all other fingerprints, assertions, seven screenshots
+and network/error/mutation policies remain unchanged. This adds no screen or route.
+
+```text
+FRONTEND_PRODUCTION_TRUTH_CLOSURE=IMPLEMENTED_AND_VERIFIED
+LEGACY_G4_G5_PRIMARY_WRITE_UI=REMOVED
+LEGACY_ASSETS_PRODUCT_POST_CALLSITE_COUNT=0
+LEGACY_MEDIA_PRODUCT_POST_CALLSITE_COUNT=0
+LEGACY_G4_G5_READ_COMPATIBILITY_PRESERVED=true
+STATE_PROJECTION_STALE_COMPATIBILITY=PASS
+STALE_PRODUCTION_ACTIONS_BLOCKED=true
+METHOD_AWARE_UI_CALLSITE_COUNT=0
+CORE_PIN_DIFF=0
+FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
+FRONTEND_V3_REDESIGN_COMPLETE=false
+FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=6
+FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=10
+OLD_WAVE_1D_COMMAND=SUPERSEDED_NOT_EXECUTED
+NEXT_TASK=ACS-CORE-PUBLIC-INPUT-AND-SCOPE-HARDENING
+```
+
+This revision takes precedence over the historical next-task pointers above without
+reclassifying their acceptance evidence. Core public input/scope hardening, rewritten
+Wave 1D and Wave 2B remain separate authorization boundaries and are not started here.

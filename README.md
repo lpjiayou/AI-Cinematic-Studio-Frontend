@@ -127,6 +127,9 @@ for the pinned contract, authorized field corrections and verification boundary.
 The [workspace state integrity closure](docs/status/FRONTEND_WORKSPACE_STATE_INTEGRITY_CLOSURE_2026-09-05.md)
 separates Script drafts from saved baselines, unifies departure protection, and isolates
 Story client state by project and Series. Core candidate-source binding remains incomplete.
+The [Production Truth Closure](docs/status/FRONTEND_PRODUCTION_TRUTH_CLOSURE_2026-09-05.md)
+removes legacy asset/media write controls while retaining historical reads, and accepts
+legal stale projections with explicit explanations and frozen production actions.
 
 ## Documentation
 
@@ -168,13 +171,13 @@ variables remain server-only; never add a `NEXT_PUBLIC_*` equivalent.
 ## Next legal project boundary
 
 ```text
-NEXT_TASK=ACS-PRE-WAVE-1D-FRONTEND-PRODUCTION-TRUTH-CLOSURE
+NEXT_TASK=ACS-CORE-PUBLIC-INPUT-AND-SCOPE-HARDENING
 OLD_WAVE_1D_COMMAND=SUPERSEDED_NOT_EXECUTED
 INDEPENDENT_M12_BOUNDARY=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
 ```
 
-Production Truth Closure requires separate authorization, followed by rewritten
-Wave 1D and then Wave 2B. None starts as part of workspace integrity closure.
+Core public input and scope hardening requires separate authorization, followed by
+rewritten Wave 1D and then Wave 2B. None starts as part of Production Truth Closure.
 Wave 2A adds Adapter/contracts only;
 method-aware UI, media runtime, reviewed import, identity writes and publication
 remain outside this implementation.
