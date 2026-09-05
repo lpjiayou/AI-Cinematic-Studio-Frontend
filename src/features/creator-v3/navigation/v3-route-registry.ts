@@ -76,8 +76,8 @@ export type CreatorV3Route =
       destinationId: GlobalRailDestinationId;
     }
   | {
-      kind: "project-overview";
-      destinationId: "projects";
+      kind: "project";
+      destinationId: "overview" | "story" | "script" | "characters";
       projectRef: string;
     };
 
@@ -94,17 +94,17 @@ export function classifyCreatorRoute(pathname: string): CreatorRouteClassificati
     };
   }
 
-  const overviewMatch = /^\/creator\/projects\/([^/]+)\/overview$/.exec(pathname);
-  if (!overviewMatch) return { shell: "legacy" };
+  const projectMatch = /^\/creator\/projects\/([^/]+)\/(overview|story|script|characters)$/.exec(pathname);
+  if (!projectMatch) return { shell: "legacy" };
 
   try {
-    const projectRef = decodeURIComponent(overviewMatch[1]);
-    if (!projectRef) return { shell: "legacy" };
+    const projectRef = decodeURIComponent(projectMatch[1]);
+    if (!projectRef || projectRef === "new") return { shell: "legacy" };
     return {
       shell: "v3",
       route: {
-        kind: "project-overview",
-        destinationId: "projects",
+        kind: "project",
+        destinationId: projectMatch[2] as "overview" | "story" | "script" | "characters",
         projectRef,
       },
     };
@@ -131,23 +131,23 @@ export function buildProjectV3Destinations(
     {
       id: "story",
       label: "故事",
-      description: "迁移期 Story World 工作区",
+      description: "系列规划、世界来源与连续性",
       availability: "available",
-      href: `${projectRoot}/planning/bible`,
+      href: `${projectRoot}/story`,
     },
     {
       id: "script",
       label: "剧本",
-      description: "迁移期 Script Studio",
+      description: "分集、剧本版本、修订与确认",
       availability: "available",
-      href: `${projectRoot}/content/script`,
+      href: `${projectRoot}/script`,
     },
     {
       id: "characters",
       label: "角色",
-      description: "迁移期 Character Studio",
+      description: "角色连续性版本与权威来源",
       availability: "available",
-      href: `${projectRoot}/planning/characters`,
+      href: `${projectRoot}/characters`,
     },
     {
       id: "storyboard",

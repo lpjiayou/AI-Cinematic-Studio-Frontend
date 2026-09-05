@@ -63,7 +63,7 @@ describe("CreatorProjectShell", () => {
       "overview", "story", "script", "characters", "storyboard", "generation", "audio", "timeline", "review", "delivery",
     ]);
     expect(within(navigation).getByText("概览").closest("a")).toHaveAttribute("aria-current", "page");
-    expect(within(navigation).getByText("故事").closest("a")?.getAttribute("href")?.endsWith("/planning/bible")).toBe(true);
+    expect(within(navigation).getByText("故事").closest("a")?.getAttribute("href")?.endsWith("/story")).toBe(true);
   });
 
   it("opens project navigation as a single drawer and restores focus", async () => {

@@ -255,6 +255,31 @@ def main() -> None:
         print(wave_1b_browser_log_path.read_text(encoding="utf-8", errors="replace"))
         if wave_1b_result.returncode:
             raise SystemExit(wave_1b_result.returncode)
+        wave_1c_artifact_root = ARTIFACT_ROOT / "frontend-v3-wave-1c"
+        wave_1c_browser_env = browser_env.copy()
+        wave_1c_browser_env.update(
+            {
+                "FRONTEND_V3_WAVE_1C_ARTIFACT_ROOT": str(
+                    wave_1c_artifact_root
+                ),
+                "K2_CONTROL_PLANE_SERIES_REF": fixture["seriesRef"],
+                "K2_CONTROL_PLANE_EPISODE_REF": fixture["episodeRef"],
+            }
+        )
+        wave_1c_browser_log_path = ARTIFACT_ROOT / "frontend-v3-wave-1c-browser.log"
+        with wave_1c_browser_log_path.open("w", encoding="utf-8") as wave_1c_browser_log:
+            wave_1c_result = subprocess.run(
+                ["node", str(FRONTEND / "scripts" / "gate-frontend-v3-wave-1c.mjs")],
+                cwd=FRONTEND,
+                env=wave_1c_browser_env,
+                stdout=wave_1c_browser_log,
+                stderr=subprocess.STDOUT,
+                check=False,
+                timeout=600,
+            )
+        print(wave_1c_browser_log_path.read_text(encoding="utf-8", errors="replace"))
+        if wave_1c_result.returncode:
+            raise SystemExit(wave_1c_result.returncode)
         print(f"K2_CONTROL_PLANE_BROWSER_E2E=PASS\nEVIDENCE_DIR={ARTIFACT_ROOT}")
     finally:
         stop(frontend_process)

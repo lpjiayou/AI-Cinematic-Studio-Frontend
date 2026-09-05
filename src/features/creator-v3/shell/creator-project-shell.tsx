@@ -1,6 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type MouseEventHandler,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   ACSButton,
@@ -13,6 +19,7 @@ import {
   type AuthorityLayerView,
   type EvidenceFieldView,
   type ProjectDestinationId,
+  type ProjectReadinessState,
   type WorkbenchOverlay,
 } from "@/components";
 import type { CreatorProject } from "@/features/core-integration";
@@ -41,6 +48,19 @@ export interface CreatorProjectShellProps {
   onActiveOverlayChange?: (overlay: WorkbenchOverlay) => void;
   overlayContent?: ReactNode;
   overlayReturnFocusRef?: React.RefObject<HTMLElement | null>;
+  contextBar?: {
+    seriesLabel?: string;
+    episodeLabel?: string;
+    versionLabel: string;
+    versionStateText: string;
+    readinessSummary: string;
+    readinessState: ProjectReadinessState;
+    contextLabel: string;
+  };
+  contentLabel?: string;
+  inspectorLabel?: string;
+  authorityLabel?: string;
+  onNavigationCapture?: MouseEventHandler<HTMLDivElement>;
 }
 
 function Trigger({
@@ -90,6 +110,11 @@ export function CreatorProjectShell({
   onActiveOverlayChange,
   overlayContent: controlledOverlayContent,
   overlayReturnFocusRef: controlledReturnFocusRef,
+  contextBar,
+  contentLabel = "项目概览主要画布",
+  inspectorLabel = "项目概览检查器",
+  authorityLabel = "项目概览授权与证据",
+  onNavigationCapture,
 }: CreatorProjectShellProps) {
   const router = useRouter();
   const { theme, toggleTheme } = useACSTheme();
@@ -178,7 +203,11 @@ export function CreatorProjectShell({
   );
 
   return (
-    <div className={styles.shellRoot} data-creator-v3-shell="project">
+    <div
+      className={styles.shellRoot}
+      data-creator-v3-shell="project"
+      onClickCapture={onNavigationCapture}
+    >
       <WorkbenchShell
         globalRail={(
           <GlobalRail
@@ -193,12 +222,12 @@ export function CreatorProjectShell({
         projectContextBar={(
           <ProjectContextBar
             projectTitle={project?.title ?? "项目概览"}
-            seriesLabel={project ? (project.seriesRefs.length > 0 ? `已绑定 ${project.seriesRefs.length} 个系列` : "尚未绑定系列") : "项目记录未读取"}
-            episodeLabel="分集上下文未选择"
-            versionLabel={project ? `项目 v${project.version}` : "项目版本"}
-            versionStateText={project ? projectStatusLabel(project.status) : "状态未验证"}
-            readinessSummary={project ? "项目基础记录已读取；生产准备度尚未在本页核验" : "生产准备度尚未核验"}
-            readinessState="unverified"
+            seriesLabel={contextBar?.seriesLabel ?? (project ? (project.seriesRefs.length > 0 ? `已绑定 ${project.seriesRefs.length} 个系列` : "尚未绑定系列") : "项目记录未读取")}
+            episodeLabel={contextBar?.episodeLabel ?? "分集上下文未选择"}
+            versionLabel={contextBar?.versionLabel ?? (project ? `项目 v${project.version}` : "项目版本")}
+            versionStateText={contextBar?.versionStateText ?? (project ? projectStatusLabel(project.status) : "状态未验证")}
+            readinessSummary={contextBar?.readinessSummary ?? (project ? "项目基础记录已读取；生产准备度尚未在本页核验" : "生产准备度尚未核验")}
+            readinessState={contextBar?.readinessState ?? "unverified"}
             navigationTrigger={navigationTrigger}
             inspectorTrigger={inspector ? <Trigger label="打开检查器" glyph="检" triggerRef={inspectorTriggerRef} onClick={() => openOverlay("inspector", inspectorTriggerRef)} /> : undefined}
             evidenceTrigger={<Trigger label="打开 Authority/Evidence" glyph="证" triggerRef={evidenceTriggerRef} onClick={() => openOverlay("evidence", evidenceTriggerRef)} />}
@@ -208,7 +237,7 @@ export function CreatorProjectShell({
                 {theme === "dark" ? "切换为浅色主题" : "切换为深色主题"}
               </ACSButton>
             )}
-            contextLabel="V3 项目上下文"
+            contextLabel={contextBar?.contextLabel ?? "V3 项目上下文"}
           />
         )}
         projectNavigator={(
@@ -218,7 +247,7 @@ export function CreatorProjectShell({
             mode="full"
             navigationLabel="V3 项目导航"
             header={<strong>项目工作区</strong>}
-            footer={<span className={styles.footer}>迁移期导航 · 10 个目的地</span>}
+            footer={<span className={styles.footer}>项目导航 · 10 个目的地</span>}
           />
         )}
         primaryCanvas={primaryCanvas}
@@ -256,9 +285,9 @@ export function CreatorProjectShell({
         onActiveOverlayChange={setActiveOverlay}
         overlayContent={controlledOverlayContent ?? defaultOverlayContent}
         overlayReturnFocusRef={controlledReturnFocusRef ?? internalReturnFocusRef}
-        contentLabel="项目概览主要画布"
-        inspectorLabel="项目概览检查器"
-        authorityLabel="项目概览授权与证据"
+        contentLabel={contentLabel}
+        inspectorLabel={inspectorLabel}
+        authorityLabel={authorityLabel}
         density="compact"
       />
     </div>

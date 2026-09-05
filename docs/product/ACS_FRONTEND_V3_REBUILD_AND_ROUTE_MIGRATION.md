@@ -239,3 +239,28 @@ NEXT_TASK=ACS-FRONTEND-WAVE-1C-STORY-SCRIPT-CHARACTER-V3-PAGE-REBUILD
 Wave 1B cuts over Creator Home and Project Center, adds Project Overview, and makes
 four blocked global destinations reachable without claiming their business capability
 is complete. This document does not start Wave 1C.
+
+## Wave 1C implementation status — 2026-09-05
+
+This status appendix records implementation against the accepted migration policy; it
+does not alter the target IA or authorize the next wave.
+
+FRONTEND_V3_WAVE_1C=IMPLEMENTED_AND_VERIFIED
+
+FRONTEND_V3_CANONICAL_SCREEN_IMPLEMENTED_COUNT=6
+
+FRONTEND_V3_CANONICAL_ROUTE_CUTOVER_COUNT=10
+
+WAVE_1C_CANONICAL_ROUTES=/creator/projects/[projectRef]/story,/creator/projects/[projectRef]/script,/creator/projects/[projectRef]/characters
+
+WAVE_1C_LEGACY_REDIRECTS=/planning/bible→/story,/content/script→/script,/planning/characters→/characters
+
+METHOD_AWARE_ADAPTER_DIFF=0
+
+CORE_PIN_DIFF=0
+
+FRONTEND_V3_IMPLEMENTATION=IN_PROGRESS
+
+FRONTEND_V3_REDESIGN_COMPLETE=false
+
+NEXT_TASK=ACS-FRONTEND-WAVE-2A-METHOD-AWARE-ADAPTER-AND-CONTRACTS

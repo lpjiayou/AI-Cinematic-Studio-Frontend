@@ -376,9 +376,9 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     assert(await projectNavigation.locator('[data-destination-id="overview"]').getAttribute("aria-current") === "page", "Overview is not active");
     const projectRoot = `/creator/projects/${encodeURIComponent(projectRef)}`;
     const expectedAvailable = {
-      story: `${projectRoot}/planning/bible`,
-      script: `${projectRoot}/content/script`,
-      characters: `${projectRoot}/planning/characters`,
+      story: `${projectRoot}/story`,
+      script: `${projectRoot}/script`,
+      characters: `${projectRoot}/characters`,
       review: `${projectRoot}/post`,
       delivery: `${projectRoot}/delivery`,
     };
@@ -489,14 +489,6 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
       {
         route: "/creator/projects/new",
         expectedMode: "global",
-      },
-      {
-        route: `/creator/projects/${legacyProjectRef}/planning/bible`,
-        expectedMode: "project",
-      },
-      {
-        route: `/creator/projects/${legacyProjectRef}/content/script`,
-        expectedMode: "project",
       },
       {
         route: `/creator/projects/${legacyProjectRef}/production`,
