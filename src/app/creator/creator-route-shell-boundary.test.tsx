@@ -16,6 +16,15 @@ vi.mock("@/features/creator-v3", async (importOriginal) => {
     ProjectOverviewV3: ({ projectRef }: { projectRef: string }) => (
       <main aria-label="V3 overview">Overview {projectRef}</main>
     ),
+    StoryWorkspaceV3: ({ projectRef }: { projectRef: string }) => (
+      <main aria-label="V3 story">Story {projectRef}</main>
+    ),
+    ScriptStudioV3: ({ projectRef }: { projectRef: string }) => (
+      <main aria-label="V3 script">Script {projectRef}</main>
+    ),
+    CharacterStudioV3: ({ projectRef }: { projectRef: string }) => (
+      <main aria-label="V3 characters">Characters {projectRef}</main>
+    ),
   };
 });
 
@@ -48,10 +57,15 @@ describe("CreatorRouteShellBoundary", () => {
     expect(screen.queryByRole("banner")).not.toBeInTheDocument();
   });
 
-  it("renders encoded project overview directly without mounting nested legacy children", () => {
-    navigation.pathname = "/creator/projects/project%20one/overview";
+  it.each([
+    ["overview", "V3 overview"],
+    ["story", "V3 story"],
+    ["script", "V3 script"],
+    ["characters", "V3 characters"],
+  ])("renders encoded project %s directly without nested legacy content", (destination, label) => {
+    navigation.pathname = `/creator/projects/project%20one/${destination}`;
     renderBoundary();
-    expect(screen.getByRole("main", { name: "V3 overview" })).toHaveTextContent("project one");
+    expect(screen.getByRole("main", { name: label })).toHaveTextContent("project one");
     expect(screen.queryByRole("main", { name: "route child" })).not.toBeInTheDocument();
     expect(screen.queryByRole("banner")).not.toBeInTheDocument();
   });

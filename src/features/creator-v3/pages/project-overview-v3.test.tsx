@@ -36,16 +36,19 @@ describe("ProjectOverviewV3", () => {
     collection.refresh.mockReset();
   });
 
-  it("renders a found project, exact migration navigation, and four honest blockers", async () => {
+  it("renders a found project, exact V3 navigation, and four honest blockers", async () => {
     const user = userEvent.setup();
     collection.state = { status: "ready", projects: [project] };
     renderPage();
     expect(screen.getByRole("heading", { name: "北岸计划", level: 1 })).toBeVisible();
     const navigation = screen.getByRole("navigation", { name: "V3 项目导航" });
     expect(within(navigation).getAllByRole("link")).toHaveLength(10);
-    expect(within(navigation).getByText("故事").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/planning/bible");
-    expect(within(navigation).getByText("剧本").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/content/script");
-    expect(within(navigation).getByText("角色").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/planning/characters");
+    expect(within(navigation).getByText("故事").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/story");
+    expect(within(navigation).getByText("剧本").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/script");
+    expect(within(navigation).getByText("角色").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/characters");
+    expect(screen.getByRole("link", { name: "进入故事" })).toHaveAttribute("href", "/creator/projects/private-project-ref/story");
+    expect(screen.getByRole("link", { name: "打开剧本" })).toHaveAttribute("href", "/creator/projects/private-project-ref/script");
+    expect(screen.getByRole("link", { name: "查看角色" })).toHaveAttribute("href", "/creator/projects/private-project-ref/characters");
     expect(within(navigation).getByText("审片").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/post");
     expect(within(navigation).getByText("交付").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/delivery");
     for (const id of ["destination-storyboard", "destination-generation", "destination-audio", "destination-timeline"]) {

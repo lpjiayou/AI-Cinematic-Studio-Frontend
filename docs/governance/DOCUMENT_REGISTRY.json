@@ -628,6 +628,24 @@
       "notes": "Current projection for bounded Wave 1B route cutovers and honest blockers; later V3 pages, adapters, runtimes and authority remain incomplete."
     },
     {
+      "path": "docs/status/FRONTEND_V3_WAVE_1C_ACCEPTANCE_2026-09-05.md",
+      "repository": "Frontend",
+      "documentClass": "CURRENT_STATUS",
+      "status": "CURRENT",
+      "owner": "Frontend Product / Repository Governance Owner",
+      "authoritativeFor": [
+        "evidence-backed Frontend V3 Wave 1C Story, Script, Character and canonical route implementation status"
+      ],
+      "supersedes": [],
+      "supersededBy": [],
+      "currentStateClaimsAllowed": true,
+      "historicalMutationPolicy": "UPDATE_WITH_EVIDENCE",
+      "lastReviewedBaseline": "a0be9edc91437bf0e7c5dd14883e656e750b3aee",
+      "lastReviewedAt": "2026-09-05",
+      "linkedFromIndex": true,
+      "notes": "Current projection for bounded Wave 1C V3 page rebuilds, redirects, preserved mutations and read-only or blocked authority; later adapters, runtimes and product screens remain incomplete."
+    },
+    {
       "path": "governance/ACS-XR1-FRONTEND-CORE-INTEGRATION-CLOSEOUT.md",
       "repository": "Frontend",
       "documentClass": "HISTORICAL_EVIDENCE",

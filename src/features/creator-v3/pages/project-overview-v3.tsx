@@ -77,13 +77,13 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
         <div className={styles.sectionHeading}>
           <div>
             <h2 id="next-safe-action-title">下一安全动作</h2>
-            <p>从当前兼容工作区继续，不推断生产准备度。</p>
+            <p>从当前真实工作区继续，不推断生产准备度。</p>
           </div>
         </div>
         <div className={styles.actionRow}>
-          <Link className={styles.primaryLink} href={`${projectRoot}/planning/bible`}>进入故事工作区</Link>
-          <Link className={styles.secondaryLink} href={`${projectRoot}/content/script`}>打开剧本</Link>
-          <Link className={styles.secondaryLink} href={`${projectRoot}/planning/characters`}>管理角色</Link>
+          <Link className={styles.primaryLink} href={`${projectRoot}/story`}>进入故事</Link>
+          <Link className={styles.secondaryLink} href={`${projectRoot}/script`}>打开剧本</Link>
+          <Link className={styles.secondaryLink} href={`${projectRoot}/characters`}>查看角色</Link>
         </div>
       </section>
 
@@ -91,15 +91,15 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
         <h2 id="available-workspaces-title">当前可用工作区</h2>
         <div className={styles.workspaceGrid}>
           {[
-            ["故事", "当前兼容工作区可用"],
-            ["剧本", "当前兼容工作区可用"],
-            ["角色", "当前兼容工作区可用"],
+            ["故事", "V3 工作区已可用"],
+            ["剧本", "V3 工作区已可用"],
+            ["角色", "V3 只读/受权威约束工作区已可用"],
             ["审片", "当前 fail-closed 兼容工作区可用"],
             ["交付", "当前 fail-closed 兼容工作区可用"],
           ].map(([label, state]) => (
             <ACSCard key={label} title={label} padding="compact">
               <p className={styles.compatibleState}>{state}</p>
-              <small>迁移期兼容入口，不表示 V3 页面已完成。</small>
+              <small>{["故事", "剧本", "角色"].includes(label) ? "真实 Core 工作区入口。" : "迁移期兼容入口，不表示 V3 页面已完成。"}</small>
             </ACSCard>
           ))}
         </div>

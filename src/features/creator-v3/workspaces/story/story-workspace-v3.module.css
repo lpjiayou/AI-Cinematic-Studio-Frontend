@@ -1,0 +1,265 @@
+.workspace {
+  display: grid;
+  min-width: 0;
+  min-height: 100%;
+  grid-template-columns: 15rem minmax(0, 1fr);
+}
+
+.sectionRail {
+  position: sticky;
+  top: 0;
+  display: grid;
+  min-width: 0;
+  height: max-content;
+  gap: var(--acs-space-2);
+  padding: var(--acs-space-5);
+  border-right: 1px solid var(--acs-border);
+  background: var(--acs-surface-deep);
+}
+
+.sectionRail strong {
+  margin-bottom: var(--acs-space-2);
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.sectionRail a {
+  padding: var(--acs-space-2) var(--acs-space-3);
+  border-radius: var(--acs-radius-control);
+  color: var(--acs-text-secondary);
+  text-decoration: none;
+}
+
+.sectionRail a:hover,
+.sectionRail a:focus-visible {
+  background: var(--acs-surface-hover);
+  color: var(--acs-text-primary);
+}
+
+.sectionSelector {
+  display: none;
+}
+
+.storyCanvas,
+.section,
+.planSummary,
+.centerState {
+  display: grid;
+  min-width: 0;
+}
+
+.storyCanvas {
+  gap: var(--acs-space-8);
+  padding: var(--acs-space-6);
+}
+
+.centerState {
+  min-height: 100%;
+  place-items: center;
+  padding: var(--acs-space-6);
+  color: var(--acs-text-secondary);
+}
+
+.pageHeader,
+.sectionHeading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--acs-space-4);
+}
+
+.pageHeader {
+  padding-bottom: var(--acs-space-5);
+  border-bottom: 1px solid var(--acs-border);
+}
+
+.pageHeader h1,
+.pageHeader p,
+.sectionHeading h2,
+.supportingCopy,
+.operationMessage,
+.candidate p,
+.cardGrid p,
+.episodeList p {
+  margin: 0;
+}
+
+.pageHeader h1 {
+  margin-top: var(--acs-space-1);
+  font-size: var(--acs-type-display-size);
+}
+
+.pageHeader p,
+.supportingCopy,
+.operationMessage,
+.cardGrid small,
+.inputField small {
+  color: var(--acs-text-muted);
+}
+
+.eyebrow {
+  color: var(--acs-primary);
+  font-size: var(--acs-type-caption-size);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.section {
+  scroll-margin-top: var(--acs-space-4);
+  gap: var(--acs-space-4);
+}
+
+.inputField {
+  display: grid;
+  gap: var(--acs-space-2);
+  margin-top: var(--acs-space-4);
+  font-weight: var(--acs-weight-semibold);
+}
+
+.inputField textarea {
+  width: 100%;
+  min-height: 9rem;
+  resize: vertical;
+  padding: var(--acs-space-3);
+  border: 1px solid var(--acs-border-strong);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface-deep);
+  color: var(--acs-text-primary);
+  font: inherit;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acs-space-3);
+  margin-top: var(--acs-space-4);
+}
+
+.candidate {
+  border-color: var(--acs-ai-accent);
+}
+
+.candidateColumns,
+.cardGrid,
+.factGrid {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.candidateColumns ul {
+  margin-bottom: 0;
+  padding-left: var(--acs-space-5);
+  color: var(--acs-text-secondary);
+}
+
+.episodeList {
+  display: grid;
+  gap: var(--acs-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.episodeList li {
+  display: grid;
+  min-width: 0;
+  gap: var(--acs-space-3);
+  padding: var(--acs-space-3);
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface);
+}
+
+.episodeList li > span {
+  color: var(--acs-primary);
+  font-family: var(--acs-font-mono);
+}
+
+.factGrid {
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.factGrid div {
+  display: grid;
+  gap: var(--acs-space-1);
+  padding: var(--acs-space-3);
+  border: 1px solid var(--acs-border);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-surface);
+}
+
+.factGrid dt {
+  color: var(--acs-text-muted);
+  font-size: var(--acs-type-caption-size);
+}
+
+.factGrid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.primaryLink {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--acs-space-3);
+  border-radius: var(--acs-radius-control);
+  background: var(--acs-primary);
+  color: var(--acs-on-primary);
+  font-weight: var(--acs-weight-semibold);
+  text-decoration: none;
+}
+
+@media (max-width: 71.9375rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sectionRail {
+    display: none;
+  }
+
+  .sectionSelector {
+    display: grid;
+    gap: var(--acs-space-1);
+    padding: var(--acs-space-4) var(--acs-space-4) 0;
+    color: var(--acs-text-muted);
+    font-size: var(--acs-type-caption-size);
+  }
+
+  .sectionSelector select {
+    min-height: 2.5rem;
+    padding: 0 var(--acs-space-3);
+    border: 1px solid var(--acs-border-strong);
+    border-radius: var(--acs-radius-control);
+    background: var(--acs-surface);
+    color: var(--acs-text-primary);
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .storyCanvas,
+  .centerState {
+    gap: var(--acs-space-6);
+    padding: var(--acs-space-4);
+  }
+
+  .pageHeader {
+    flex-direction: column;
+  }
+
+  .candidateColumns,
+  .cardGrid,
+  .factGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .actionRow > * {
+    width: 100%;
+  }
+}
