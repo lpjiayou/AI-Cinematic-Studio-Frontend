@@ -23,5 +23,19 @@
 .error { color: var(--acs-danger) !important; border: 1px solid var(--acs-danger); background: var(--acs-danger-soft); padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
 .confirm { margin-top: 16px; border: 1px solid var(--acs-primary); border-radius: 8px; padding: 16px; }
 .confirm button { margin-right: 10px; }
+.composer { padding: 20px; margin-bottom: 24px; border: 1px solid var(--acs-border); border-radius: 12px; background: var(--acs-surface-deep); }
+.inputGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.fieldLabel { display: block; color: var(--acs-text-primary); margin-bottom: 10px; font-size: 13px; }
+.workspace textarea, .workspace input[type="file"] { display: block; width: 100%; max-width: 100%; box-sizing: border-box; font: inherit; color: var(--acs-text-primary); background: var(--acs-surface-hover); border: 1px solid var(--acs-border-strong); border-radius: 8px; padding: 12px; }
+.workspace textarea { resize: vertical; min-height: 130px; }
+.workspace textarea:focus-visible, .workspace input:focus-visible { outline: 2px solid var(--acs-primary); outline-offset: 3px; }
+.workspace textarea:disabled, .workspace input:disabled { opacity: .55; }
+.imagePreview { margin: 12px 0 0; }
+.imageFrame { position: relative; width: 100%; height: 280px; overflow: hidden; background: var(--acs-media-stage); border-radius: 8px; }
+.imagePreview img { object-fit: contain; }
+.imagePreview figcaption { overflow-wrap: anywhere; color: var(--acs-text-muted); font-size: 12px; margin-top: 8px; }
+.policy { border-left: 3px solid var(--acs-primary); padding: 10px 14px; background: var(--acs-surface-selected); border-radius: 6px; font-size: 13px; }
+.history { margin-top: 24px; }
+.history h3 { font-size: 15px; }
 @media (max-width: 1100px) { .layout { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); } .panel:last-child { grid-column: 1 / -1; } }
-@media (max-width: 700px) { .workspace { padding: 12px; } .layout { grid-template-columns: minmax(0, 1fr); } .panel { padding: 16px; } .empty { min-height: 220px; } }
+@media (max-width: 700px) { .workspace { padding: 12px; } .layout, .inputGrid { grid-template-columns: minmax(0, 1fr); } .panel { padding: 16px; } .empty { min-height: 220px; } }

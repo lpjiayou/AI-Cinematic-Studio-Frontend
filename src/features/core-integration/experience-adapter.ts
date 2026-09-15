@@ -5,6 +5,7 @@ import { AUDIO_TYPES, EXECUTION_METHOD_BY_CLASS, METHOD_AWARE_RESOURCES, METHOD_
 import { parseExecutionMethodPlan, parseExplicitAudioRequirementRoute, parseMethodAwareInputPlan, parseMethodAwareVideoRoute } from "./method-aware-validators";
 import { CreatorClientError } from "./browser-client";
 import { parseGenerationWorkspace } from "./generation-workspace-client";
+import { IMAGE_VIDEO_MAX_BYTES, parseImageVideoGeneration, parseImageVideoWorkspace, validImageVideoCommand } from "./image-video-client";
 
 const MAX_REQUEST_BYTES = 512_000;
 const CORE_PREFIX = "/creator/api/v1";
@@ -69,6 +70,7 @@ function isAllowed(path: string, method: string) {
     if (parts.length === 3) {
       const resource = parts[2];
       if (resource === "generation") return method === "GET" || method === "POST";
+      if (resource === "image-video-generations") return method === "GET" || method === "POST";
       if (METHOD_AWARE_RESOURCES.some((value) => value === resource)) {
         return method === "GET" || method === "POST";
       }
@@ -101,6 +103,10 @@ function isAllowed(path: string, method: string) {
         "finalize",
       ]).has(resource) && (method === "GET" || method === "POST");
     }
+    if (
+      parts[2] === "image-video-generations" &&
+      (parts.length === 4 || (parts.length === 5 && parts[4] === "content"))
+    ) return method === "GET";
     if (
       parts.length === 4 &&
       parts[2] === "generation" && parts[3] === "content"
@@ -173,6 +179,32 @@ class AdapterInputError extends Error {
   ) {
     super(message);
   }
+}
+
+// This larger allowance belongs only to the closed image upload command. Never
+// raise the general mutation limit or buffer an unbounded incoming stream.
+async function readImageVideoBody(request: Request) {
+  const maximum = Math.ceil(IMAGE_VIDEO_MAX_BYTES / 3) * 4 + 16_384;
+  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) throw new AdapterInputError(415, "unsupported_media_type", "图片生成请求必须使用 JSON。");
+  const declared = request.headers.get("content-length");
+  if (declared && (!/^\d+$/.test(declared) || Number(declared) > maximum)) throw new AdapterInputError(413, "request_too_large", "图片不得超过 8 MB。");
+  const reader = request.body?.getReader();
+  if (!reader) throw new AdapterInputError(400, "invalid_request", "缺少图片生成输入。");
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let size = 0; let text = "";
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > maximum) { await reader.cancel(); throw new AdapterInputError(413, "request_too_large", "图片不得超过 8 MB。"); }
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+    text += decoder.decode();
+    const value: unknown = JSON.parse(text);
+    if (!validImageVideoCommand(value)) throw new AdapterInputError(400, "invalid_request", "图片、描述或请求字段无效。");
+    return value;
+  } finally { reader.releaseLock(); }
 }
 
 const methodAwareBrowserScope = new Set(["workspaceRef", "productionRunRef", "tenantId", "contentProfileRef"]);
@@ -259,16 +291,21 @@ export async function handleCreatorExperienceRequest(
 
   const incomingUrl = new URL(request.url);
   const generation = pathParts[0] === "episode-production-runs" && pathParts[2] === "generation";
+  const imageVideo = pathParts[0] === "episode-production-runs" && pathParts[2] === "image-video-generations";
   // Next may normalize request.url to its listener name (localhost). The actual
   // browser authority is Host; never trust caller-supplied forwarded-host values.
   const browserOrigin = `${incomingUrl.protocol}//${request.headers.get("host") ?? incomingUrl.host}`;
-  if (generation && method === "POST" && ((request.headers.get("origin") && request.headers.get("origin") !== browserOrigin) || request.headers.get("sec-fetch-site") === "cross-site")) {
+  if ((generation || imageVideo) && method === "POST" && ((request.headers.get("origin") && request.headers.get("origin") !== browserOrigin) || request.headers.get("sec-fetch-site") === "cross-site")) {
     return errorResponse(403, "origin_forbidden", "不允许跨站提交生成操作。");
   }
   const methodAwareResource = pathParts.length === 3 && pathParts[0] === "episode-production-runs"
     ? METHOD_AWARE_RESOURCES.find((resource) => resource === pathParts[2]) : undefined;
   const targetUrl = new URL(`${config.coreBaseUrl}${CORE_PREFIX}/${path}`);
   for (const [key, value] of incomingUrl.searchParams) {
+    if (imageVideo) {
+      const allowed = pathParts.length === 5 ? ["projectRef", "seriesRef", "episodeRef", "sha256"] : ["projectRef", "seriesRef", "episodeRef"];
+      if (method !== "GET" || !allowed.includes(key) || !inputRef(value) || targetUrl.searchParams.has(key)) return errorResponse(400, "invalid_request", "图片视频查询字段无效。");
+    }
     if (generation) {
       if (methodAwareBrowserScope.has(key)) continue;
       const allowed = pathParts.length === 4 ? ["projectRef", "seriesRef", "episodeRef", "mediaJobRef", "sha256"] : ["projectRef", "seriesRef", "episodeRef"];
@@ -288,6 +325,8 @@ export async function handleCreatorExperienceRequest(
   if (methodAwareResource && method === "GET" && ["projectRef", "seriesRef", "episodeRef"].some((key) => !targetUrl.searchParams.has(key))) {
     return errorResponse(400, "invalid_request", "方法规划查询缺少项目范围。");
   }
+  if (imageVideo && method === "GET" && (["projectRef", "seriesRef", "episodeRef"].some(key => !targetUrl.searchParams.has(key)) ||
+      (pathParts.length === 5 && !/^[a-f0-9]{64}$/.test(targetUrl.searchParams.get("sha256") ?? "")))) return errorResponse(400, "invalid_request", "图片视频查询缺少准确项目范围或视频摘要。");
 
   const contentRequest = path.endsWith("/content");
   const headers = new Headers({
@@ -297,7 +336,7 @@ export async function handleCreatorExperienceRequest(
   let body: string | undefined;
   if (method !== "GET" && method !== "HEAD" && method !== "DELETE") {
     try {
-      const input = await readMutationBody(request);
+      const input: Record<string, unknown> = imageVideo ? await readImageVideoBody(request) : await readMutationBody(request);
       delete input.workspaceRef;
       delete input.contentProfileRef;
       delete input.tenantId;
@@ -345,7 +384,7 @@ export async function handleCreatorExperienceRequest(
 
   const responseContentType = response.headers.get("content-type") ?? "";
   if (response.ok && !responseContentType.toLowerCase().includes("application/json")) {
-    if (!contentRequest || !responseContentType.toLowerCase().startsWith("video/")) {
+    if (!contentRequest || !responseContentType.toLowerCase().startsWith("video/") || (imageVideo && responseContentType.split(";")[0].trim().toLowerCase() !== "video/mp4")) {
       return errorResponse(502, "invalid_core_response", "Core 返回了无法识别的响应。")
     }
     const outgoingHeaders = new Headers({
@@ -385,6 +424,14 @@ export async function handleCreatorExperienceRequest(
   if (generation && method === "GET" && response.ok && (payload as { ok: boolean }).ok) {
     try { parseGenerationWorkspace(payload, { productionRunRef: pathParts[1], projectRef: targetUrl.searchParams.get("projectRef") ?? "", seriesRef: targetUrl.searchParams.get("seriesRef") ?? "", episodeRef: targetUrl.searchParams.get("episodeRef") ?? "" }); }
     catch { return errorResponse(502, "invalid_generation_response", "无法验证生成状态及项目血缘。"); }
+  }
+  if (imageVideo && response.ok) {
+    try {
+      const command = body ? JSON.parse(body) : null;
+      const scope = { productionRunRef: pathParts[1], projectRef: command?.projectRef ?? targetUrl.searchParams.get("projectRef") ?? "", seriesRef: command?.seriesRef ?? targetUrl.searchParams.get("seriesRef") ?? "", episodeRef: command?.episodeRef ?? targetUrl.searchParams.get("episodeRef") ?? "" };
+      if (method === "GET" && pathParts.length === 3) parseImageVideoWorkspace(payload, scope);
+      else parseImageVideoGeneration(payload, scope, pathParts.length === 4 ? pathParts[3] : undefined);
+    } catch { return errorResponse(502, "invalid_image_video_response", "无法验证图片视频作业、策略或项目血缘。"); }
   }
 
   return Response.json(payload, {

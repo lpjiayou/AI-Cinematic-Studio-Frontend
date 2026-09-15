@@ -63,8 +63,11 @@ const protectedFiles = {
 // Preserve the historical Wave 1C hashes above. The Project Lead's 2026-09-15
 // D1 publication authorizes only the generation adapter and exact Core pin move.
 // These two replacement blobs remain pinned; every other protected byte stays frozen.
+// The subsequent explicit image + description contract/implementation authority
+// extends only the same adapter with the bounded technical-input route. Its Git
+// blob (LF) remains pinned; this is not a waiver of the historical UI boundaries.
 const authorizedD1CompatibilityFiles = {
-  "src/features/core-integration/experience-adapter.ts": "56c4fa1a7bbe89c9ef200acb8117bd31f7b8ecdd2331fdc7ec54d9251a2cddbe",
+  "src/features/core-integration/experience-adapter.ts": "449a399d134389245a825ecc0647c0e48987c43a469aa32244e82304d4d55b34",
   ".github/workflows/frontend-ci.yml": "88cbddecef18fdc81a8ad00c8547f519b7a8478730f535415457dc9818f2f093",
 };
 
