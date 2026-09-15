@@ -1,6 +1,6 @@
 # Frontend/Core Cross-Repository Baseline
 
-Status: `CURRENT / BOUNDED D1 COMPATIBILITY PUBLICATION`
+Status: `CURRENT / BOUNDED IMAGE-VIDEO COMPATIBILITY PUBLICATION`
 
 Reviewed: `2026-09-15`; the original M13 and Frontend acceptance records below retain their historical scope.
 
@@ -16,8 +16,8 @@ M13_BASE_TAG_TARGET=a455c8e76427d53d75bb7f15259b9875d9768914
 FRONTEND_MAIN=a0be9edc91437bf0e7c5dd14883e656e750b3aee
 FRONTEND_TREE=c25b9e3744d561c93fed26d0a07e59a1915a6071
 
-FRONTEND_CI_CORE_PIN_SHA=06a28c8de086a30db2d33b28f1ee34b7890973ac
-FRONTEND_CI_CORE_PIN_TREE=a6cbc9b431c9ff1ff65d5261448e3259721c0eea
+FRONTEND_CI_CORE_PIN_SHA=94ad9839c9037ff4beaa007cf2962b32819251e8
+FRONTEND_CI_CORE_PIN_TREE=e86992691352e5e84f23a2d72a7c1774a604aa4d
 ```
 
 Documentation-only merges may advance `main`. The accepted annotated tag remains
@@ -25,6 +25,10 @@ immutable. The 2026-09-02 documentation wave did not change the Frontend CI pin.
 The Owner separately authorized the D1 Core/Frontend publication and existing SH09
 read-only UI binding on 2026-09-15. Its compatibility pin uses the actual published
 Core behavior below; this is not a new M13 acceptance or production permission.
+The subsequent bounded authorization covers the image-plus-description contract,
+publication and deployment of its existing-Operator integration, a finite host policy
+and one independent UI generation. The pin now targets the published Core PR #101;
+Frontend required checks and the real UI result must still establish their own facts.
 
 ## 2. Pin meaning
 
@@ -43,9 +47,15 @@ The first field below records the original documentation wave, not the D1 pin mo
 ```text
 FRONTEND_PIN_CHANGED=false
 FRONTEND_PIN_PROVES_PRODUCT_COMPLETION=false
-D1_CORE_COMPATIBILITY_PIN_MOVE=OWNER_AUTHORIZED_PENDING_CROSS_REPOSITORY_CHECKS
+D1_CORE_COMPATIBILITY_PIN_MOVE=PUBLISHED
 D1_EXISTING_SH09_BINDING=READ_ONLY_AUTHORIZED
-D1_NEW_GENERATION=NOT_AUTHORIZED
+D1_ORIGINAL_SH09_RESUBMISSION=NOT_AUTHORIZED
+IMAGE_VIDEO_CORE_PIN_MOVE=OWNER_AUTHORIZED_PENDING_CROSS_REPOSITORY_CHECKS
+IMAGE_VIDEO_PUBLICATION=OWNER_AUTHORIZED_PENDING_REQUIRED_CHECKS
+IMAGE_VIDEO_DEPLOYMENT=AUTHORIZED_PENDING_PUBLISHED_CANDIDATE
+IMAGE_VIDEO_LIVE_CHECK=ONE_UI_JOB_AUTHORIZED_NOT_EXECUTED
+IMAGE_VIDEO_AUTOMATIC_RETRY=false
+IMAGE_VIDEO_PUBLICATION_ALLOWED=false
 ```
 
 ## 3. Current M12/M13 truth
@@ -70,5 +80,7 @@ M13_PUBLICATION=NOT_AUTHORIZED
 
 The next legal project boundary recorded after the original documentation-governance wave was
 `LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT`. It does not authorize C3 execution.
-The current bounded D1 task is compatibility publication followed by existing-job
-status and playback binding. It does not advance the separate M12/M13 work.
+The current bounded task is image-plus-description compatibility publication,
+finite-policy deployment and one independent UI Job using the existing Operator.
+The original SH09 Job remains read-only and no real generation result is predeclared.
+This task does not advance the separate M12/M13 work.

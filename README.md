@@ -7,8 +7,8 @@ Independent Next.js commercial experience layer for AI Cinematic Studio.
 ```text
 FRONTEND_BEHAVIOR_COMMIT=a0be9edc91437bf0e7c5dd14883e656e750b3aee
 FRONTEND_BEHAVIOR_TREE=c25b9e3744d561c93fed26d0a07e59a1915a6071
-FRONTEND_CI_CORE_PIN_SHA=06a28c8de086a30db2d33b28f1ee34b7890973ac
-FRONTEND_CI_CORE_PIN_TREE=a6cbc9b431c9ff1ff65d5261448e3259721c0eea
+FRONTEND_CI_CORE_PIN_SHA=94ad9839c9037ff4beaa007cf2962b32819251e8
+FRONTEND_CI_CORE_PIN_TREE=e86992691352e5e84f23a2d72a7c1774a604aa4d
 CORE_M13_BASE_TAG=m13-base-backend-v1
 CORE_M13_BASE_TAG_OBJECT=b2d086b622bdb5456f6af325e458aa3771e43e80
 CORE_M13_BASE_TAG_TARGET=a455c8e76427d53d75bb7f15259b9875d9768914
@@ -171,10 +171,17 @@ variables remain server-only; never add a `NEXT_PUBLIC_*` equivalent.
 ## Next legal project boundary
 
 ```text
-NEXT_TASK=ACS-CORE-PUBLIC-INPUT-AND-SCOPE-HARDENING
+NEXT_TASK=IMAGE_VIDEO_PUBLICATION_DEPLOYMENT_AND_ONE_UI_RUN
+DEFERRED_TASK=ACS-CORE-PUBLIC-INPUT-AND-SCOPE-HARDENING
 OLD_WAVE_1D_COMMAND=SUPERSEDED_NOT_EXECUTED
 INDEPENDENT_M12_BOUNDARY=LOCAL_WSL2_HANDOFF_AND_M12_C3_PREFLIGHT
 ```
+
+The current bounded task publishes the image-plus-description UI and its exact Core
+pin, deploys the existing Operator integration with a finite host policy, and verifies
+one authorized independent UI Job. Existing SH09 playback remains unchanged; no
+automatic resend, production admission, Master/Export or publication is authorized.
+Required checks and the actual live result remain separate evidence gates.
 
 Core public input and scope hardening requires separate authorization, followed by
 rewritten Wave 1D and then Wave 2B. None starts as part of Production Truth Closure.

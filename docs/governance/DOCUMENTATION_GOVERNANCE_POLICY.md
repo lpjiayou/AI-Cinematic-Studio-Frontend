@@ -80,8 +80,8 @@ may map those facts to a product surface, but cannot upgrade `UNVERIFIED`,
 The current Frontend CI pin is:
 
 ```text
-CORE_PIN_SHA=06a28c8de086a30db2d33b28f1ee34b7890973ac
-CORE_PIN_TREE=a6cbc9b431c9ff1ff65d5261448e3259721c0eea
+CORE_PIN_SHA=94ad9839c9037ff4beaa007cf2962b32819251e8
+CORE_PIN_TREE=e86992691352e5e84f23a2d72a7c1774a604aa4d
 ```
 
 It is a tested Core behavior dependency. It does not prove complete M12/M13 Frontend
@@ -89,7 +89,10 @@ product surfaces, M14/M15, live production or publication. The original 2026-09-
 documentation wave did not change the pin. The Owner's 2026-09-15 D1 publication
 authorization separately permits the narrow compatibility move for the new Core
 generation adapter, subject to the existing cross-repository gates. No required
-check, historical M13 acceptance or production boundary is changed.
+check, historical M13 acceptance or production boundary is changed. The subsequent
+bounded image-plus-description publication authorization advances this exact pin to
+Core PR #101 and preserves the existing Operator, finite cost limits, at-most-once
+submission and non-publishing result boundary. It does not infer live success from CI.
 
 ## 5. Historical and superseded material
 

@@ -4,9 +4,9 @@ Status: `CURRENT CORE BEHAVIOR MAPPING / FRONTEND PRODUCT SURFACE PARTIAL`
 
 Reviewed baseline: Frontend `a0be9edc91437bf0e7c5dd14883e656e750b3aee`; Core
 accepted behavior tag `m13-base-backend-v1` at
-`a455c8e76427d53d75bb7f15259b9875d9768914`. The bounded D1 compatibility publication
-pins Core `06a28c8de086a30db2d33b28f1ee34b7890973ac`, tree
-`a6cbc9b431c9ff1ff65d5261448e3259721c0eea`, without changing that historical acceptance.
+`a455c8e76427d53d75bb7f15259b9875d9768914`. The bounded image-video compatibility publication
+pins Core `94ad9839c9037ff4beaa007cf2962b32819251e8`, tree
+`e86992691352e5e84f23a2d72a7c1774a604aa4d`, without changing that historical acceptance.
 
 Pin compatibility and a public route mapping do not prove a complete Frontend product
 surface. The current cross-repository truth is recorded in
@@ -63,8 +63,8 @@ On 2026-09-15 the Project Lead accepted the technical SH09 video and authorized
 the existing UI → authenticated Core API → original Operator integration, including
 the minimal ADR-0022 section 6.3 amendment. The Owner subsequently authorized
 Core/Frontend code publication and binding the existing successful SH09 Job for
-read-only status and playback. No additional live submission or media publication
-is authorized. The deployed playback host has no allowed writer credential.
+read-only status and playback. That initial authorization did not allow another SH09
+submission or media publication. The original playback binding remains read-only.
 
 `/creator/projects/{projectRef}/generation` consumes only the existing run list and
 `episode-production-runs/{runRef}/generation` GET/POST plus GET `generation/content`
@@ -92,6 +92,33 @@ two exact D1 replacements: the generation adapter and the authorized Core CI pin
 The other thirteen protected files, method-aware branches and browser assertions
 remain unchanged. Its evidence explicitly reports the pin delta instead of
 claiming zero change against the historical Wave 1C baseline.
+
+### Image plus description — bounded independent Job
+
+The subsequent Project Lead authorization accepts the narrow ADR-0022 dependent
+contract revision and permits publication/deployment, a finite host policy and one
+real UI verification Job. It does not authorize resubmitting the original SH09 Job.
+The same Generation workspace provides an 8 MB PNG/JPEG input, at most 1,000
+description characters, the displayed per-Job cost limit, status and result playback.
+
+The same-origin resource is
+`/api/creator/episode-production-runs/{runRef}/image-video-generations`. GET returns
+the bound policy and durable history; POST accepts only Project/Series/Episode refs,
+description, image bytes/media type, an idempotency key and the expected policy digest.
+GET of `/{generationRef}` reads that Job, and `/{generationRef}/content` serves its
+verified artifact. The server-only Adapter preserves Core authentication and scope;
+the browser cannot supply Workspace, policy, Grant, GPU or private storage authority.
+
+Core creates a distinct Job through the original Operator and evidence journal.
+Normalizing an uploaded image does not change the original SH09 input or result.
+Success remains 704 x 1280, 48 frames at 24 fps, two seconds and
+`TECHNICAL_EVIDENCE_ONLY / publicationAllowed=false`. A failed or ambiguous request
+does not automatically retry. Refresh reads the original new Job instead of sending
+another POST, and UI double clicks cannot create a second request.
+
+CPU/fixture-owned loopback and browser checks establish the implementation wiring;
+the separately authorized live UI run must provide its own result evidence. Neither
+the Core pin nor a frontend build predeclares deployment, live success or publication.
 
 ### Production history and stale truth
 
