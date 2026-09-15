@@ -45,9 +45,9 @@
 .environmentItem { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 4px; align-items: center; min-width: 0; padding: 11px 12px; border: 1px solid var(--acs-border); border-radius: 9px; background: var(--acs-surface-deep); }
 .environmentItem strong { grid-column: 2; color: var(--acs-text-primary); font-size: 13px; overflow-wrap: anywhere; }
 .environmentLabel { color: var(--acs-text-secondary); font-size: 12px; }
-.environmentDot { width: 8px; height: 8px; border-radius: 999px; background: var(--acs-text-muted); box-shadow: 0 0 0 3px rgba(148, 163, 184, .08); }
-.environmentItem[data-state="CONNECTED"] .environmentDot, .environmentItem[data-state="READY"] .environmentDot, .environmentItem[data-state="IDLE"] .environmentDot { background: var(--acs-primary); box-shadow: 0 0 0 3px rgba(34, 209, 182, .12); }
-.environmentItem[data-state="BUSY"] .environmentDot { background: var(--acs-warning); box-shadow: 0 0 0 3px rgba(245, 158, 11, .12); }
+.environmentDot { width: 8px; height: 8px; border-radius: 999px; background: var(--acs-text-muted); box-shadow: 0 0 0 3px var(--acs-info-soft); }
+.environmentItem[data-state="CONNECTED"] .environmentDot, .environmentItem[data-state="READY"] .environmentDot, .environmentItem[data-state="IDLE"] .environmentDot { background: var(--acs-primary); box-shadow: 0 0 0 3px var(--acs-primary-soft); }
+.environmentItem[data-state="BUSY"] .environmentDot { background: var(--acs-warning); box-shadow: 0 0 0 3px var(--acs-accent-soft); }
 .environmentItem[data-state="UNAVAILABLE"] .environmentDot, .environmentItem[data-state="DISCONNECTED"] .environmentDot { background: var(--acs-danger); box-shadow: 0 0 0 3px var(--acs-danger-soft); }
 .environmentMessage { margin-top: 10px; color: var(--acs-warning); }
 @media (max-width: 1100px) { .layout { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); } .panel:last-child { grid-column: 1 / -1; } }
