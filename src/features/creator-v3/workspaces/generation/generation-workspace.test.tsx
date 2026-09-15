@@ -4,13 +4,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GenerationWorkspace } from "./generation-workspace";
 import type { GenerationView } from "@/features/core-integration/generation-workspace-client";
 
-const api = vi.hoisted(() => ({ runs: vi.fn(), read: vi.fn(), start: vi.fn() }));
+const api = vi.hoisted(() => ({ runs: vi.fn(), read: vi.fn(), start: vi.fn(), environment: vi.fn() }));
 vi.mock("@/features/core-integration/browser-client", () => ({ creatorRequest: api.runs }));
 vi.mock("@/features/core-integration/generation-workspace-client", async importOriginal => ({ ...(await importOriginal<object>()), readGeneration: api.read, startGeneration: api.start }));
-vi.mock("@/features/core-integration/image-video-client", async importOriginal => ({ ...(await importOriginal<object>()), readImageVideoWorkspace: async (scope: object) => ({ schemaVersion: "creator.image-video-workspace.v1", ...scope, policy: null, available: false, reason: "service_unavailable", generations: [] }) }));
+vi.mock("@/features/core-integration/image-video-client", async importOriginal => ({ ...(await importOriginal<object>()), readImageVideoWorkspace: async (scope: object) => ({ schemaVersion: "creator.image-video-workspace.v1", ...scope, policy: null, available: false, reason: "service_unavailable", generations: [] }), readRuntimeEnvironment: api.environment }));
 const view: GenerationView = { schemaVersion: "creator.generation-workspace.v1", workspaceRef: "workspace-test", projectRef: "project-test", seriesRef: "series-test", episodeRef: "episode-test", productionRunRef: "run-test", mediaJobRef: "job-test", jobRevision: 1, approvedPlanDigest: "a".repeat(64), creativeShotVersionRef: "shot-v1", beatRef: "beat-test", state: "QUEUED", attemptCount: 0, activity: "IDLE", errorCode: null, artifact: null, canPrepare: true, canExecute: true, publicationAllowed: false, automaticRetryAllowed: false };
-beforeEach(() => { vi.clearAllMocks(); api.runs.mockResolvedValue({ ok: true, runs: [view, { ...view, projectRef: "other", productionRunRef: "other-run" }] }); api.read.mockResolvedValue(view); api.start.mockResolvedValue(undefined); });
+beforeEach(() => { vi.clearAllMocks(); api.runs.mockResolvedValue({ ok: true, runs: [view, { ...view, projectRef: "other", productionRunRef: "other-run" }] }); api.read.mockResolvedValue(view); api.start.mockResolvedValue(undefined); api.environment.mockResolvedValue({ schemaVersion: "creator.runtime-environment.v1", projectRef: view.projectRef, seriesRef: view.seriesRef, episodeRef: view.episodeRef, productionRunRef: view.productionRunRef, observedAt: "2026-09-15T10:00:00Z", core: "CONNECTED", operator: "READY", gpu: "CONNECTED", comfyui: "CONNECTED", queue: { state: "IDLE", runningCount: 0, pendingCount: 0 }, readOnly: true }); });
 describe("generation workspace", () => {
+  it("shows five read-only environment states and refreshes without starting work", async () => {
+    const user = userEvent.setup(); render(<GenerationWorkspace projectRef="project-test" />);
+    for (const label of ["Core：已连接", "Operator：就绪", "GPU：已连接", "ComfyUI：已连接", "Queue：空闲"]) {
+      expect(await screen.findByLabelText(label)).toBeVisible();
+    }
+    expect(screen.getByText(/不会发起生成或签发 Grant/)).toBeVisible();
+    expect(api.start).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "刷新运行环境" }));
+    await waitFor(() => expect(api.environment).toHaveBeenCalledTimes(2));
+    expect(api.start).not.toHaveBeenCalled();
+  });
   it("does not start on load and requires a separate explicit confirmation", async () => {
     const user = userEvent.setup(); render(<GenerationWorkspace projectRef="project-test" />);
     await screen.findByRole("button", { name: "执行已批准作业" });

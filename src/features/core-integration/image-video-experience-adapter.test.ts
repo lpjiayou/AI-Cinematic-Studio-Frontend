@@ -9,6 +9,7 @@ const query = new URLSearchParams(scope).toString();
 const generation = { schemaVersion: "creator.image-video-generation.v1", ...scope, productionRunRef: "run-one", generationRef: "generation-one", mediaJobRef: null, state: "PREPARING", attemptCount: 0, description: "人物转头", inputSha256: "a".repeat(64), createdAt: "2026-09-15T09:00:00Z", errorCode: null, artifact: null, publicationAllowed: false, automaticRetryAllowed: false };
 const command = { ...scope, description: "人物转头", imageBase64: "aGVsbG8=", imageMediaType: "image/png", idempotencyKey: "00000000-0000-4000-8000-000000000001", expectedPolicyDigest: "b".repeat(64) };
 const workspace = { schemaVersion: "creator.image-video-workspace.v1", ...scope, productionRunRef: "run-one", policy: null, available: false, reason: "service_unavailable", generations: [generation] };
+const environment = { schemaVersion: "creator.runtime-environment.v1", ...scope, productionRunRef: "run-one", observedAt: "2026-09-15T10:00:00Z", core: "CONNECTED", operator: "READY", gpu: "CONNECTED", comfyui: "CONNECTED", queue: { state: "IDLE", runningCount: 0, pendingCount: 0 }, readOnly: true };
 function post(body: unknown, headers: Record<string, string> = {}) { return new Request(url, { method: "POST", headers: { "Content-Type": "application/json", Origin: "http://frontend.test", ...headers }, body: JSON.stringify(body) }); }
 beforeEach(() => { vi.stubEnv("CREATOR_CORE_TOKEN", "fixture-only-server-token"); vi.stubEnv("CREATOR_CORE_BASE_URL", "http://core.test:8765"); });
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
@@ -53,6 +54,20 @@ describe("image-video same-origin bounded ExperienceAdapter", () => {
       expect(result.status).toBe(502); expect(await result.text()).not.toContain("privatePath");
     }
     expect(fetch).toHaveBeenCalledTimes(5);
+  });
+  it("forwards only the authenticated read-only runtime environment projection", async () => {
+    const environmentPath = [...path, "runtime-environment"];
+    const environmentUrl = `${url}/runtime-environment?${query}`;
+    const fetch = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(Response.json({ ok: true, environment }))
+      .mockResolvedValueOnce(Response.json({ ok: true, environment: { ...environment, endpoint: "http://private" } }));
+    const response = await handleCreatorExperienceRequest(new Request(environmentUrl), environmentPath);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, environment });
+    expect(String(fetch.mock.calls[0][0])).toBe(`http://core.test:8765/creator/api/v1/episode-production-runs/run-one/image-video-generations/runtime-environment?${query}`);
+    expect((await handleCreatorExperienceRequest(new Request(environmentUrl), environmentPath)).status).toBe(502);
+    expect((await handleCreatorExperienceRequest(new Request(environmentUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }), environmentPath)).status).toBe(404);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
   it("closes GET query and streams only scoped mp4 bytes", async () => {
     const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(new Uint8Array([1, 2]), { headers: { "Content-Type": "video/mp4" } }));
