@@ -1,9 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
 
 import {
   EXPECTED_NEXT_RSC_ABORT,
@@ -25,11 +25,8 @@ const seriesRef = process.env.K2_CONTROL_PLANE_SERIES_REF;
 const episodeRef = process.env.K2_CONTROL_PLANE_EPISODE_REF;
 const browserChannel = process.env.K2_CONTROL_PLANE_BROWSER_CHANNEL;
 const browserExecutable = process.env.K2_CONTROL_PLANE_BROWSER_EXECUTABLE;
-
-if (!projectRef || !seriesRef || !episodeRef) {
-  throw new Error("Wave 1C requires projectRef, seriesRef and episodeRef from the live control-plane fixture");
-}
-fs.mkdirSync(artifactRoot, { recursive: true });
+const runAsEntry = Boolean(process.argv[1])
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 const projectNavigationOrder = ["概览", "故事", "剧本", "角色", "分镜", "生成", "音频", "剪辑", "审片", "交付"];
 const screenshotNames = [
@@ -63,10 +60,25 @@ const protectedFiles = {
 // Preserve the historical Wave 1C hashes above. The Project Lead's 2026-09-15
 // D1 publication authorizes only the generation adapter and exact Core pin move.
 // These two replacement blobs remain pinned; every other protected byte stays frozen.
+// The subsequent explicit image + description contract/implementation authority
+// extends only the same adapter with the bounded technical-input route. Its Git
+// blob (LF) remains pinned; this is not a waiver of the historical UI boundaries.
+// Its publication pins the merged Core PR #101 via the same workflow fields.
 const authorizedD1CompatibilityFiles = {
-  "src/features/core-integration/experience-adapter.ts": "56c4fa1a7bbe89c9ef200acb8117bd31f7b8ecdd2331fdc7ec54d9251a2cddbe",
-  ".github/workflows/frontend-ci.yml": "88cbddecef18fdc81a8ad00c8547f519b7a8478730f535415457dc9818f2f093",
+  "src/features/core-integration/experience-adapter.ts": "449a399d134389245a825ecc0647c0e48987c43a469aa32244e82304d4d55b34",
+  ".github/workflows/frontend-ci.yml": "b98968373b64f0c3ca85f694e8d5a23da4a43c6e5b1ba2e2147fe4aac6c8d3fd",
 };
+
+// Accepted technical-input contract: storage is only a pending-request safety
+// latch; the UUID is only an idempotency key, never a Domain Ref. This exception
+// is closed to two tokens in one exact LF blob, not a workspace-wide permission.
+export function isApprovedPendingRequestToken(relativePath, source, token) {
+  if (relativePath !== "src/features/creator-v3/workspaces/generation/image-video-composer.tsx"
+    || typeof source !== "string"
+    || !["sessionStorage", "crypto.randomUUID"].includes(token)) return false;
+  return createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex")
+    === "72a02095dad9baeb38f2e444cc98d465e4c43be5697d98e096065f67302030e1";
+}
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -155,7 +167,9 @@ function assertStaticBoundaries() {
   for (const filePath of productionFiles) {
     const source = fs.readFileSync(filePath, "utf8");
     for (const token of forbidden) {
-      assert(!source.includes(token), `${path.relative(frontendRoot, filePath)} contains forbidden token ${token}`);
+      const relativePath = path.relative(frontendRoot, filePath).split(path.sep).join("/");
+      assert(!source.includes(token) || isApprovedPendingRequestToken(relativePath, source, token),
+        `${relativePath} contains forbidden token ${token}`);
     }
     if (filePath.endsWith(".css")) {
       assert(!/(?:#[\da-f]{3,8}|rgba?\(|hsla?\()/i.test(source), `${path.relative(frontendRoot, filePath)} contains a raw color`);
@@ -237,12 +251,16 @@ function assertNoOrdinaryRefs(text, label) {
   }
 }
 
-const staticBoundary = assertStaticBoundaries();
-const launchOptions = { headless: true };
-if (browserChannel) launchOptions.channel = browserChannel;
-if (browserExecutable) launchOptions.executablePath = browserExecutable;
-
-(async () => {
+async function runBrowserGate() {
+  if (!projectRef || !seriesRef || !episodeRef) {
+    throw new Error("Wave 1C requires projectRef, seriesRef and episodeRef from the live control-plane fixture");
+  }
+  fs.mkdirSync(artifactRoot, { recursive: true });
+  const staticBoundary = assertStaticBoundaries();
+  const launchOptions = { headless: true };
+  if (browserChannel) launchOptions.channel = browserChannel;
+  if (browserExecutable) launchOptions.executablePath = browserExecutable;
+  const { chromium } = createRequire(import.meta.url)("playwright");
   const browser = await chromium.launch(launchOptions);
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   const page = await context.newPage();
@@ -646,7 +664,11 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
   } finally {
     await browser.close();
   }
-})().catch((error) => {
-  console.error(error?.stack ?? String(error));
-  process.exitCode = 1;
-});
+}
+
+if (runAsEntry) {
+  runBrowserGate().catch((error) => {
+    console.error(error?.stack ?? String(error));
+    process.exitCode = 1;
+  });
+}

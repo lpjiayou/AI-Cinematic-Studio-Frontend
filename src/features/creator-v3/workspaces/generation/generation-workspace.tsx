@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { creatorRequest } from "@/features/core-integration/browser-client";
 import { generationContentUrl, readGeneration, startGeneration, type GenerationScope, type GenerationView } from "@/features/core-integration/generation-workspace-client";
 import styles from "./generation-workspace.module.css";
+import { ImageVideoComposer } from "./image-video-composer";
 
 const labels = { QUEUED: "等待执行", LEASED: "作业已领取", RUNNING: "正在生成", SUCCEEDED: "生成成功", FAILED: "生成失败", CANCELLED: "已取消", UNKNOWN: "提交结果待核实" };
 export function GenerationWorkspace({ projectRef }: { projectRef: string }) {
@@ -70,12 +71,13 @@ function ProjectGenerationWorkspace({ projectRef }: { projectRef: string }) {
   return <section className={styles.workspace} aria-labelledby="generation-title">
     <header className={styles.header}><div><p className={styles.eyebrow}>项目工作区</p><h1 id="generation-title">视频生成</h1><p>原生成作业 · 状态追踪 · 结果播放</p></div>
       <button onClick={() => void refresh(requestScope.current?.signal)} disabled={!scope}>刷新状态</button></header>
+    {scope && <ImageVideoComposer scope={scope} />}
     <div className={styles.layout}>
       <aside className={styles.panel}><h2>制作记录</h2><label htmlFor="generation-run">选择单集作业</label>
         <select id="generation-run" value={selected} onChange={e => { setSelected(e.target.value); setView(null); setConfirming(false); setError(""); }} disabled={!runs.length || !!active}>
           {!runs.length && <option value="">暂无制作记录</option>}
           {runs.map(r => <option key={r.productionRunRef} value={r.productionRunRef}>{r.episodeRef}</option>)}
-        </select><p className={styles.muted}>只显示当前项目的真实 Core 记录。不会自动创建、批准或重试生成任务。</p></aside>
+        </select><p className={styles.muted}>只显示当前项目的真实 Core 记录。新作业仅由明确点击生成创建，不会自动重试。</p></aside>
       <article className={styles.panel}>
         {loading && <p role="status">正在读取项目制作记录…</p>}
         {!loading && !runs.length && !error && <p>当前项目尚无可读取的制作记录。请先完成剧本和镜头输入。</p>}
