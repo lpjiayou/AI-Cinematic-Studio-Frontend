@@ -87,6 +87,12 @@ Deployment playback verification uses the original successful Job and artifact
 digest, not a copied fixture or a newly generated video.
 All results remain `TECHNICAL_EVIDENCE_ONLY / publicationAllowed=false`.
 
+The Wave 1C regression preserves its original protected-file hashes and records
+two exact D1 replacements: the generation adapter and the authorized Core CI pin.
+The other thirteen protected files, method-aware branches and browser assertions
+remain unchanged. Its evidence explicitly reports the pin delta instead of
+claiming zero change against the historical Wave 1C baseline.
+
 ### Production history and stale truth
 
 The [Production Truth Closure](status/FRONTEND_PRODUCTION_TRUTH_CLOSURE_2026-09-05.md)
