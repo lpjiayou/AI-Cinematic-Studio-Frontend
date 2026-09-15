@@ -385,7 +385,10 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     for (const [id, href] of Object.entries(expectedAvailable)) {
       assert(await projectNavigation.locator(`[data-destination-id="${id}"]`).getAttribute("href") === href, `${id} migration href changed`);
     }
-    for (const id of ["storyboard", "generation", "audio", "timeline"]) {
+    const generationDestination = projectNavigation.locator('[data-destination-id="generation"]');
+    assert(await generationDestination.getAttribute("data-availability") === "available", "generation is not available");
+    assert(await generationDestination.getAttribute("href") === `${projectRoot}/generation`, "generation href changed");
+    for (const id of ["storyboard", "audio", "timeline"]) {
       assert(await projectNavigation.locator(`[data-destination-id="${id}"]`).getAttribute("data-availability") === "blocked", `${id} is not blocked`);
     }
     const compatibilityLink = page.getByRole("link", { name: /查看历史兼容生产记录/ });
@@ -466,7 +469,10 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     await openAndCloseDrawer("打开项目导航", "项目导航", screenshotNames[5], async (dialog) => {
       const navigation = dialog.getByRole("navigation", { name: "移动端项目导航" });
       assert(await navigation.getByRole("link").count() === 10, "mobile project navigation count changed");
-      for (const id of ["storyboard", "generation", "audio", "timeline"]) {
+      const generationDestination = navigation.locator('[data-destination-id="generation"]');
+      assert(await generationDestination.getAttribute("data-availability") === "available", "mobile generation is not available");
+      assert(await generationDestination.getAttribute("href") === `${projectRoot}/generation`, "mobile generation href changed");
+      for (const id of ["storyboard", "audio", "timeline"]) {
         assert(await navigation.locator(`[data-destination-id="${id}"]`).getAttribute("data-availability") === "blocked", `mobile ${id} reason is not discoverable`);
       }
     });

@@ -4,8 +4,9 @@ Status: `CURRENT CORE BEHAVIOR MAPPING / FRONTEND PRODUCT SURFACE PARTIAL`
 
 Reviewed baseline: Frontend `a0be9edc91437bf0e7c5dd14883e656e750b3aee`; Core
 accepted behavior tag `m13-base-backend-v1` at
-`a455c8e76427d53d75bb7f15259b9875d9768914`. The existing Frontend CI behavior pin
-remains `e21789d265c4e936b0e0b29921746a4c205889b8`; this document does not move it.
+`a455c8e76427d53d75bb7f15259b9875d9768914`. The bounded D1 compatibility publication
+pins Core `06a28c8de086a30db2d33b28f1ee34b7890973ac`, tree
+`a6cbc9b431c9ff1ff65d5261448e3259721c0eea`, without changing that historical acceptance.
 
 Pin compatibility and a public route mapping do not prove a complete Frontend product
 surface. The current cross-repository truth is recorded in
@@ -55,6 +56,42 @@ mints a source-plan identity. Project, Series, Episode, Script and version refer
 likewise come only from successful Core responses.
 
 ## UI states
+
+### D1 bounded generation workspace — authorized publication candidate
+
+On 2026-09-15 the Project Lead accepted the technical SH09 video and authorized
+the existing UI → authenticated Core API → original Operator integration, including
+the minimal ADR-0022 section 6.3 amendment. The Owner subsequently authorized
+Core/Frontend code publication and binding the existing successful SH09 Job for
+read-only status and playback. No additional live submission or media publication
+is authorized. The deployed playback host has no allowed writer credential.
+
+`/creator/projects/{projectRef}/generation` consumes only the existing run list and
+`episode-production-runs/{runRef}/generation` GET/POST plus GET `generation/content`
+through the same-origin adapter. PREPARE and EXECUTE_APPROVED identify the host-bound
+original Job, expected revision and approved-plan digest. The browser cannot supply
+a Grant, GPU address, approval document or credential. A separate confirmation is
+required for execution; refresh and playback never execute, and UNKNOWN cannot retry.
+
+Core host composition `open_generation_workspace_server` opens the original D1
+deployment once, reuses its public participants, and disables unrelated mutations
+and receipt-store bootstrap. No second database, queue or generation engine is
+created. The host supplies the selected Job and explicit credential allowlist;
+missing binding returns 503 instead of fixture data. The video reader verifies the
+original successful Job and artifact bytes before serving them, without admission.
+
+CPU fixture-owned browser evidence proves wiring, not current GPU deployment.
+This compatibility publication pins the actual merged Core generation adapter;
+the existing browser gates still execute against that exact commit and tree.
+Deployment playback verification uses the original successful Job and artifact
+digest, not a copied fixture or a newly generated video.
+All results remain `TECHNICAL_EVIDENCE_ONLY / publicationAllowed=false`.
+
+The Wave 1C regression preserves its original protected-file hashes and records
+two exact D1 replacements: the generation adapter and the authorized Core CI pin.
+The other thirteen protected files, method-aware branches and browser assertions
+remain unchanged. Its evidence explicitly reports the pin delta instead of
+claiming zero change against the historical Wave 1C baseline.
 
 ### Production history and stale truth
 

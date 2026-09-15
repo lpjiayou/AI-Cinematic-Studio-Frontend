@@ -77,7 +77,7 @@ export type CreatorV3Route =
     }
   | {
       kind: "project";
-      destinationId: "overview" | "story" | "script" | "characters";
+      destinationId: "overview" | "story" | "script" | "characters" | "generation";
       projectRef: string;
     };
 
@@ -94,7 +94,7 @@ export function classifyCreatorRoute(pathname: string): CreatorRouteClassificati
     };
   }
 
-  const projectMatch = /^\/creator\/projects\/([^/]+)\/(overview|story|script|characters)$/.exec(pathname);
+  const projectMatch = /^\/creator\/projects\/([^/]+)\/(overview|story|script|characters|generation)$/.exec(pathname);
   if (!projectMatch) return { shell: "legacy" };
 
   try {
@@ -104,7 +104,7 @@ export function classifyCreatorRoute(pathname: string): CreatorRouteClassificati
       shell: "v3",
       route: {
         kind: "project",
-        destinationId: projectMatch[2] as "overview" | "story" | "script" | "characters",
+        destinationId: projectMatch[2] as "overview" | "story" | "script" | "characters" | "generation",
         projectRef,
       },
     };
@@ -160,10 +160,9 @@ export function buildProjectV3Destinations(
     {
       id: "generation",
       label: "生成",
-      description: "Method-aware Generation Studio",
-      availability: "blocked",
-      blockedReason: "Method-aware Generation Studio 尚未实施",
-      explanationHref: `${overviewRoot}#destination-generation`,
+      description: "原作业执行、进度与视频结果",
+      availability: "available",
+      href: `${projectRoot}/generation`,
     },
     {
       id: "audio",

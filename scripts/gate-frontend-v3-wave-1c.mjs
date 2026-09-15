@@ -60,6 +60,14 @@ const protectedFiles = {
   ".github/workflows/frontend-ci.yml": "73973667d0638aa9088839c8ce41fd3ea49fb64e6e36065b97cb9caa8ddd41db",
 };
 
+// Preserve the historical Wave 1C hashes above. The Project Lead's 2026-09-15
+// D1 publication authorizes only the generation adapter and exact Core pin move.
+// These two replacement blobs remain pinned; every other protected byte stays frozen.
+const authorizedD1CompatibilityFiles = {
+  "src/features/core-integration/experience-adapter.ts": "56c4fa1a7bbe89c9ef200acb8117bd31f7b8ecdd2331fdc7ec54d9251a2cddbe",
+  ".github/workflows/frontend-ci.yml": "88cbddecef18fdc81a8ad00c8547f519b7a8478730f535415457dc9818f2f093",
+};
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -84,7 +92,11 @@ function collectFiles(directory) {
 }
 
 function assertStaticBoundaries() {
-  for (const [relativePath, expectedHash] of Object.entries(protectedFiles)) {
+  for (const relativePath of Object.keys(authorizedD1CompatibilityFiles)) {
+    assert(Object.hasOwn(protectedFiles, relativePath), "D1 compatibility update exceeds the protected file set");
+  }
+  for (const [relativePath, historicalHash] of Object.entries(protectedFiles)) {
+    const expectedHash = authorizedD1CompatibilityFiles[relativePath] ?? historicalHash;
     const actualHash = sha256File(path.join(frontendRoot, relativePath));
     assert(actualHash === expectedHash, `${relativePath} changed across the Wave 1C protected boundary`);
   }
@@ -171,7 +183,9 @@ function assertStaticBoundaries() {
     protectedFileCount: Object.keys(protectedFiles).length,
     oldImplementationBodyDiff: 0,
     methodAwareAdapterDiff: 0,
-    corePinDiff: 0,
+    corePinDiff: 1,
+    authorizedCompatibilityBaseline: "D1_PUBLICATION_2026_09_15",
+    authorizedCompatibilityPaths: Object.keys(authorizedD1CompatibilityFiles),
   };
 }
 

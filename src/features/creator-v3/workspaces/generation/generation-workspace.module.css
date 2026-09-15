@@ -1,0 +1,27 @@
+.workspace { padding: 24px; color: var(--acs-text-primary); min-width: 0; }
+.header, .heading, .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.header { margin-bottom: 24px; }
+.workspace h1 { font-size: 26px; margin: 4px 0 8px; }
+.workspace h2 { font-size: 16px; margin: 0 0 16px; }
+.workspace p { line-height: 1.65; color: var(--acs-text-secondary); }
+.eyebrow { font-size: 12px; color: var(--acs-primary) !important; }
+.layout { display: grid; grid-template-columns: minmax(190px, 240px) minmax(0, 1fr) minmax(200px, 260px); gap: 20px; align-items: start; }
+.panel { background: var(--acs-surface-deep); border: 1px solid var(--acs-border); border-radius: 12px; padding: 20px; min-width: 0; }
+.workspace button, .workspace select { border: 1px solid var(--acs-border-strong); background: var(--acs-surface-hover); color: var(--acs-text-primary); border-radius: 8px; padding: 10px 14px; font: inherit; }
+.workspace button { cursor: pointer; }
+.workspace button:disabled { opacity: .45; cursor: not-allowed; }
+.workspace button:focus-visible, .workspace select:focus-visible { outline: 2px solid var(--acs-primary); outline-offset: 3px; }
+.workspace select { width: 100%; margin-top: 10px; }
+.primary { background: var(--acs-surface-selected) !important; border-color: var(--acs-primary) !important; }
+.badge { background: var(--acs-surface-selected); color: var(--acs-text-primary); border: 1px solid var(--acs-primary); padding: 6px 10px; border-radius: 20px; font-size: 12px; }
+.video { width: 100%; max-height: 64vh; display: block; background: var(--acs-media-stage); border-radius: 8px; }
+.empty { display: grid; place-content: center; text-align: center; min-height: 340px; background: var(--acs-media-stage); border-radius: 8px; padding: 24px; }
+.spec { text-align: center; font-size: 13px; }
+.actions { margin-top: 20px; justify-content: flex-start; }
+.muted, .workspace dt { color: var(--acs-text-muted) !important; font-size: 12px; }
+.workspace dd { margin: 6px 0 18px; font-size: 12px; overflow-wrap: anywhere; }
+.error { color: var(--acs-danger) !important; border: 1px solid var(--acs-danger); background: var(--acs-danger-soft); padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.confirm { margin-top: 16px; border: 1px solid var(--acs-primary); border-radius: 8px; padding: 16px; }
+.confirm button { margin-right: 10px; }
+@media (max-width: 1100px) { .layout { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); } .panel:last-child { grid-column: 1 / -1; } }
+@media (max-width: 700px) { .workspace { padding: 12px; } .layout { grid-template-columns: minmax(0, 1fr); } .panel { padding: 16px; } .empty { min-height: 220px; } }
