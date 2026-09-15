@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { test } from "vitest";
 
 import {
@@ -6,6 +8,7 @@ import {
   UNEXPECTED_REQUEST_FAILURE,
   classifyWave1BRequestFailure,
 } from "./gate-frontend-v3-wave-1b-request-policy.mjs";
+import { isApprovedPendingRequestToken } from "./gate-frontend-v3-wave-1c.mjs";
 
 const baseOrigin = "http://127.0.0.1:3101";
 
@@ -97,4 +100,64 @@ test("does not default unknown input to expected", () => {
     classifyWave1BRequestFailure({}).classification,
     UNEXPECTED_REQUEST_FAILURE,
   );
+});
+
+const pendingRequestPath = "src/features/creator-v3/workspaces/generation/image-video-composer.tsx";
+const pendingRequestSource = fs.readFileSync(path.join(process.cwd(), pendingRequestPath), "utf8");
+
+test("Wave 1C permits only the exact accepted pending-request blob and its two non-Domain tokens", () => {
+  for (const token of ["sessionStorage", "crypto.randomUUID"]) {
+    assert.equal(pendingRequestSource.includes(token), true);
+    assert.equal(isApprovedPendingRequestToken(pendingRequestPath, pendingRequestSource, token), true);
+  }
+});
+
+test("Wave 1C rejects an approved blob in an unknown file or workspace scope", () => {
+  for (const relativePath of [
+    "src/features/creator-v3/workspaces/story/image-video-composer.tsx",
+    "src/features/creator-v3/workspaces/generation/unknown.tsx",
+    `outside/${pendingRequestPath}`,
+    `/${pendingRequestPath}`,
+    "",
+  ]) {
+    for (const token of ["sessionStorage", "crypto.randomUUID"]) {
+      assert.equal(isApprovedPendingRequestToken(relativePath, pendingRequestSource, token), false);
+    }
+  }
+});
+
+test("Wave 1C rejects any changed content including a changed latch or an added byte", () => {
+  for (const source of [
+    `${pendingRequestSource}\n`,
+    `${pendingRequestSource}// added authority\n`,
+    pendingRequestSource.replace("acs-image-video-pending:", "domain-facts:"),
+    pendingRequestSource.replace("const idempotencyKey = crypto.randomUUID()", "const projectRef = crypto.randomUUID()"),
+  ]) {
+    assert.notEqual(source, pendingRequestSource);
+    for (const token of ["sessionStorage", "crypto.randomUUID"]) {
+      assert.equal(isApprovedPendingRequestToken(pendingRequestPath, source, token), false);
+    }
+  }
+});
+
+test("Wave 1C never exempts a third forbidden token even for the accepted blob", () => {
+  for (const token of [
+    "ConnectedStoryWorld", "ConnectedScriptStudio", "ConnectedCharacterStudio",
+    "StoryWorldPage", "CharacterStudioPage", "WorkspaceHomePage", "LOCAL_PROJECT_CLIENT_KEYS",
+    "getLocalProjectPresentation", "ConnectedProductionWorkspace", "NEXT_PUBLIC_CORE",
+    "axios", "localStorage", "executionMethod", "nanoid", "sessionStorage.setItem", "",
+  ]) assert.equal(isApprovedPendingRequestToken(pendingRequestPath, pendingRequestSource, token), false);
+  assert.equal(isApprovedPendingRequestToken(pendingRequestPath, `${pendingRequestSource}\nlocalStorage`, "sessionStorage"), false);
+});
+
+test("Wave 1C compares canonical LF content without accepting other content normalization", () => {
+  const lfSource = pendingRequestSource.replace(/\r\n/g, "\n");
+  assert.equal(isApprovedPendingRequestToken(pendingRequestPath, lfSource, "sessionStorage"), true);
+  assert.equal(isApprovedPendingRequestToken(pendingRequestPath, lfSource.replace(/\n/g, "\r\n"), "sessionStorage"), true);
+  assert.equal(isApprovedPendingRequestToken(pendingRequestPath, lfSource.replace(/\n/g, "\r"), "sessionStorage"), false);
+});
+
+test("Wave 1C fails closed for absent source or a token outside the closed vocabulary", () => {
+  assert.equal(isApprovedPendingRequestToken(pendingRequestPath, null, "sessionStorage"), false);
+  assert.equal(isApprovedPendingRequestToken(pendingRequestPath, pendingRequestSource, undefined), false);
 });
