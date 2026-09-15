@@ -5,7 +5,7 @@ import { AUDIO_TYPES, EXECUTION_METHOD_BY_CLASS, METHOD_AWARE_RESOURCES, METHOD_
 import { parseExecutionMethodPlan, parseExplicitAudioRequirementRoute, parseMethodAwareInputPlan, parseMethodAwareVideoRoute } from "./method-aware-validators";
 import { CreatorClientError } from "./browser-client";
 import { parseGenerationWorkspace } from "./generation-workspace-client";
-import { IMAGE_VIDEO_MAX_BYTES, parseImageVideoGeneration, parseImageVideoWorkspace, parseRuntimeEnvironment, validImageVideoCommand } from "./image-video-client";
+import { IMAGE_VIDEO_MAX_BYTES, parseImageVideoGeneration, parseImageVideoWorkspace, validImageVideoCommand } from "./image-video-client";
 
 const MAX_REQUEST_BYTES = 512_000;
 const CORE_PREFIX = "/creator/api/v1";
@@ -137,7 +137,6 @@ function shouldInjectContentProfile(path: string, method: string) {
 }
 
 function timeoutFor(path: string) {
-  if (path.endsWith("/image-video-generations/runtime-environment")) return 30_000;
   if (
     path.startsWith("episode-production-runs/") &&
     ["/media", "/preview", "/finalize"].some((suffix) => path.endsWith(suffix))
@@ -431,7 +430,6 @@ export async function handleCreatorExperienceRequest(
       const command = body ? JSON.parse(body) : null;
       const scope = { productionRunRef: pathParts[1], projectRef: command?.projectRef ?? targetUrl.searchParams.get("projectRef") ?? "", seriesRef: command?.seriesRef ?? targetUrl.searchParams.get("seriesRef") ?? "", episodeRef: command?.episodeRef ?? targetUrl.searchParams.get("episodeRef") ?? "" };
       if (method === "GET" && pathParts.length === 3) parseImageVideoWorkspace(payload, scope);
-      else if (method === "GET" && pathParts.length === 4 && pathParts[3] === "runtime-environment") parseRuntimeEnvironment(payload, scope);
       else parseImageVideoGeneration(payload, scope, pathParts.length === 4 ? pathParts[3] : undefined);
     } catch { return errorResponse(502, "invalid_image_video_response", "无法验证图片视频作业、策略或项目血缘。"); }
   }

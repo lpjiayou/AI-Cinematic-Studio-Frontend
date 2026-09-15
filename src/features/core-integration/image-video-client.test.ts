@@ -45,7 +45,7 @@ describe("image + description closed client contract", () => {
     expect(fetch.mock.calls[0][0]).toBe("/api/creator/episode-production-runs/run-one/image-video-generations?projectRef=project-one&seriesRef=series-one&episodeRef=episode-one");
     expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual(command);
     expect(fetch.mock.calls[2][0]).toContain("/image-video-generations/generation-one?");
-    expect(fetch.mock.calls[3][0]).toBe("/api/creator/episode-production-runs/run-one/image-video-generations/runtime-environment?projectRef=project-one&seriesRef=series-one&episodeRef=episode-one");
+    expect(fetch.mock.calls[3][0]).toBe("/api/creator/runtime-environment?projectRef=project-one&seriesRef=series-one&episodeRef=episode-one&productionRunRef=run-one");
     await expect(createImageVideoGeneration(scope, command)).rejects.toThrow("network failure");
     expect(fetch).toHaveBeenCalledTimes(5);
   });

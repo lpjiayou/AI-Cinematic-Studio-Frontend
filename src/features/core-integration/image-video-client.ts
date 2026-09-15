@@ -141,7 +141,9 @@ export async function readImageVideoGeneration(scope: GenerationScope, generatio
   return parseImageVideoGeneration(await creatorRequest<unknown>(`${imageVideoPath(scope)}/${encodeURIComponent(generationRef)}?${generationQuery(scope)}`, { signal }), scope, generationRef);
 }
 export async function readRuntimeEnvironment(scope: GenerationScope, signal?: AbortSignal) {
-  return parseRuntimeEnvironment(await creatorRequest<unknown>(`${imageVideoPath(scope)}/runtime-environment?${generationQuery(scope)}`, { signal }), scope);
+  const query = generationQuery(scope);
+  query.set("productionRunRef", scope.productionRunRef);
+  return parseRuntimeEnvironment(await creatorRequest<unknown>(`runtime-environment?${query}`, { signal }), scope);
 }
 export async function createImageVideoGeneration(scope: GenerationScope, command: ImageVideoCommand, signal?: AbortSignal) {
   if (!validImageVideoCommand(command) || ["projectRef", "seriesRef", "episodeRef"].some(key => command[key as keyof ImageVideoCommand] !== scope[key as keyof GenerationScope])) throw new Error("图片视频输入无效。");
