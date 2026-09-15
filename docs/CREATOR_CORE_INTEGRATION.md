@@ -5,8 +5,8 @@ Status: `CURRENT CORE BEHAVIOR MAPPING / FRONTEND PRODUCT SURFACE PARTIAL`
 Reviewed baseline: Frontend `a0be9edc91437bf0e7c5dd14883e656e750b3aee`; Core
 accepted behavior tag `m13-base-backend-v1` at
 `a455c8e76427d53d75bb7f15259b9875d9768914`. The bounded image-video compatibility publication
-pins Core `94ad9839c9037ff4beaa007cf2962b32819251e8`, tree
-`e86992691352e5e84f23a2d72a7c1774a604aa4d`, without changing that historical acceptance.
+pins Core `f475a33d3c2e34c2833cb8a44beb6f8bb212853a`, tree
+`143ae268399178987dc48d0e8653037d9d1e631f`, without changing that historical acceptance.
 
 Pin compatibility and a public route mapping do not prove a complete Frontend product
 surface. The current cross-repository truth is recorded in

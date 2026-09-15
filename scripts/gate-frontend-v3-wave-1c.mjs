@@ -63,10 +63,11 @@ const protectedFiles = {
 // The subsequent explicit image + description contract/implementation authority
 // extends only the same adapter with the bounded technical-input route. Its Git
 // blob (LF) remains pinned; this is not a waiver of the historical UI boundaries.
-// Its publication pins the merged Core PR #101 via the same workflow fields.
+// The runtime-environment status publication pins the merged Core PR #102 via
+// the same workflow fields without widening the protected adapter boundary.
 const authorizedD1CompatibilityFiles = {
   "src/features/core-integration/experience-adapter.ts": "449a399d134389245a825ecc0647c0e48987c43a469aa32244e82304d4d55b34",
-  ".github/workflows/frontend-ci.yml": "b98968373b64f0c3ca85f694e8d5a23da4a43c6e5b1ba2e2147fe4aac6c8d3fd",
+  ".github/workflows/frontend-ci.yml": "c6a81af66b18fc82236fea4d72a07737636f0446a0aab6586f45b8c0ddd867fc",
 };
 
 // Accepted technical-input contract: storage is only a pending-request safety

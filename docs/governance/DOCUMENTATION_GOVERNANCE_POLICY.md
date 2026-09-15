@@ -80,8 +80,8 @@ may map those facts to a product surface, but cannot upgrade `UNVERIFIED`,
 The current Frontend CI pin is:
 
 ```text
-CORE_PIN_SHA=94ad9839c9037ff4beaa007cf2962b32819251e8
-CORE_PIN_TREE=e86992691352e5e84f23a2d72a7c1774a604aa4d
+CORE_PIN_SHA=f475a33d3c2e34c2833cb8a44beb6f8bb212853a
+CORE_PIN_TREE=143ae268399178987dc48d0e8653037d9d1e631f
 ```
 
 It is a tested Core behavior dependency. It does not prove complete M12/M13 Frontend
