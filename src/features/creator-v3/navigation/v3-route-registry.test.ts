@@ -34,6 +34,7 @@ describe("V3 route registry", () => {
       "/creator/projects/project%20one/story",
       "/creator/projects/project%20one/script",
       "/creator/projects/project%20one/characters",
+      "/creator/projects/project%20one/generation",
     ]) {
       expect(classifyCreatorRoute(pathname).shell).toBe("v3");
     }
@@ -80,6 +81,7 @@ describe("V3 route registry", () => {
     expect(destinations[2]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/script$/), description: "分集、剧本版本、修订与确认" });
     expect(destinations[3]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/characters$/), description: "角色连续性版本与权威来源" });
     expect(destinations[4]).not.toHaveProperty("href");
+    expect(destinations[5]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/generation$/) });
     expect(destinations[8].availability === "available" && destinations[8].href.endsWith("/post")).toBe(true);
     expect(destinations[9].availability === "available" && destinations[9].href.endsWith("/delivery")).toBe(true);
   });

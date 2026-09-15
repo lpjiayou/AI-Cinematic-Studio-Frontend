@@ -4,6 +4,7 @@ import { getCreatorServerConfig } from "./server-config";
 import { AUDIO_TYPES, EXECUTION_METHOD_BY_CLASS, METHOD_AWARE_RESOURCES, METHOD_INPUT_ROLES, type MethodAwareResource } from "./method-aware-contracts";
 import { parseExecutionMethodPlan, parseExplicitAudioRequirementRoute, parseMethodAwareInputPlan, parseMethodAwareVideoRoute } from "./method-aware-validators";
 import { CreatorClientError } from "./browser-client";
+import { parseGenerationWorkspace } from "./generation-workspace-client";
 
 const MAX_REQUEST_BYTES = 512_000;
 const CORE_PREFIX = "/creator/api/v1";
@@ -67,6 +68,7 @@ function isAllowed(path: string, method: string) {
     if (parts.length === 2) return method === "GET";
     if (parts.length === 3) {
       const resource = parts[2];
+      if (resource === "generation") return method === "GET" || method === "POST";
       if (METHOD_AWARE_RESOURCES.some((value) => value === resource)) {
         return method === "GET" || method === "POST";
       }
@@ -99,6 +101,10 @@ function isAllowed(path: string, method: string) {
         "finalize",
       ]).has(resource) && (method === "GET" || method === "POST");
     }
+    if (
+      parts.length === 4 &&
+      parts[2] === "generation" && parts[3] === "content"
+    ) return method === "GET";
     if (
       parts.length === 4 &&
       parts[2] === "preview" &&
@@ -252,10 +258,22 @@ export async function handleCreatorExperienceRequest(
   }
 
   const incomingUrl = new URL(request.url);
+  const generation = pathParts[0] === "episode-production-runs" && pathParts[2] === "generation";
+  // Next may normalize request.url to its listener name (localhost). The actual
+  // browser authority is Host; never trust caller-supplied forwarded-host values.
+  const browserOrigin = `${incomingUrl.protocol}//${request.headers.get("host") ?? incomingUrl.host}`;
+  if (generation && method === "POST" && ((request.headers.get("origin") && request.headers.get("origin") !== browserOrigin) || request.headers.get("sec-fetch-site") === "cross-site")) {
+    return errorResponse(403, "origin_forbidden", "不允许跨站提交生成操作。");
+  }
   const methodAwareResource = pathParts.length === 3 && pathParts[0] === "episode-production-runs"
     ? METHOD_AWARE_RESOURCES.find((resource) => resource === pathParts[2]) : undefined;
   const targetUrl = new URL(`${config.coreBaseUrl}${CORE_PREFIX}/${path}`);
   for (const [key, value] of incomingUrl.searchParams) {
+    if (generation) {
+      if (methodAwareBrowserScope.has(key)) continue;
+      const allowed = pathParts.length === 4 ? ["projectRef", "seriesRef", "episodeRef", "mediaJobRef", "sha256"] : ["projectRef", "seriesRef", "episodeRef"];
+      if (method !== "GET" || !allowed.includes(key) || !inputRef(value) || targetUrl.searchParams.has(key)) return errorResponse(400, "invalid_request", "生成查询字段无效。");
+    }
     if (methodAwareResource) {
       // Strip browser scope before applying the closed query contract (task 14.1).
       if (methodAwareBrowserScope.has(key)) continue;
@@ -288,6 +306,12 @@ export async function handleCreatorExperienceRequest(
       }
       if (methodAwareResource && !validMethodAwareBody(methodAwareResource, input)) {
         return errorResponse(400, "invalid_request", "方法规划请求字段无效。");
+      }
+      if (generation && (!objectFields(input, ["projectRef", "seriesRef", "episodeRef", "operation", "mediaJobRef", "expectedJobRevision", "approvedPlanDigest"]) ||
+          !["PREPARE", "EXECUTE_APPROVED"].includes(String(input.operation)) ||
+          !["projectRef", "seriesRef", "episodeRef", "mediaJobRef"].every(k => inputRef(input[k])) ||
+          !inputInteger(input.expectedJobRevision) || typeof input.approvedPlanDigest !== "string" || !/^[a-f0-9]{64}$/.test(input.approvedPlanDigest))) {
+        return errorResponse(400, "invalid_request", "生成请求只能引用当前已批准作业。");
       }
       const payload: Record<string, unknown> = { ...input };
       if (shouldInjectContentProfile(path, method)) {
@@ -357,6 +381,10 @@ export async function handleCreatorExperienceRequest(
       if (error instanceof CreatorClientError) return errorResponse(error.status, error.detail.code, error.detail.message);
       return errorResponse(502, "invalid_method_aware_response", "Frontend 无法验证 Core 返回的方法规划数据。");
     }
+  }
+  if (generation && method === "GET" && response.ok && (payload as { ok: boolean }).ok) {
+    try { parseGenerationWorkspace(payload, { productionRunRef: pathParts[1], projectRef: targetUrl.searchParams.get("projectRef") ?? "", seriesRef: targetUrl.searchParams.get("seriesRef") ?? "", episodeRef: targetUrl.searchParams.get("episodeRef") ?? "" }); }
+    catch { return errorResponse(502, "invalid_generation_response", "无法验证生成状态及项目血缘。"); }
   }
 
   return Response.json(payload, {

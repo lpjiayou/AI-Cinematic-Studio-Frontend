@@ -25,6 +25,9 @@ vi.mock("@/features/creator-v3", async (importOriginal) => {
     CharacterStudioV3: ({ projectRef }: { projectRef: string }) => (
       <main aria-label="V3 characters">Characters {projectRef}</main>
     ),
+    GenerationWorkspaceV3: ({ projectRef }: { projectRef: string }) => (
+      <main aria-label="V3 generation">Generation {projectRef}</main>
+    ),
   };
 });
 
@@ -62,6 +65,7 @@ describe("CreatorRouteShellBoundary", () => {
     ["story", "V3 story"],
     ["script", "V3 script"],
     ["characters", "V3 characters"],
+    ["generation", "V3 generation"],
   ])("renders encoded project %s directly without nested legacy content", (destination, label) => {
     navigation.pathname = `/creator/projects/project%20one/${destination}`;
     renderBoundary();

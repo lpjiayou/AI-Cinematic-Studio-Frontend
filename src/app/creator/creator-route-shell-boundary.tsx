@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { UnifiedAppHeader } from "@/components";
 import {
   CharacterStudioV3,
+  GenerationWorkspaceV3,
   ProjectOverviewV3,
   ScriptStudioV3,
   StoryWorkspaceV3,
@@ -24,6 +25,7 @@ export function CreatorRouteShellBoundary({ children }: { children: ReactNode })
       if (destinationId === "overview") return <ProjectOverviewV3 projectRef={projectRef} />;
       if (destinationId === "story") return <StoryWorkspaceV3 projectRef={projectRef} />;
       if (destinationId === "script") return <ScriptStudioV3 projectRef={projectRef} />;
+      if (destinationId === "generation") return <GenerationWorkspaceV3 projectRef={projectRef} />;
       return <CharacterStudioV3 projectRef={projectRef} />;
     }
     return children;

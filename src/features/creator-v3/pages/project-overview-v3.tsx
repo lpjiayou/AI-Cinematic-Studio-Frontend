@@ -94,12 +94,13 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
             ["故事", "V3 工作区已可用"],
             ["剧本", "V3 工作区已可用"],
             ["角色", "V3 只读/受权威约束工作区已可用"],
+            ["生成", "原 Operator 接线；以当前服务端状态为准"],
             ["审片", "当前 fail-closed 兼容工作区可用"],
             ["交付", "当前 fail-closed 兼容工作区可用"],
           ].map(([label, state]) => (
             <ACSCard key={label} title={label} padding="compact">
               <p className={styles.compatibleState}>{state}</p>
-              <small>{["故事", "剧本", "角色"].includes(label) ? "真实 Core 工作区入口。" : "迁移期兼容入口，不表示 V3 页面已完成。"}</small>
+              <small>{["故事", "剧本", "角色", "生成"].includes(label) ? "真实 Core 工作区入口。" : "迁移期兼容入口，不表示 V3 页面已完成。"}</small>
             </ACSCard>
           ))}
         </div>
@@ -122,12 +123,13 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
               severity="warning"
               affectedCapability="生成"
               title="生成"
-              cause="新的 Method-aware Generation Studio 尚未实施"
-              consequence="当前不能从概览提交新的生成任务"
-              owner="Frontend Wave 2 与 M10–M13 Runtime"
+              cause="生成工作区已接入原 Operator；执行取决于主机绑定及当前批准"
+              consequence="从生成工作区查看原作业与视频，不会自动提交新任务"
+              owner="当前项目生成工作区"
               evidenceAction={<Link className={styles.compatibilityLink} href={`${projectRoot}/production`}>查看历史兼容生产记录 · 只读/现有证据 · 不是新的 Generation Studio</Link>}
               compact
             />
+            <Link className={styles.compatibilityLink} href={`${projectRoot}/generation`}>打开视频生成</Link>
           </div>
           <div id="destination-audio">
             <CapabilityBlocker blockerClass="runtime_unavailable" severity="warning" affectedCapability="音频" title="音频" cause="显式音频需求界面尚未实施，M12 Runtime G0 未完成" consequence="当前不能提交新的音频生产任务" owner="Frontend Wave 2 与 M12" compact />
