@@ -5,6 +5,7 @@ import { creatorRequest } from "@/features/core-integration/browser-client";
 import { generationContentUrl, readGeneration, startGeneration, type GenerationScope, type GenerationView } from "@/features/core-integration/generation-workspace-client";
 import styles from "./generation-workspace.module.css";
 import { ImageVideoComposer } from "./image-video-composer";
+import { RuntimeEnvironmentBar } from "./runtime-environment-bar";
 
 const labels = { QUEUED: "等待执行", LEASED: "作业已领取", RUNNING: "正在生成", SUCCEEDED: "生成成功", FAILED: "生成失败", CANCELLED: "已取消", UNKNOWN: "提交结果待核实" };
 export function GenerationWorkspace({ projectRef }: { projectRef: string }) {
@@ -71,6 +72,7 @@ function ProjectGenerationWorkspace({ projectRef }: { projectRef: string }) {
   return <section className={styles.workspace} aria-labelledby="generation-title">
     <header className={styles.header}><div><p className={styles.eyebrow}>项目工作区</p><h1 id="generation-title">视频生成</h1><p>原生成作业 · 状态追踪 · 结果播放</p></div>
       <button onClick={() => void refresh(requestScope.current?.signal)} disabled={!scope}>刷新状态</button></header>
+    {scope && <RuntimeEnvironmentBar scope={scope} />}
     {scope && <ImageVideoComposer scope={scope} />}
     <div className={styles.layout}>
       <aside className={styles.panel}><h2>制作记录</h2><label htmlFor="generation-run">选择单集作业</label>

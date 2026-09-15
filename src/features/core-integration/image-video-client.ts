@@ -19,6 +19,20 @@ export type ImageVideoWorkspace = GenerationScope & {
   schemaVersion: "creator.image-video-workspace.v1"; policy: ImageVideoPolicy | null;
   available: boolean; reason: string | null; generations: ImageVideoGeneration[];
 };
+export type RuntimeEnvironment = GenerationScope & {
+  schemaVersion: "creator.runtime-environment.v1";
+  observedAt: string | null;
+  core: "CONNECTED";
+  operator: "READY" | "UNAVAILABLE";
+  gpu: "CONNECTED" | "UNAVAILABLE";
+  comfyui: "CONNECTED" | "UNAVAILABLE";
+  queue: {
+    state: "IDLE" | "BUSY" | "UNAVAILABLE";
+    runningCount: number | null;
+    pendingCount: number | null;
+  };
+  readOnly: true;
+};
 export type ImageVideoCommand = Pick<GenerationScope, "projectRef" | "seriesRef" | "episodeRef"> & {
   description: string; imageBase64: string; imageMediaType: "image/png" | "image/jpeg";
   idempotencyKey: string; expectedPolicyDigest: string;
@@ -92,12 +106,44 @@ export function parseImageVideoWorkspace(value: unknown, scope: GenerationScope)
   if (new Set(generations.map(g => g.generationRef)).size !== generations.length) throw new Error("图片视频历史包含重复作业。");
   return { ...workspace, generations } as ImageVideoWorkspace;
 }
+export function parseRuntimeEnvironment(value: unknown, scope: GenerationScope): RuntimeEnvironment {
+  if (!fields(value, ["ok", "environment"]) || value.ok !== true ||
+      !fields(value.environment, ["schemaVersion", ...scopeFields, "observedAt", "core", "operator", "gpu", "comfyui", "queue", "readOnly"])) {
+    throw new Error("运行环境响应无效。");
+  }
+  const environment = value.environment;
+  if (environment.schemaVersion !== "creator.runtime-environment.v1" || !matchesScope(environment, scope) ||
+      environment.core !== "CONNECTED" || !["READY", "UNAVAILABLE"].includes(String(environment.operator)) ||
+      !["CONNECTED", "UNAVAILABLE"].includes(String(environment.gpu)) ||
+      !["CONNECTED", "UNAVAILABLE"].includes(String(environment.comfyui)) || environment.readOnly !== true ||
+      !(environment.observedAt === null || (typeof environment.observedAt === "string" && environment.observedAt.length <= 64 &&
+        /(?:Z|[+-]\d{2}:\d{2})$/.test(environment.observedAt) && Number.isFinite(Date.parse(environment.observedAt)))) ||
+      !fields(environment.queue, ["state", "runningCount", "pendingCount"]) ||
+      !["IDLE", "BUSY", "UNAVAILABLE"].includes(String(environment.queue.state))) {
+    throw new Error("运行环境状态或项目血缘无效。");
+  }
+  const queue = environment.queue;
+  const unavailable = queue.state === "UNAVAILABLE";
+  if (unavailable !== (queue.runningCount === null && queue.pendingCount === null) ||
+      (!unavailable && (!integer(queue.runningCount) || !integer(queue.pendingCount))) ||
+      (queue.state === "IDLE" && (queue.runningCount !== 0 || queue.pendingCount !== 0)) ||
+      (queue.state === "BUSY" && Number(queue.runningCount) + Number(queue.pendingCount) < 1) ||
+      ((environment.gpu === "CONNECTED" && environment.comfyui === "CONNECTED") !== (environment.observedAt !== null))) {
+    throw new Error("运行环境队列状态无效。");
+  }
+  return environment as RuntimeEnvironment;
+}
 export function imageVideoPath(scope: GenerationScope) { return `episode-production-runs/${encodeURIComponent(scope.productionRunRef)}/image-video-generations`; }
 export async function readImageVideoWorkspace(scope: GenerationScope, signal?: AbortSignal) {
   return parseImageVideoWorkspace(await creatorRequest<unknown>(`${imageVideoPath(scope)}?${generationQuery(scope)}`, { signal }), scope);
 }
 export async function readImageVideoGeneration(scope: GenerationScope, generationRef: string, signal?: AbortSignal) {
   return parseImageVideoGeneration(await creatorRequest<unknown>(`${imageVideoPath(scope)}/${encodeURIComponent(generationRef)}?${generationQuery(scope)}`, { signal }), scope, generationRef);
+}
+export async function readRuntimeEnvironment(scope: GenerationScope, signal?: AbortSignal) {
+  const query = generationQuery(scope);
+  query.set("productionRunRef", scope.productionRunRef);
+  return parseRuntimeEnvironment(await creatorRequest<unknown>(`runtime-environment?${query}`, { signal }), scope);
 }
 export async function createImageVideoGeneration(scope: GenerationScope, command: ImageVideoCommand, signal?: AbortSignal) {
   if (!validImageVideoCommand(command) || ["projectRef", "seriesRef", "episodeRef"].some(key => command[key as keyof ImageVideoCommand] !== scope[key as keyof GenerationScope])) throw new Error("图片视频输入无效。");
