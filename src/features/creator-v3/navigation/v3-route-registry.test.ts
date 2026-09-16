@@ -22,7 +22,7 @@ describe("V3 route registry", () => {
     }
   });
 
-  it("classifies only the ten exact V3 route shapes", () => {
+  it("classifies only the fourteen exact V3 route shapes", () => {
     for (const pathname of [
       "/creator",
       "/creator/projects",
@@ -34,7 +34,10 @@ describe("V3 route registry", () => {
       "/creator/projects/project%20one/story",
       "/creator/projects/project%20one/script",
       "/creator/projects/project%20one/characters",
+      "/creator/projects/project%20one/storyboard",
       "/creator/projects/project%20one/generation",
+      "/creator/projects/project%20one/audio",
+      "/creator/projects/project%20one/timeline",
     ]) {
       expect(classifyCreatorRoute(pathname).shell).toBe("v3");
     }
@@ -80,8 +83,10 @@ describe("V3 route registry", () => {
     expect(destinations[1]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/story$/), description: "系列规划、世界来源与连续性" });
     expect(destinations[2]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/script$/), description: "分集、剧本版本、修订与确认" });
     expect(destinations[3]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/characters$/), description: "角色连续性版本与权威来源" });
-    expect(destinations[4]).not.toHaveProperty("href");
+    expect(destinations[4]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/storyboard$/) });
     expect(destinations[5]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/generation$/) });
+    expect(destinations[6]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/audio$/) });
+    expect(destinations[7]).toMatchObject({ availability: "available", href: expect.stringMatching(/\/timeline$/) });
     expect(destinations[8].availability === "available" && destinations[8].href.endsWith("/post")).toBe(true);
     expect(destinations[9].availability === "available" && destinations[9].href.endsWith("/delivery")).toBe(true);
   });

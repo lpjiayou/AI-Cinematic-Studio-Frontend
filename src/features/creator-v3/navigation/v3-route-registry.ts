@@ -77,7 +77,7 @@ export type CreatorV3Route =
     }
   | {
       kind: "project";
-      destinationId: "overview" | "story" | "script" | "characters" | "generation";
+      destinationId: "overview" | "story" | "script" | "characters" | "storyboard" | "generation" | "audio" | "timeline";
       projectRef: string;
     };
 
@@ -94,7 +94,7 @@ export function classifyCreatorRoute(pathname: string): CreatorRouteClassificati
     };
   }
 
-  const projectMatch = /^\/creator\/projects\/([^/]+)\/(overview|story|script|characters|generation)$/.exec(pathname);
+  const projectMatch = /^\/creator\/projects\/([^/]+)\/(overview|story|script|characters|storyboard|generation|audio|timeline)$/.exec(pathname);
   if (!projectMatch) return { shell: "legacy" };
 
   try {
@@ -104,7 +104,7 @@ export function classifyCreatorRoute(pathname: string): CreatorRouteClassificati
       shell: "v3",
       route: {
         kind: "project",
-        destinationId: projectMatch[2] as "overview" | "story" | "script" | "characters" | "generation",
+        destinationId: projectMatch[2] as "overview" | "story" | "script" | "characters" | "storyboard" | "generation" | "audio" | "timeline",
         projectRef,
       },
     };
@@ -118,7 +118,6 @@ export function buildProjectV3Destinations(
 ): readonly ProjectDestinationView[] {
   const encodedProjectRef = encodeURIComponent(projectRef);
   const projectRoot = `/creator/projects/${encodedProjectRef}`;
-  const overviewRoot = `${projectRoot}/overview`;
 
   return [
     {
@@ -126,7 +125,7 @@ export function buildProjectV3Destinations(
       label: "概览",
       description: "项目状态与下一安全动作",
       availability: "available",
-      href: overviewRoot,
+      href: `${projectRoot}/overview`,
     },
     {
       id: "story",
@@ -153,9 +152,8 @@ export function buildProjectV3Destinations(
       id: "storyboard",
       label: "分镜",
       description: "镜头与服务器方法计划",
-      availability: "blocked",
-      blockedReason: "分镜与服务器方法计划界面将在 Wave 2 实施",
-      explanationHref: `${overviewRoot}#destination-storyboard`,
+      availability: "available",
+      href: `${projectRoot}/storyboard`,
     },
     {
       id: "generation",
@@ -168,17 +166,15 @@ export function buildProjectV3Destinations(
       id: "audio",
       label: "音频",
       description: "显式音频需求与运行时",
-      availability: "blocked",
-      blockedReason: "显式音频需求界面尚未实施，M12 Runtime G0 也未完成",
-      explanationHref: `${overviewRoot}#destination-audio`,
+      availability: "available",
+      href: `${projectRoot}/audio`,
     },
     {
       id: "timeline",
       label: "剪辑",
       description: "M13 Timeline Studio",
-      availability: "blocked",
-      blockedReason: "M13 Timeline Studio 产品界面尚未实施",
-      explanationHref: `${overviewRoot}#destination-timeline`,
+      availability: "available",
+      href: `${projectRoot}/timeline`,
     },
     {
       id: "review",

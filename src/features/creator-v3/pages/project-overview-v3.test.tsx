@@ -36,7 +36,7 @@ describe("ProjectOverviewV3", () => {
     collection.refresh.mockReset();
   });
 
-  it("renders a found project, exact V3 navigation, and four honest blockers", async () => {
+  it("renders a found project, the three production workspaces, and honest runtime blockers", async () => {
     const user = userEvent.setup();
     collection.state = { status: "ready", projects: [project] };
     renderPage();
@@ -46,14 +46,20 @@ describe("ProjectOverviewV3", () => {
     expect(within(navigation).getByText("故事").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/story");
     expect(within(navigation).getByText("剧本").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/script");
     expect(within(navigation).getByText("角色").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/characters");
+    expect(within(navigation).getByText("分镜").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/storyboard");
+    expect(within(navigation).getByText("音频").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/audio");
+    expect(within(navigation).getByText("剪辑").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/timeline");
     expect(screen.getByRole("link", { name: "进入故事" })).toHaveAttribute("href", "/creator/projects/private-project-ref/story");
     expect(screen.getByRole("link", { name: "打开剧本" })).toHaveAttribute("href", "/creator/projects/private-project-ref/script");
     expect(screen.getByRole("link", { name: "查看角色" })).toHaveAttribute("href", "/creator/projects/private-project-ref/characters");
     expect(within(navigation).getByText("审片").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/post");
     expect(within(navigation).getByText("交付").closest("a")).toHaveAttribute("href", "/creator/projects/private-project-ref/delivery");
-    for (const id of ["destination-storyboard", "destination-generation", "destination-audio", "destination-timeline"]) {
+    for (const id of ["destination-generation", "destination-audio"]) {
       expect(document.getElementById(id)).not.toBeNull();
     }
+    expect(screen.getByRole("link", { name: "进入分镜工作区" })).toHaveAttribute("href", "/creator/projects/private-project-ref/storyboard");
+    expect(screen.getByRole("link", { name: "进入音频工作区" })).toHaveAttribute("href", "/creator/projects/private-project-ref/audio");
+    expect(screen.getByRole("link", { name: "进入剪辑工作区" })).toHaveAttribute("href", "/creator/projects/private-project-ref/timeline");
     expect(screen.getByRole("link", { name: /查看历史兼容生产记录/ })).toHaveAttribute("href", "/creator/projects/private-project-ref/production");
     expect(screen.getByRole("link", { name: /查看历史兼容生产记录/ })).toHaveTextContent("不是新的 Generation Studio");
     expect(screen.queryByText(project.projectRef)).not.toBeInTheDocument();
