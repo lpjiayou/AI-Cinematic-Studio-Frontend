@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GET } from "./route";
+import { GET, RUNTIME_ENVIRONMENT_TIMEOUT_MS } from "./route";
 
 const scope = { projectRef: "project-one", seriesRef: "series-one", episodeRef: "episode-one", productionRunRef: "run-one" };
 const environment = { schemaVersion: "creator.runtime-environment.v1", ...scope, observedAt: "2026-09-15T10:00:00Z", core: "CONNECTED", operator: "READY", gpu: "CONNECTED", comfyui: "CONNECTED", queue: { state: "IDLE", runningCount: 0, pendingCount: 0 }, readOnly: true };
@@ -19,6 +19,8 @@ describe("runtime environment read-only BFF route", () => {
     expect(await response.json()).toEqual({ ok: true, environment });
     expect(String(fetch.mock.calls[0][0])).toBe("http://core.test:8765/creator/api/v1/episode-production-runs/run-one/image-video-generations/runtime-environment?projectRef=project-one&seriesRef=series-one&episodeRef=episode-one");
     expect(new Headers(fetch.mock.calls[0][1]?.headers).get("authorization")).toBe("Bearer fixture-only-server-token");
+    expect(fetch.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+    expect(RUNTIME_ENVIRONMENT_TIMEOUT_MS).toBe(120_000);
   });
 
   it("rejects forged scope and closes invalid or oversized Core responses", async () => {
