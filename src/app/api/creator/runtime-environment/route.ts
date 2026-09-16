@@ -6,6 +6,7 @@ import type { GenerationScope } from "@/features/core-integration/generation-wor
 
 const CORE_PREFIX = "/creator/api/v1";
 const MAX_RESPONSE_BYTES = 64_000;
+export const RUNTIME_ENVIRONMENT_TIMEOUT_MS = 120_000;
 const scopeFields = ["projectRef", "seriesRef", "episodeRef", "productionRunRef"] as const;
 
 function error(status: number, code: string, message: string) {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
       method: "GET",
       headers: { Accept: "application/json", Authorization: `Bearer ${config.coreToken}` },
       cache: "no-store",
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(RUNTIME_ENVIRONMENT_TIMEOUT_MS),
     });
     const declared = Number(response.headers.get("content-length") ?? 0);
     if (declared > MAX_RESPONSE_BYTES) return error(502, "runtime_environment_response_too_large", "运行环境响应过大。");
