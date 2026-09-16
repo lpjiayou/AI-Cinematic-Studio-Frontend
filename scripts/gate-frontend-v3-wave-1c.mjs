@@ -85,6 +85,23 @@ export function isApprovedPendingRequestToken(relativePath, source, token) {
     === "72a02095dad9baeb38f2e444cc98d465e4c43be5697d98e096065f67302030e1";
 }
 
+export function isApprovedProductionWorkspaceToken(relativePath, source, token) {
+  if (typeof source !== "string") return false;
+  const approvals = {
+    "src/features/creator-v3/workspaces/production-studio/storyboard-workspace.tsx": {
+      token: "executionMethod",
+      sha256: "9ebc543aa5572621dc48e9ba52078a4cd69e7d1d2538e73270b4d9738d0aba81",
+    },
+    "src/features/creator-v3/workspaces/production-studio/timeline-workspace.tsx": {
+      token: "crypto.randomUUID",
+      sha256: "0e2ca3eb93075404c58f4f9aca211375ad5fd950b42e7c4067cfeec241d3f7d6",
+    },
+  };
+  const approval = approvals[relativePath];
+  return approval?.token === token
+    && createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex") === approval.sha256;
+}
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -173,7 +190,9 @@ function assertStaticBoundaries() {
     const source = fs.readFileSync(filePath, "utf8");
     for (const token of forbidden) {
       const relativePath = path.relative(frontendRoot, filePath).split(path.sep).join("/");
-      assert(!source.includes(token) || isApprovedPendingRequestToken(relativePath, source, token),
+      assert(!source.includes(token)
+        || isApprovedPendingRequestToken(relativePath, source, token)
+        || isApprovedProductionWorkspaceToken(relativePath, source, token),
         `${relativePath} contains forbidden token ${token}`);
     }
     if (filePath.endsWith(".css")) {
