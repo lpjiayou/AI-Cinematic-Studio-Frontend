@@ -65,8 +65,12 @@ const protectedFiles = {
 // blob (LF) remains pinned; this is not a waiver of the historical UI boundaries.
 // The runtime-environment status publication pins the merged Core PR #102 via
 // the same workflow fields without widening the protected adapter boundary.
+// The M8/M12/M13 production-workspace publication extends only the shared
+// projection contracts and the exact timeline proxy allowlist. Both blobs are
+// pinned here; the remaining historical Wave 1C files stay byte-frozen.
 const authorizedD1CompatibilityFiles = {
-  "src/features/core-integration/experience-adapter.ts": "449a399d134389245a825ecc0647c0e48987c43a469aa32244e82304d4d55b34",
+  "src/features/core-integration/experience-adapter.ts": "6314d061d707aa7a71d522bd5dfc0d323ab23de4c106fd6017958e07220c010e",
+  "src/features/core-integration/contracts.ts": "72deb4cf97e31125142344f84677aa5ac7581a980ca548fd3d368a05dc9f4dc3",
   ".github/workflows/frontend-ci.yml": "c6a81af66b18fc82236fea4d72a07737636f0446a0aab6586f45b8c0ddd867fc",
 };
 
@@ -79,6 +83,23 @@ export function isApprovedPendingRequestToken(relativePath, source, token) {
     || !["sessionStorage", "crypto.randomUUID"].includes(token)) return false;
   return createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex")
     === "72a02095dad9baeb38f2e444cc98d465e4c43be5697d98e096065f67302030e1";
+}
+
+export function isApprovedProductionWorkspaceToken(relativePath, source, token) {
+  if (typeof source !== "string") return false;
+  const approvals = {
+    "src/features/creator-v3/workspaces/production-studio/storyboard-workspace.tsx": {
+      token: "executionMethod",
+      sha256: "9ebc543aa5572621dc48e9ba52078a4cd69e7d1d2538e73270b4d9738d0aba81",
+    },
+    "src/features/creator-v3/workspaces/production-studio/timeline-workspace.tsx": {
+      token: "crypto.randomUUID",
+      sha256: "0e2ca3eb93075404c58f4f9aca211375ad5fd950b42e7c4067cfeec241d3f7d6",
+    },
+  };
+  const approval = approvals[relativePath];
+  return approval?.token === token
+    && createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex") === approval.sha256;
 }
 
 function assert(condition, message) {
@@ -169,7 +190,9 @@ function assertStaticBoundaries() {
     const source = fs.readFileSync(filePath, "utf8");
     for (const token of forbidden) {
       const relativePath = path.relative(frontendRoot, filePath).split(path.sep).join("/");
-      assert(!source.includes(token) || isApprovedPendingRequestToken(relativePath, source, token),
+      assert(!source.includes(token)
+        || isApprovedPendingRequestToken(relativePath, source, token)
+        || isApprovedProductionWorkspaceToken(relativePath, source, token),
         `${relativePath} contains forbidden token ${token}`);
     }
     if (filePath.endsWith(".css")) {

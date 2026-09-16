@@ -438,6 +438,111 @@ export type ShotGraphBundleEnvelope = {
   };
 };
 
+export type CreatorTimeline = {
+  schemaVersion: string;
+  timelineRef: string;
+  workspaceRef: string;
+  projectRef: string;
+  seriesRef: string;
+  episodeRef: string;
+  productionRunRef: string;
+  createdAt: string;
+  payloadDigest: string;
+};
+
+export type CreatorTimelineVersion = {
+  schemaVersion: string;
+  timelineRef: string;
+  timelineVersionRef: string;
+  versionNumber: number;
+  parentTimelineVersionRef: string | null;
+  parentTimelineVersionDigest: string | null;
+  workspaceRef: string;
+  projectRef: string;
+  seriesRef: string;
+  episodeRef: string;
+  productionRunRef: string;
+  scriptVersionRef: string;
+  scriptVersionDigest: string;
+  storyboardVersionRef: string;
+  storyboardVersionDigest: string;
+  frameRate: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  pixelAspectRatio: string | number;
+  displayAspectRatio: string;
+  durationFrames: number;
+  safeArea: Record<string, number>;
+  outputProfileBindings: Array<Record<string, unknown>>;
+  trackRefs: string[];
+  createdAt: string;
+  publicationAllowed: false;
+  payloadDigest: string;
+  [key: string]: unknown;
+};
+
+export type CreatorTimelineTrack = {
+  schemaVersion: string;
+  trackRef: string;
+  timelineVersionRef: string;
+  trackKind: "VIDEO" | "AUDIO" | "SUBTITLE" | "EFFECT";
+  order: number;
+  enabled: boolean;
+  lanePolicy: string;
+  payloadDigest: string;
+};
+
+export type CreatorTimelineClip = {
+  schemaVersion: string;
+  clipRef: string;
+  timelineVersionRef: string;
+  trackRef: string;
+  clipKind: "VIDEO" | "AUDIO" | "SUBTITLE" | "EFFECT";
+  timelineStartFrameInclusive: number;
+  timelineEndFrameExclusive: number;
+  enabled: boolean;
+  layer: number;
+  zOrder: number;
+  opacity: number;
+  blendMode: string;
+  sourceBinding: Record<string, unknown>;
+  transitionIn: Record<string, unknown> | null;
+  transitionOut: Record<string, unknown> | null;
+  speed: Record<string, unknown>;
+  transform: Record<string, unknown>;
+  maskBindings: Array<Record<string, unknown>>;
+  payloadDigest: string;
+};
+
+export type TimelineProjectionEnvelope = {
+  ok: true;
+  timeline: CreatorTimeline;
+  timelineVersion: CreatorTimelineVersion;
+  tracks: CreatorTimelineTrack[];
+  clips: CreatorTimelineClip[];
+  lineage: Array<{
+    timelineVersionRef: string;
+    versionNumber: number;
+    payloadDigest: string;
+    parentTimelineVersionRef: string | null;
+    parentTimelineVersionDigest: string | null;
+  }>;
+  stale: false;
+  publicationAllowed: false;
+  evidenceRevision: string;
+  idempotentReplay: boolean;
+  editOperation?: Record<string, unknown>;
+};
+
+export type TimelineVersionsEnvelope = {
+  ok: true;
+  timeline: CreatorTimeline;
+  versions: CreatorTimelineVersion[];
+  stale: false;
+  publicationAllowed: false;
+  evidenceRevision: string;
+};
+
 export type AssetPlanBundleEnvelope = {
   ok: true;
   state: EpisodeProductionState;

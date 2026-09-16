@@ -1,0 +1,91 @@
+.workspace { min-width: 0; padding: 22px; color: var(--acs-text-primary); }
+.workspaceHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--acs-border); }
+.workspaceHeader > div:first-child { min-width: 0; }
+.workspaceHeader span { color: var(--acs-primary); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.workspaceHeader h1 { margin: 4px 0 8px; font-size: 26px; }
+.workspaceHeader p, .sectionTitle p, .panel p, .routeCard p { margin: 0; color: var(--acs-text-muted); line-height: 1.55; }
+.runSelector { display: grid; grid-template-columns: minmax(180px, 250px) auto; gap: 8px; align-items: end; min-width: min(100%, 390px); }
+.runSelector label { grid-column: 1 / -1; color: var(--acs-text-secondary); font-size: 12px; }
+.workspace select, .workspace button { border: 1px solid var(--acs-border-strong); border-radius: 8px; background: var(--acs-surface-hover); color: var(--acs-text-primary); font: inherit; }
+.workspace select { min-height: 38px; padding: 0 10px; }
+.workspace button { cursor: pointer; }
+.workspace button:focus-visible, .workspace select:focus-visible { outline: 2px solid var(--acs-primary); outline-offset: 2px; }
+.workspace button:disabled { cursor: not-allowed; opacity: .5; }
+.runSelector button, .primaryAction { min-height: 38px; padding: 0 14px; }
+.notice, .warning, .error, .success, .empty, .runtimeHold { margin: 0 0 16px; padding: 13px 15px; border: 1px solid var(--acs-border); border-radius: 9px; background: var(--acs-surface-deep); }
+.notice { color: var(--acs-text-secondary); }
+.warning { color: var(--acs-warning); border-color: var(--acs-warning); background: var(--acs-accent-soft); }
+.error { color: var(--acs-danger); border-color: var(--acs-danger); background: var(--acs-danger-soft); }
+.success { color: var(--acs-primary); border-color: var(--acs-primary); background: var(--acs-primary-soft); }
+.empty { color: var(--acs-text-muted); min-height: 90px; display: grid; place-items: center; text-align: center; }
+.storyboardLayout, .audioLayout, .timelineStudio { display: grid; grid-template-columns: minmax(180px, 230px) minmax(420px, 1fr) minmax(210px, 270px); gap: 16px; align-items: start; }
+.panel, .board, .audioCanvas, .timelineCanvas { min-width: 0; border: 1px solid var(--acs-border); border-radius: 11px; background: var(--acs-surface-deep); }
+.panel { padding: 16px; }
+.panel h2, .panel h3, .sectionTitle h2, .routeCard h3 { margin: 0 0 12px; }
+.panel h2, .sectionTitle h2 { font-size: 16px; }
+.panel h3, .routeCard h3 { margin-top: 18px; font-size: 13px; }
+.panel > button { display: flex; width: 100%; justify-content: space-between; gap: 10px; margin-bottom: 7px; padding: 9px 10px; text-align: left; }
+.panel > button[data-active="true"] { border-color: var(--acs-primary); background: var(--acs-surface-selected); }
+.compactFacts, .factList { display: grid; gap: 9px; margin: 16px 0 0; }
+.compactFacts div, .factList div { display: grid; gap: 3px; min-width: 0; }
+.compactFacts dt, .factList dt { color: var(--acs-text-muted); font-size: 11px; }
+.compactFacts dd, .factList dd { margin: 0; overflow-wrap: anywhere; font-size: 12px; }
+.board, .audioCanvas, .timelineCanvas { padding: 16px; }
+.sectionTitle { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+.statusBadge { display: inline-flex; width: fit-content; border: 1px solid var(--acs-primary); border-radius: 999px; padding: 5px 9px; background: var(--acs-primary-soft); color: var(--acs-text-primary); font-size: 11px; white-space: nowrap; }
+.shotGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.shotCard { display: grid; gap: 8px; min-width: 0; padding: 10px; text-align: left; }
+.shotCard[data-active="true"] { border-color: var(--acs-primary); box-shadow: 0 0 0 1px var(--acs-primary); }
+.shotCard > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shotCard > span, .shotCard > small { color: var(--acs-text-muted); font-size: 11px; }
+.shotThumbnail { display: flex; min-height: 105px; align-items: flex-end; justify-content: space-between; padding: 10px; border-radius: 7px; background: linear-gradient(145deg, var(--acs-media-stage), var(--acs-surface-selected)); }
+.shotThumbnail span { color: var(--acs-text-primary); font-weight: 800; }
+.shotThumbnail small { color: var(--acs-text-secondary); }
+.requirement { display: grid; gap: 4px; margin-top: 8px; padding: 9px; border: 1px solid var(--acs-border); border-radius: 7px; }
+.requirement strong { font-size: 12px; }
+.requirement span { color: var(--acs-text-muted); font-size: 10px; }
+.muted, .digest { color: var(--acs-text-muted) !important; font-size: 11px; overflow-wrap: anywhere; }
+.digest { margin-top: 18px !important; }
+.runtimeHold { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-color: var(--acs-warning); }
+.runtimeHold strong { color: var(--acs-warning); }
+.runtimeHold span { color: var(--acs-text-muted); font-size: 12px; }
+.requirementList { display: grid; gap: 7px; }
+.requirementList button { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; padding: 10px; text-align: left; }
+.requirementList button span { font-weight: 700; }
+.requirementList button strong { font-size: 11px; }
+.requirementList button small { grid-column: 1 / -1; color: var(--acs-text-muted); font-size: 10px; }
+.requirementList button[data-active="true"] { border-color: var(--acs-primary); background: var(--acs-surface-selected); }
+.audioWave { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 150px; overflow: hidden; padding: 18px; border-radius: 9px; background: repeating-linear-gradient(90deg, transparent 0 7px, color-mix(in srgb, var(--acs-primary) 22%, transparent) 7px 9px), var(--acs-media-stage); }
+.audioWave > span { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--acs-warning); }
+.audioWave > i { justify-self: center; border: 1px solid var(--acs-primary); border-radius: 999px; padding: 7px 14px; background: var(--acs-surface-selected); font-style: normal; font-weight: 800; }
+.audioSummaryGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.audioSummaryGrid div { display: grid; gap: 5px; padding: 10px; border: 1px solid var(--acs-border); border-radius: 8px; }
+.audioSummaryGrid span { color: var(--acs-text-muted); font-size: 10px; }
+.audioSummaryGrid strong { overflow-wrap: anywhere; font-size: 12px; }
+.routeCard { margin-top: 14px; padding: 14px; border: 1px solid var(--acs-border); border-radius: 9px; }
+.previewStage { display: grid; min-height: 260px; place-items: center; overflow: hidden; border-radius: 9px; background: var(--acs-media-stage); text-align: center; }
+.previewStage video { width: 100%; max-height: 52vh; display: block; }
+.previewStage p { color: var(--acs-text-muted); }
+.timelineRuler { display: flex; justify-content: space-between; margin: 15px 0 6px; padding-left: 94px; color: var(--acs-text-muted); font-size: 10px; }
+.trackStack { display: grid; gap: 6px; }
+.trackLane { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 8px; align-items: stretch; }
+.trackLane > div:first-child { display: grid; align-content: center; padding: 5px 7px; border: 1px solid var(--acs-border); border-radius: 6px; }
+.trackLane > div:first-child strong { font-size: 11px; }
+.trackLane > div:first-child small { color: var(--acs-text-muted); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trackLane[data-disabled="true"] { opacity: .55; }
+.trackBody { position: relative; min-height: 48px; overflow: hidden; border: 1px solid var(--acs-border); border-radius: 6px; background: repeating-linear-gradient(90deg, transparent 0 9.8%, var(--acs-border) 10%); }
+.trackBody button { position: absolute; top: 5px; bottom: 5px; min-width: 26px; overflow: hidden; padding: 0 7px; border-color: var(--acs-primary); background: var(--acs-surface-selected); text-align: left; }
+.trackBody button[data-kind="AUDIO"] { border-color: var(--acs-warning); background: var(--acs-accent-soft); }
+.trackBody button[data-kind="SUBTITLE"] { border-color: var(--acs-info); background: var(--acs-info-soft); }
+.trackBody button[data-kind="EFFECT"] { border-color: var(--acs-danger); background: var(--acs-danger-soft); }
+.trackBody button[data-active="true"] { box-shadow: inset 0 0 0 2px var(--acs-text-primary); }
+.trackBody button[data-enabled="false"] { opacity: .45; }
+.trackBody button span { font-size: 10px; white-space: nowrap; }
+.versionList { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.versionList li { display: grid; gap: 2px; padding: 7px; border-left: 2px solid var(--acs-border); }
+.versionList li[data-current="true"] { border-left-color: var(--acs-primary); background: var(--acs-surface-selected); }
+.versionList span { color: var(--acs-text-muted); font-size: 9px; overflow-wrap: anywhere; }
+.primaryAction { width: 100%; margin-top: 16px; border-color: var(--acs-primary) !important; background: var(--acs-surface-selected) !important; }
+@media (max-width: 1320px) { .storyboardLayout, .audioLayout, .timelineStudio { grid-template-columns: minmax(170px, 215px) minmax(380px, 1fr); } .storyboardLayout > aside:last-child, .audioLayout > aside:last-child, .timelineStudio > aside:last-child { grid-column: 1 / -1; } }
+@media (max-width: 900px) { .workspaceHeader, .runtimeHold { flex-direction: column; } .runSelector { width: 100%; } .storyboardLayout, .audioLayout, .timelineStudio { grid-template-columns: minmax(0, 1fr); } .storyboardLayout > aside:last-child, .audioLayout > aside:last-child, .timelineStudio > aside:last-child { grid-column: auto; } }
+@media (max-width: 620px) { .workspace { padding: 12px; } .runSelector { grid-template-columns: minmax(0, 1fr); } .runSelector label { grid-column: auto; } .shotGrid, .audioSummaryGrid { grid-template-columns: minmax(0, 1fr); } .trackLane { grid-template-columns: 64px minmax(0, 1fr); } .timelineRuler { padding-left: 72px; } }

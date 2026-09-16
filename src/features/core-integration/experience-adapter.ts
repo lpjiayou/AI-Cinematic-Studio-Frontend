@@ -77,10 +77,13 @@ function isAllowed(path: string, method: string) {
       if (
         resource === "delivery" ||
         resource === "production-readiness" ||
-        resource === "state-projection"
+        resource === "state-projection" ||
+        resource === "timeline-versions"
       ) {
         return method === "GET";
       }
+      if (resource === "timeline") return method === "GET" || method === "POST";
+      if (resource === "timeline-edits") return method === "POST";
       if (
         new Set([
           "real-image-candidates",

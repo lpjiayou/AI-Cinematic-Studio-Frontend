@@ -379,17 +379,17 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
       story: `${projectRoot}/story`,
       script: `${projectRoot}/script`,
       characters: `${projectRoot}/characters`,
+      storyboard: `${projectRoot}/storyboard`,
+      generation: `${projectRoot}/generation`,
+      audio: `${projectRoot}/audio`,
+      timeline: `${projectRoot}/timeline`,
       review: `${projectRoot}/post`,
       delivery: `${projectRoot}/delivery`,
     };
     for (const [id, href] of Object.entries(expectedAvailable)) {
-      assert(await projectNavigation.locator(`[data-destination-id="${id}"]`).getAttribute("href") === href, `${id} migration href changed`);
-    }
-    const generationDestination = projectNavigation.locator('[data-destination-id="generation"]');
-    assert(await generationDestination.getAttribute("data-availability") === "available", "generation is not available");
-    assert(await generationDestination.getAttribute("href") === `${projectRoot}/generation`, "generation href changed");
-    for (const id of ["storyboard", "audio", "timeline"]) {
-      assert(await projectNavigation.locator(`[data-destination-id="${id}"]`).getAttribute("data-availability") === "blocked", `${id} is not blocked`);
+      const destination = projectNavigation.locator(`[data-destination-id="${id}"]`);
+      assert(await destination.getAttribute("data-availability") === "available", `${id} is not available`);
+      assert(await destination.getAttribute("href") === href, `${id} migration href changed`);
     }
     const compatibilityLink = page.getByRole("link", { name: /查看历史兼容生产记录/ });
     assert(await compatibilityLink.getAttribute("href") === `${projectRoot}/production`, "history compatibility route changed");
@@ -469,11 +469,10 @@ if (browserExecutable) launchOptions.executablePath = browserExecutable;
     await openAndCloseDrawer("打开项目导航", "项目导航", screenshotNames[5], async (dialog) => {
       const navigation = dialog.getByRole("navigation", { name: "移动端项目导航" });
       assert(await navigation.getByRole("link").count() === 10, "mobile project navigation count changed");
-      const generationDestination = navigation.locator('[data-destination-id="generation"]');
-      assert(await generationDestination.getAttribute("data-availability") === "available", "mobile generation is not available");
-      assert(await generationDestination.getAttribute("href") === `${projectRoot}/generation`, "mobile generation href changed");
-      for (const id of ["storyboard", "audio", "timeline"]) {
-        assert(await navigation.locator(`[data-destination-id="${id}"]`).getAttribute("data-availability") === "blocked", `mobile ${id} reason is not discoverable`);
+      for (const [id, href] of Object.entries(expectedAvailable)) {
+        const destination = navigation.locator(`[data-destination-id="${id}"]`);
+        assert(await destination.getAttribute("data-availability") === "available", `mobile ${id} is not available`);
+        assert(await destination.getAttribute("href") === href, `mobile ${id} href changed`);
       }
     });
     await openAndCloseDrawer("打开 Authority/Evidence", "技术证据", screenshotNames[6], async (dialog) => {

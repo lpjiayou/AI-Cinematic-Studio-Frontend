@@ -8,7 +8,10 @@ import {
   UNEXPECTED_REQUEST_FAILURE,
   classifyWave1BRequestFailure,
 } from "./gate-frontend-v3-wave-1b-request-policy.mjs";
-import { isApprovedPendingRequestToken } from "./gate-frontend-v3-wave-1c.mjs";
+import {
+  isApprovedPendingRequestToken,
+  isApprovedProductionWorkspaceToken,
+} from "./gate-frontend-v3-wave-1c.mjs";
 
 const baseOrigin = "http://127.0.0.1:3101";
 
@@ -160,4 +163,26 @@ test("Wave 1C compares canonical LF content without accepting other content norm
 test("Wave 1C fails closed for absent source or a token outside the closed vocabulary", () => {
   assert.equal(isApprovedPendingRequestToken(pendingRequestPath, null, "sessionStorage"), false);
   assert.equal(isApprovedPendingRequestToken(pendingRequestPath, pendingRequestSource, undefined), false);
+});
+
+const productionWorkspaceApprovals = [
+  [
+    "src/features/creator-v3/workspaces/production-studio/storyboard-workspace.tsx",
+    "executionMethod",
+  ],
+  [
+    "src/features/creator-v3/workspaces/production-studio/timeline-workspace.tsx",
+    "crypto.randomUUID",
+  ],
+];
+
+test("Wave 1C permits only the exact production-workspace blob and its single approved token", () => {
+  for (const [relativePath, token] of productionWorkspaceApprovals) {
+    const source = fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
+    assert.equal(source.includes(token), true);
+    assert.equal(isApprovedProductionWorkspaceToken(relativePath, source, token), true);
+    assert.equal(isApprovedProductionWorkspaceToken(relativePath, `${source}\n`, token), false);
+    assert.equal(isApprovedProductionWorkspaceToken(`outside/${relativePath}`, source, token), false);
+    assert.equal(isApprovedProductionWorkspaceToken(relativePath, source, "localStorage"), false);
+  }
 });

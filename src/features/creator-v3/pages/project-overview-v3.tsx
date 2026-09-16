@@ -91,16 +91,20 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
         <h2 id="available-workspaces-title">当前可用工作区</h2>
         <div className={styles.workspaceGrid}>
           {[
-            ["故事", "V3 工作区已可用"],
-            ["剧本", "V3 工作区已可用"],
-            ["角色", "V3 只读/受权威约束工作区已可用"],
-            ["生成", "原 Operator 接线；以当前服务端状态为准"],
-            ["审片", "当前 fail-closed 兼容工作区可用"],
-            ["交付", "当前 fail-closed 兼容工作区可用"],
-          ].map(([label, state]) => (
+            ["故事", "V3 工作区已可用", `${projectRoot}/story`],
+            ["剧本", "V3 工作区已可用", `${projectRoot}/script`],
+            ["角色", "V3 只读/受权威约束工作区已可用", `${projectRoot}/characters`],
+            ["分镜", "M8 镜头图与服务器方法计划已接入", `${projectRoot}/storyboard`],
+            ["生成", "原 Operator 接线；以当前服务端状态为准", `${projectRoot}/generation`],
+            ["音频", "M9/M12 合同可读；M12 Runtime 保持禁用", `${projectRoot}/audio`],
+            ["剪辑", "M13 Timeline 版本、轨道与片段已接入", `${projectRoot}/timeline`],
+            ["审片", "当前 fail-closed 兼容工作区可用", `${projectRoot}/post`],
+            ["交付", "当前 fail-closed 兼容工作区可用", `${projectRoot}/delivery`],
+          ].map(([label, state, href]) => (
             <ACSCard key={label} title={label} padding="compact">
               <p className={styles.compatibleState}>{state}</p>
-              <small>{["故事", "剧本", "角色", "生成"].includes(label) ? "真实 Core 工作区入口。" : "迁移期兼容入口，不表示 V3 页面已完成。"}</small>
+              <small>{["审片", "交付"].includes(label) ? "迁移期兼容入口，不表示 M14/M15 已完成。" : "真实 Core 工作区入口。"}</small>
+              <Link className={styles.compatibilityLink} href={href}>进入{label}工作区</Link>
             </ACSCard>
           ))}
         </div>
@@ -109,14 +113,11 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
       <section aria-labelledby="blocked-destinations-title" className={styles.section}>
         <div className={styles.sectionHeading}>
           <div>
-            <h2 id="blocked-destinations-title">未开放目的地</h2>
-            <p>这些位置可发现，但不提供执行按钮。</p>
+            <h2 id="blocked-destinations-title">仍受限制的执行能力</h2>
+            <p>工作区已开放，但运行时、批准与发布边界继续 fail-closed。</p>
           </div>
         </div>
         <div className={styles.blockerGrid}>
-          <div id="destination-storyboard">
-            <CapabilityBlocker blockerClass="ui_missing" severity="warning" affectedCapability="分镜" title="分镜" cause="分镜与服务器方法计划界面将在 Wave 2 实施" consequence="当前不能在此建立新的分镜或服务器方法计划" owner="Frontend Wave 2" compact />
-          </div>
           <div id="destination-generation">
             <CapabilityBlocker
               blockerClass="runtime_unavailable"
@@ -132,10 +133,7 @@ function OverviewCanvas({ project }: { project: CreatorProject }) {
             <Link className={styles.compatibilityLink} href={`${projectRoot}/generation`}>打开视频生成</Link>
           </div>
           <div id="destination-audio">
-            <CapabilityBlocker blockerClass="runtime_unavailable" severity="warning" affectedCapability="音频" title="音频" cause="显式音频需求界面尚未实施，M12 Runtime G0 未完成" consequence="当前不能提交新的音频生产任务" owner="Frontend Wave 2 与 M12" compact />
-          </div>
-          <div id="destination-timeline">
-            <CapabilityBlocker blockerClass="ui_missing" severity="warning" affectedCapability="剪辑" title="剪辑" cause="M13 Timeline Studio 产品界面尚未实施" consequence="当前不能在此创建或修改 Timeline" owner="Frontend Wave 2 与 M13" compact />
+            <CapabilityBlocker blockerClass="runtime_unavailable" severity="warning" affectedCapability="音频" title="音频运行" cause="音频需求与路由工作区已接入，但 M12 Runtime G0 未完成" consequence="可以核验需求和时间绑定，不能提交新的音频生产任务" owner="M12 Runtime" evidenceAction={<Link className={styles.compatibilityLink} href={`${projectRoot}/audio`}>打开音频合同工作区</Link>} compact />
           </div>
         </div>
       </section>

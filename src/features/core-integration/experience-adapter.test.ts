@@ -65,12 +65,47 @@ describe("Method-aware closed Adapter", () => {
   }
   it("keeps the four-resource set closed", async () => {
     const mock = vi.spyOn(globalThis, "fetch");
-    for (const resource of ["provider-experiments", "dynamic-media-preflight", "real-media-revision", "real-video-revision", "reviewed-import", "canonical-registrations", "timeline", "render-candidates"]) {
+    for (const resource of ["provider-experiments", "dynamic-media-preflight", "real-media-revision", "real-video-revision", "reviewed-import", "canonical-registrations", "render-candidates"]) {
       for (const method of ["GET", "POST"]) {
         const response = await handleCreatorExperienceRequest(new Request(url(resource), { method }), ["episode-production-runs", "run-test", resource]); expect(response.status).toBe(404);
       }
     }
     expect(mock).not.toHaveBeenCalled();
+  });
+  it("allows only the closed M13 Timeline methods and preserves Core responses", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      coreResponse({ ok: false, error: { code: "authority_required", message: "M6 authority required" } }, 403),
+    );
+    for (const [resource, method] of [
+      ["timeline", "GET"],
+      ["timeline", "POST"],
+      ["timeline-versions", "GET"],
+      ["timeline-edits", "POST"],
+    ] as const) {
+      const init = method === "POST"
+        ? { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operationRef: "operation-1" }) }
+        : { method };
+      const response = await handleCreatorExperienceRequest(
+        new Request(url(resource), init),
+        ["episode-production-runs", "run-test", resource],
+      );
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({ error: { code: "authority_required" } });
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+
+    for (const [resource, method] of [
+      ["timeline-versions", "POST"],
+      ["timeline-edits", "GET"],
+      ["timeline", "DELETE"],
+    ] as const) {
+      const response = await handleCreatorExperienceRequest(
+        new Request(url(resource), { method }),
+        ["episode-production-runs", "run-test", resource],
+      );
+      expect(response.status).toBe(404);
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
   it("rejects nested digest and unknown shape claims, including incomplete speech source spans", async () => {
     const input = inputCommand(); Object.assign(input.assetBindings[0], { assetVersionDigest: "forged" });
