@@ -65,8 +65,12 @@ const protectedFiles = {
 // blob (LF) remains pinned; this is not a waiver of the historical UI boundaries.
 // The runtime-environment status publication pins the merged Core PR #102 via
 // the same workflow fields without widening the protected adapter boundary.
+// The M8/M12/M13 production-workspace publication extends only the shared
+// projection contracts and the exact timeline proxy allowlist. Both blobs are
+// pinned here; the remaining historical Wave 1C files stay byte-frozen.
 const authorizedD1CompatibilityFiles = {
-  "src/features/core-integration/experience-adapter.ts": "449a399d134389245a825ecc0647c0e48987c43a469aa32244e82304d4d55b34",
+  "src/features/core-integration/experience-adapter.ts": "6314d061d707aa7a71d522bd5dfc0d323ab23de4c106fd6017958e07220c010e",
+  "src/features/core-integration/contracts.ts": "72deb4cf97e31125142344f84677aa5ac7581a980ca548fd3d368a05dc9f4dc3",
   ".github/workflows/frontend-ci.yml": "c6a81af66b18fc82236fea4d72a07737636f0446a0aab6586f45b8c0ddd867fc",
 };
 
